@@ -293,6 +293,7 @@ export class TownsController extends Controller {
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
 
+    //TODO Edit to allow players to be added as a TA or professor 
     const newPlayer = await town.addPlayer(userName, socket);
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
