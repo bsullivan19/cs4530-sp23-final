@@ -26,6 +26,7 @@ import {
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
 import { isPosterSessionArea } from '../TestUtils';
+import Player from '../lib/Player';
 
 /**
  * This is the town route
@@ -61,6 +62,7 @@ export class TownsController extends Controller {
       request.friendlyName,
       request.isPubliclyListed,
       request.mapFile,
+      request.taPassword,
     );
     return {
       townID,
@@ -282,7 +284,12 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, townID } = socket.handshake.auth as { userName: string; townID: string };
+    const { userName, townID, enteredTAPassword } = socket.handshake.auth as {
+      userName: string;
+      townID: string;
+      // TODO implement password enter on the frontend
+      enteredTAPassword?: string;
+    };
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
@@ -293,8 +300,14 @@ export class TownsController extends Controller {
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
 
-    //TODO Edit to allow players to be added as a TA or professor 
-    const newPlayer = await town.addPlayer(userName, socket);
+    // add players with the entered ta passward or undefined if none
+    let newPlayer: Player;
+    try {
+      newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
+    } catch (e) {
+      // TODO add error throw of some kind in frontend
+      throw new Error('');
+    }
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
       userID: newPlayer.id,
