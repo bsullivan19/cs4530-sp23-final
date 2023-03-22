@@ -57,6 +57,7 @@ export class TownsController extends Controller {
    */
   @Example<TownCreateResponse>({ townID: 'stringID', townUpdatePassword: 'secretPassword' })
   @Post()
+  // TODO Update to optionally accept ta password, so that it is either a string or undefined.
   public async createTown(@Body() request: TownCreateParams): Promise<TownCreateResponse> {
     const { townID, townUpdatePassword } = await this._townsStore.createTown(
       request.friendlyName,
