@@ -1,7 +1,9 @@
 import { ITiledMap } from '@jonbell/tiled-map-type-guard';
 import { DeepMockProxy, mockClear, mockDeep, mockReset } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
+import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import Player from '../lib/Player';
+import TA, { isTA } from '../lib/TA';
 import TwilioVideo from '../lib/TwilioVideo';
 import {
   ClientEventTypes,
@@ -458,7 +460,7 @@ describe('Town', () => {
   let playerTestData: MockedPlayer;
 
   beforeEach(async () => {
-    town = new Town(nanoid(), false, nanoid(), townEmitter, nanoid());
+    town = new Town(nanoid(), false, nanoid(), townEmitter, 'very secure password');
     playerTestData = mockPlayer(town.townID);
     player = await town.addPlayer(playerTestData.userName, playerTestData.socket);
     playerTestData.player = player;
@@ -515,6 +517,28 @@ describe('Town', () => {
             occupantsByID: [],
           }),
         ).not.toThrowError();
+      });
+      describe('TA password testing', () => {
+        it('Adds user as a player when no passowrd is given', async () => {
+          const newPlayer = mockPlayer(town.townID);
+          const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
+          expect(isTA(newPlayerObj)).toBe(false);
+        });
+        it('Adds user as a TA when correct passowrd is given', async () => {
+          const newPlayer = mockPlayer(town.townID);
+          const newPlayerObj = await town.addPlayer(
+            newPlayer.userName,
+            newPlayer.socket,
+            'very secure password',
+          );
+          expect(isTA(newPlayerObj)).toBe(true);
+        });
+        it('Throws error when incorrect passowrd is given', async () => {
+          const newPlayer = mockPlayer(town.townID);
+          await expect(
+            town.addPlayer(newPlayer.userName, newPlayer.socket, '1234'),
+          ).rejects.toThrowError('Incorrect ta password entered');
+        });
       });
       describe('When called passing a valid viewing area', () => {
         let newArea: ViewingAreaModel;
