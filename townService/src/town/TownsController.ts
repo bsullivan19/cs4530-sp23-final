@@ -27,6 +27,7 @@ import {
 import PosterSessionAreaReal from './PosterSessionArea';
 import { isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
+import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 
 /**
  * This is the town route
@@ -57,7 +58,9 @@ export class TownsController extends Controller {
    */
   @Example<TownCreateResponse>({ townID: 'stringID', townUpdatePassword: 'secretPassword' })
   @Post()
-  // TODO Update to optionally accept ta password, so that it is either a string or undefined.
+  // TODO Update to optionally accept ta password, so that if the request does not contain
+  // a tapassword, nothing will be passed to create town. Not sure how request works in this scenario
+  // but create town sets password to nanoid if no value given.
   public async createTown(@Body() request: TownCreateParams): Promise<TownCreateResponse> {
     const { townID, townUpdatePassword } = await this._townsStore.createTown(
       request.friendlyName,
@@ -306,8 +309,13 @@ export class TownsController extends Controller {
     try {
       newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
     } catch (e) {
-      // TODO add error throw of some kind in frontend
-      throw new Error('');
+      if (e instanceof InvalidTAPasswordError){
+        // TODO Toast that ta password is invalid
+      } else {
+        // TODO Toast that a BAD error occurrd
+      }
+      // return if error
+      return;
     }
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
