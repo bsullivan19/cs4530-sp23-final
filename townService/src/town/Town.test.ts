@@ -487,6 +487,19 @@ describe('Town', () => {
       expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
       expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
     });
+    it('should use the townID and player ID properties when requesting a video token for a TA', async () => {
+      const newPlayer = mockPlayer(town.townID);
+      mockTwilioVideo.getTokenForTown.mockClear();
+      const newPlayerObj = await town.addPlayer(
+        newPlayer.userName,
+        newPlayer.socket,
+        'very secure password',
+      );
+
+      expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
+      expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
+      expect(isTA(newPlayerObj)).toBe(true);
+    });
     it('should register callbacks for all client-to-server events', () => {
       const expectedEvents: ClientEventTypes[] = [
         'disconnect',
