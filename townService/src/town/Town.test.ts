@@ -470,46 +470,68 @@ describe('Town', () => {
     mockReset(townEmitter);
   });
 
-  it('constructor should set its properties', () => {
-    const townName = `FriendlyNameTest-${nanoid()}`;
-    const townID = nanoid();
-    const testTown = new Town(townName, true, townID, townEmitter, nanoid());
-    expect(testTown.friendlyName).toBe(townName);
-    expect(testTown.townID).toBe(townID);
-    expect(testTown.isPubliclyListed).toBe(true);
-  });
-  describe('addPlayer', () => {
-    it('should use the townID and player ID properties when requesting a video token', async () => {
-      const newPlayer = mockPlayer(town.townID);
-      mockTwilioVideo.getTokenForTown.mockClear();
-      const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
-
-      expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
-      expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
+  describe('Town construction testing', () => {
+    let townName: string;
+    let townID: string;
+    let townPW: string;
+    let testTown: Town;
+    beforeEach(async () => {
+      townName = `FriendlyNameTest-${nanoid()}`;
+      townID = nanoid();
+      townPW = nanoid();
+      testTown = new Town(townName, true, townID, townEmitter, townPW);
     });
-    it('should use the townID and player ID properties when requesting a video token for a TA', async () => {
-      const newPlayer = mockPlayer(town.townID);
-      mockTwilioVideo.getTokenForTown.mockClear();
-      const newPlayerObj = await town.addPlayer(
-        newPlayer.userName,
-        newPlayer.socket,
-        'very secure password',
-      );
-
-      expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
-      expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
-      expect(isTA(newPlayerObj)).toBe(true);
+    it('constructor should set its properties', () => {
+      expect(testTown.friendlyName).toBe(townName);
+      expect(testTown.townID).toBe(townID);
+      expect(testTown.isPubliclyListed).toBe(true);
     });
-    it('should register callbacks for all client-to-server events', () => {
-      const expectedEvents: ClientEventTypes[] = [
-        'disconnect',
-        'chatMessage',
-        'playerMovement',
-        'interactableUpdate',
-      ];
-      expectedEvents.forEach(eachEvent =>
-        expect(getEventListener(playerTestData.socket, eachEvent)).toBeDefined(),
-      );
+    describe('Test professor can set town password', () => {
+      it('Check pw is set in town correctly by granting TA permissions if matches', async () => {
+        const newPlayer = mockPlayer(testTown.townID);
+        const newPlayerObj = await testTown.addPlayer(newPlayer.userName, newPlayer.socket, townPW);
+        expect(isTA(newPlayerObj)).toBe(true);
+      });
+      it('Check pw is set in town correctly by denying TA permissions if does not match', async () => {
+        const newPlayer = mockPlayer(testTown.townID);
+        await expect(
+          testTown.addPlayer(newPlayer.userName, newPlayer.socket, nanoid()),
+        ).rejects.toThrowError('Incorrect ta password entered');
+      });
+    });
+    describe('addPlayer', () => {
+      it('should use the townID and player ID properties when requesting a video token', async () => {
+        const newPlayer = mockPlayer(town.townID);
+        mockTwilioVideo.getTokenForTown.mockClear();
+        const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
+
+        expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
+        expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
+      });
+      it('should use the townID and player ID properties when requesting a video token for a TA', async () => {
+        const newPlayer = mockPlayer(town.townID);
+        mockTwilioVideo.getTokenForTown.mockClear();
+        const newPlayerObj = await town.addPlayer(
+          newPlayer.userName,
+          newPlayer.socket,
+          'very secure password',
+        );
+
+        expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
+        expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
+        expect(isTA(newPlayerObj)).toBe(true);
+      });
+      it('should register callbacks for all client-to-server events', () => {
+        const expectedEvents: ClientEventTypes[] = [
+          'disconnect',
+          'chatMessage',
+          'playerMovement',
+          'interactableUpdate',
+        ];
+        expectedEvents.forEach(eachEvent =>
+          expect(getEventListener(playerTestData.socket, eachEvent)).toBeDefined(),
+        );
+      });
     });
     describe('[T1] interactableUpdate callback', () => {
       let interactableUpdateHandler: (update: Interactable) => void;
