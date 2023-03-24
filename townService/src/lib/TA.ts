@@ -3,6 +3,11 @@ import Player from './Player';
 
 export type Question = string;
 
+// Returns true if player is a TA and false if not
+export function isTA(player: Player): player is TA {
+  return 'currentQuestion' in player;
+}
+
 export default class TA extends Player {
   // The current question this TA is answering
   private _currrentQuestion?: Question;
