@@ -57,4 +57,9 @@ export interface TownCreateParams {
    * Not currently used on frontend
    */
   mapFile?: string;
+
+  /**
+   * The password to become a TA in this town. If none is given the taPassword will be set to a random string
+   */
+  taPassword?: string;
 }

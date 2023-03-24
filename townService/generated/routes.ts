@@ -119,6 +119,7 @@ export function RegisterRoutes(app: express.Router) {
                 return next(err);
             }
         });
+        // TODO regenerate with tool to include optional ta pw in createTown as frontend input
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.post('/towns',
             ...(fetchMiddlewares<RequestHandler>(TownsController)),

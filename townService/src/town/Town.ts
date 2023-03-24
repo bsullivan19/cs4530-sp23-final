@@ -20,6 +20,8 @@ import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
 import ViewingArea from './ViewingArea';
 import PosterSessionArea from './PosterSessionArea';
+import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
+import TA from '../lib/TA';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -90,11 +92,14 @@ export default class Town {
 
   private _connectedSockets: Set<CoveyTownSocket> = new Set();
 
+  private _taPassword: string;
+
   constructor(
     friendlyName: string,
     isPubliclyListed: boolean,
     townID: string,
     broadcastEmitter: BroadcastOperator<ServerToClientEvents, SocketData>,
+    taPassword: string,
   ) {
     this._townID = townID;
     this._capacity = 50;
@@ -102,16 +107,33 @@ export default class Town {
     this._isPubliclyListed = isPubliclyListed;
     this._friendlyName = friendlyName;
     this._broadcastEmitter = broadcastEmitter;
+    this._taPassword = taPassword;
   }
 
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
-   * player, and returning them
+   * player, and returning them. If a ta password is given it will be verified and an error
+   * will be thrown if it does not match.
    *
    * @param newPlayer The new player to add to the town
    */
-  async addPlayer(userName: string, socket: CoveyTownSocket): Promise<Player> {
-    const newPlayer = new Player(userName, socket.to(this._townID));
+  async addPlayer(
+    userName: string,
+    socket: CoveyTownSocket,
+    enteredTAPassword?: string,
+  ): Promise<Player> {
+    let newPlayer: Player;
+    // Check if password entered and verify if it is correct
+    if (enteredTAPassword) {
+      if (enteredTAPassword !== this._taPassword) {
+        throw new InvalidTAPasswordError('Incorrect ta password entered');
+      }
+      // create user as TA instead of Player
+      newPlayer = new TA(userName, socket.to(this._townID));
+    } else {
+      newPlayer = new Player(userName, socket.to(this._townID));
+    }
+
     this._players.push(newPlayer);
 
     this._connectedSockets.add(socket);

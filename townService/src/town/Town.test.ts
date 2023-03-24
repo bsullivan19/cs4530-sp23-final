@@ -458,7 +458,7 @@ describe('Town', () => {
   let playerTestData: MockedPlayer;
 
   beforeEach(async () => {
-    town = new Town(nanoid(), false, nanoid(), townEmitter);
+    town = new Town(nanoid(), false, nanoid(), townEmitter, nanoid());
     playerTestData = mockPlayer(town.townID);
     player = await town.addPlayer(playerTestData.userName, playerTestData.socket);
     playerTestData.player = player;
@@ -471,7 +471,7 @@ describe('Town', () => {
   it('constructor should set its properties', () => {
     const townName = `FriendlyNameTest-${nanoid()}`;
     const townID = nanoid();
-    const testTown = new Town(townName, true, townID, townEmitter);
+    const testTown = new Town(townName, true, townID, townEmitter, nanoid());
     expect(testTown.friendlyName).toBe(townName);
     expect(testTown.townID).toBe(townID);
     expect(testTown.isPubliclyListed).toBe(true);
