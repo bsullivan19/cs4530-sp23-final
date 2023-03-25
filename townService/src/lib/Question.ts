@@ -1,7 +1,8 @@
+import { nanoid } from 'nanoid';
 import Player from './Player';
+import { OfficeHoursQuestion } from '../types/CoveyTownSocket';
 
 export default class Question {
-
   /* The unique identifier for this question */
   private readonly _id: string;
 
@@ -9,7 +10,7 @@ export default class Question {
   private _questionContent: string;
 
   /* The current set of players in this question. */
-  protected _students: Player[] = [];
+  protected _studentsByID: string[] = [];
 
   /* Is this question a group question */
   private _groupQuestion: boolean;
@@ -26,7 +27,7 @@ export default class Question {
   }
 
   public get studentsByID(): string[] {
-    return this._students.map(eachStudent => eachStudent.id);
+    return this._studentsByID;
   }
 
   public get isGroup(): boolean {
@@ -43,22 +44,43 @@ export default class Question {
    * @param studentCreator The player that asked the question
    * @param questionContent The content of the question
    */
-  constructor(id: string, studentCreator: Player, questionContent: string) {
+  constructor(id: string, studentCreatorID: string, questionContent: string) {
     this._id = id;
     this._questionContent = questionContent;
-    this._students.push(studentCreator);
+    this._studentsByID.push(studentCreatorID);
     this._groupQuestion = false;
     this._waitTime = 0;
   }
 
-  public addStudent(newStudent: Player) {
-    this._students.push(newStudent);
+  public addStudent(studentID: string) {
+    this._studentsByID.push(studentID);
   }
 
-  public removeStudent(student: Player) {
-    const index = this._students.findIndex(currStudent => currStudent.id === student.id);
+  public removeStudent(studentID: string) {
+    const index = this._studentsByID.findIndex(currStudentID => currStudentID === studentID);
     if (index !== -1) {
-      this._students.splice(index, 1);
+      this._studentsByID.splice(index, 1);
     }
+  }
+
+  public toModel(): OfficeHoursQuestion {
+    return {
+      id: this.id,
+      students: this.studentsByID,
+      questionContent: this.questionContent,
+      groupQuestion: this._groupQuestion,
+    };
+  }
+
+  public static fromQuestionModel(
+    id: string,
+    studentsByID: string[],
+    questionContent: string,
+    groupQuestion: boolean,
+  ): Question {
+    const question = new Question(id, studentsByID[0], questionContent);
+    question._groupQuestion = groupQuestion;
+    question._studentsByID = studentsByID;
+    return question;
   }
 }

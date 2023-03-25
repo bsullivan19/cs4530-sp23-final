@@ -17,7 +17,7 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea | PosterSessionArea;
+export type Interactable = ViewingArea | ConversationArea | PosterSessionArea | OfficeHoursArea;
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -75,6 +75,19 @@ export interface PosterSessionArea {
   stars: number;
   imageContents?: string;
   title?: string;
+}
+
+export interface OfficeHoursQuestion {
+  id: string;
+  questionContent: string;
+  students: string[];
+  groupQuestion: boolean;
+}
+
+export interface OfficeHoursArea {
+  id: string;
+  numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
+  questions?: OfficeHoursQuestion[]; // id's of questions in queue
 }
 
 export interface ServerToClientEvents {
