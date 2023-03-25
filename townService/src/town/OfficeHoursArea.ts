@@ -2,6 +2,7 @@ import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import { nanoid } from 'nanoid';
 import Player from '../lib/Player';
 import Question from '../lib/Question';
+import TA, { isTA } from '../lib/TA';
 import {
   BoundingBox,
   TownEmitter,
@@ -14,7 +15,7 @@ import InteractableArea from './InteractableArea';
 export default class OfficeHoursArea extends InteractableArea {
   private _queue: Question[];
 
-  private _teachingAssistants: Player[];
+  private _teachingAssistants: TA[];
 
   private _numRooms: number;
 
@@ -31,7 +32,7 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   private _isTAOnline(player: Player): boolean {
-    return this._teachingAssistants.map(p => p.id).includes(player.id);
+    return this._teachingAssistants.find(ta => ta.id === player.id) !== undefined;
   }
 
   public get isActive(): boolean {
@@ -62,17 +63,15 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public add(player: Player) {
     super.add(player);
-    throw new Error('Not yet implemented');
-    // TODO:
-    // if (isTA(player)) {
-    //   this._teachingAssistants.push(player);
-    // }
+    if (isTA(player)) {
+      this._teachingAssistants.push(player);
+    }
   }
 
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistants = this._teachingAssistants.filter(ta => ta.id !== player.id);
-    this._queue.forEach(q => q.studentsByID.filter(sid => sid !== player.id));
+    this._queue.forEach(q => q.removeStudent(player.id));
   }
 
   public addQuestion(student: Player, question: string) {
@@ -81,8 +80,9 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public takeQuestion(TA: Player, questionID: string) {
     const question = this._queue.find(q => q.id === questionID);
-    throw new Error('Not yet implemented');
-    // TODO: Give to TA object
+    if (question && isTA(TA) && this.teachingAssistants.find(p => p.id === TA.id)) {
+      TA.currentQuestion = question.id;
+    }
   }
 
   public joinQuestion(student: Player, questionID: string) {

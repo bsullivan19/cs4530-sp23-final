@@ -309,7 +309,7 @@ export class TownsController extends Controller {
     try {
       newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
     } catch (e) {
-      if (e instanceof InvalidTAPasswordError){
+      if (e instanceof InvalidTAPasswordError) {
         // TODO Toast that ta password is invalid
       } else {
         // TODO Toast that a BAD error occurrd
