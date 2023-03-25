@@ -26,6 +26,8 @@ import {
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
 import { isPosterSessionArea } from '../TestUtils';
+import Player from '../lib/Player';
+import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 
 /**
  * This is the town route
@@ -56,11 +58,15 @@ export class TownsController extends Controller {
    */
   @Example<TownCreateResponse>({ townID: 'stringID', townUpdatePassword: 'secretPassword' })
   @Post()
+  // TODO Update to optionally accept ta password, so that if the request does not contain
+  // a tapassword, nothing will be passed to create town. Not sure how request works in this scenario
+  // but create town sets password to nanoid if no value given.
   public async createTown(@Body() request: TownCreateParams): Promise<TownCreateResponse> {
     const { townID, townUpdatePassword } = await this._townsStore.createTown(
       request.friendlyName,
       request.isPubliclyListed,
       request.mapFile,
+      request.taPassword,
     );
     return {
       townID,
@@ -282,7 +288,12 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, townID } = socket.handshake.auth as { userName: string; townID: string };
+    const { userName, townID, enteredTAPassword } = socket.handshake.auth as {
+      userName: string;
+      townID: string;
+      // TODO implement password enter on the frontend
+      enteredTAPassword?: string;
+    };
 
     const town = this._townsStore.getTownByID(townID);
     if (!town) {
@@ -293,7 +304,19 @@ export class TownsController extends Controller {
     // Connect the client to the socket.io broadcast room for this town
     socket.join(town.townID);
 
-    const newPlayer = await town.addPlayer(userName, socket);
+    // add players with the entered ta passward or undefined if none
+    let newPlayer: Player;
+    try {
+      newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
+    } catch (e) {
+      if (e instanceof InvalidTAPasswordError){
+        // TODO Toast that ta password is invalid
+      } else {
+        // TODO Toast that a BAD error occurrd
+      }
+      // return if error
+      return;
+    }
     assert(newPlayer.videoToken);
     socket.emit('initialize', {
       userID: newPlayer.id,
