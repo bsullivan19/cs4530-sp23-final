@@ -79,15 +79,21 @@ export interface PosterSessionArea {
 
 export interface OfficeHoursQuestion {
   id: string;
+  officeHoursID: string;
   questionContent: string;
   students: string[];
   groupQuestion: boolean;
 }
 
+export interface OfficeHoursQueue {
+  officeHoursID: string;
+  questionQueue: OfficeHoursQuestion[];
+}
+
 export interface OfficeHoursArea {
   id: string;
   numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
-  questions?: OfficeHoursQuestion[]; // id's of questions in queue
+  teachingAssistants: string[]; // the TA's currently online
 }
 
 export interface ServerToClientEvents {
@@ -99,10 +105,18 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+
+  // TODO: Is this a bad idea?
+
+  // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
+  officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+
+  // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
 }

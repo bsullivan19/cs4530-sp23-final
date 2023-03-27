@@ -4,7 +4,7 @@ import { BroadcastOperator } from 'socket.io';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
 import TwilioVideo from '../lib/TwilioVideo';
-import { isPosterSessionArea, isViewingArea } from '../TestUtils';
+import { isOfficeHoursArea, isPosterSessionArea, isViewingArea } from '../TestUtils';
 import {
   ChatMessage,
   ConversationArea as ConversationAreaModel,
@@ -15,6 +15,8 @@ import {
   SocketData,
   ViewingArea as ViewingAreaModel,
   PosterSessionArea as PosterSessionAreaModel,
+  OfficeHoursArea as OfficeHoursAreaModel,
+  OfficeHoursQuestion,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -22,6 +24,7 @@ import ViewingArea from './ViewingArea';
 import PosterSessionArea from './PosterSessionArea';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import TA from '../lib/TA';
+import OfficeHoursArea from './OfficeHoursArea';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -164,8 +167,20 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
+    // If the player enters an OfficeHoursArea, emits the queue data to them.
     socket.on('playerMovement', (movementData: PlayerLocation) => {
+      const prevInteractableID = newPlayer.location.interactableID;
       this._updatePlayerLocation(newPlayer, movementData);
+
+      if (prevInteractableID !== newPlayer.location.interactableID) {
+        // Emit the queue data if entering an OfficeHoursArea
+        const interatable = this._interactables.find(
+          area => area.id === newPlayer.location.interactableID,
+        );
+        if (interatable instanceof OfficeHoursArea) {
+          socket.emit('officeHoursQueueUpdate', interatable.toQueueModel());
+        }
+      }
     });
 
     // Set up a listener to process updates to interactables.
@@ -197,8 +212,39 @@ export default class Town {
         if (existingPosterSessionAreaArea) {
           existingPosterSessionAreaArea.updateModel(update);
         }
+      } else if (isOfficeHoursArea(update)) {
+        newPlayer.townEmitter.emit('interactableUpdate', update);
+        const officeHoursArea = this._interactables.find(
+          eachInteractable => eachInteractable.id === update.id,
+        );
+        if (officeHoursArea) {
+          (officeHoursArea as OfficeHoursArea).updateModel(update);
+        }
       }
     });
+
+    /**
+     * Sets up a listener to update the OfficeHoursArea when a question is added, removed, or modified.
+     * Emits an officeHoursQueueUpdate to all players in the OfficeHoursArea with the updated queue.
+     */
+    socket.on('officeHoursQuestionUpdate', (question: OfficeHoursQuestion) => {
+      const officeHoursArea = <OfficeHoursArea>(
+        this._interactables.find(
+          area => area.id === question.officeHoursID && area instanceof OfficeHoursArea,
+        )
+      );
+      if (officeHoursArea) {
+        const prevModel = officeHoursArea.toModel();
+        officeHoursArea.addUpdateQuestion(question);
+        if (prevModel !== officeHoursArea.toModel()) {
+          socket.emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
+          socket
+            .to(officeHoursArea.id)
+            .emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
+        }
+      }
+    });
+
     return newPlayer;
   }
 

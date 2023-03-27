@@ -23,11 +23,13 @@ import {
   TownSettingsUpdate,
   ViewingArea,
   PosterSessionArea,
+  OfficeHoursArea,
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
 import { isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
+import { isTA } from '../lib/TA';
 
 /**
  * This is the town route

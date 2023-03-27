@@ -9,13 +9,14 @@ import {
   OfficeHoursArea as OfficeHoursModel,
   OfficeHoursQuestion,
   Interactable,
+  OfficeHoursQueue,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
 export default class OfficeHoursArea extends InteractableArea {
   private _queue: Question[];
 
-  private _teachingAssistants: TA[]; // TA's currently online
+  private _teachingAssistantsByID: string[]; // TA's currently online
 
   private _numRooms: number;
 
@@ -23,8 +24,8 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._queue;
   }
 
-  public get teachingAssistants() {
-    return this._teachingAssistants;
+  public get teachingAssistantsByID() {
+    return this._teachingAssistantsByID;
   }
 
   public get numRooms() {
@@ -32,41 +33,52 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   public get isActive(): boolean {
-    return this.teachingAssistants.length > 0;
+    return this.teachingAssistantsByID.length > 0;
   }
 
   public constructor(
-    { id, numRooms, questions }: OfficeHoursModel,
+    { id, numRooms }: OfficeHoursModel,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
-    this._teachingAssistants = [];
+    this._teachingAssistantsByID = [];
     this._numRooms = numRooms;
-    this._queue =
-      questions?.map(q =>
-        Question.fromQuestionModel(id, q.students, q.questionContent, q.groupQuestion),
-      ) || [];
+    this._queue = [];
+  }
+
+  public toQueueModel(): OfficeHoursQueue {
+    return {
+      officeHoursID: this.id,
+      questionQueue: this.questionQueue.map(q => q.toModel()),
+    };
   }
 
   public toModel(): OfficeHoursModel {
     return {
       id: this.id,
       numRooms: this.numRooms,
-      questions: this.questionQueue.map(q => q.toModel()),
+      teachingAssistants: this.teachingAssistantsByID,
     };
+  }
+
+  public updateModel(model: OfficeHoursModel) {
+    this._numRooms = model.numRooms;
+    const queueCopy = this._queue;
+    this._queue = [];
+    this._teachingAssistantsByID = model.teachingAssistants;
   }
 
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
-      this._teachingAssistants.push(player);
+      this._teachingAssistantsByID.push(player.id);
     }
   }
 
   public remove(player: Player) {
     super.remove(player);
-    this._teachingAssistants = this._teachingAssistants.filter(ta => ta.id !== player.id);
+    this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
     this._queue.forEach(q => q.removeStudent(player.id));
   }
 
@@ -74,8 +86,16 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._queue.find(q => q.id === questionID);
   }
 
-  public addQuestion(student: Player, question: string) {
-    this._queue.push(new Question(nanoid(), student.id, question));
+  public addUpdateQuestion(questionModel: OfficeHoursQuestion) {
+    if (questionModel.officeHoursID !== this.id) {
+      throw new Error();
+    }
+    const question = this._queue.find(q => q.id === questionModel.id);
+    if (question) {
+      question.updateModel(questionModel);
+    } else {
+      this._queue.push(Question.fromQuestionModel(questionModel));
+    }
   }
 
   public takeQuestion(teachingAssistant: Player, questionID: string) {
@@ -83,16 +103,9 @@ export default class OfficeHoursArea extends InteractableArea {
     if (
       question &&
       isTA(teachingAssistant) &&
-      this.teachingAssistants.find(p => p.id === teachingAssistant.id)
+      this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)
     ) {
       teachingAssistant.currentQuestion = question.id;
-    }
-  }
-
-  public joinQuestion(student: Player, questionID: string) {
-    const question = this._queue.find(q => q.id === questionID);
-    if (question && question.isGroup) {
-      question.addStudent(student.id);
     }
   }
 
