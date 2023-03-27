@@ -58,7 +58,7 @@ export default class OfficeHoursArea extends InteractableArea {
     return {
       id: this.id,
       numRooms: this.numRooms,
-      teachingAssistants: this.teachingAssistantsByID,
+      teachingAssistantsByID: this.teachingAssistantsByID,
     };
   }
 
@@ -66,20 +66,24 @@ export default class OfficeHoursArea extends InteractableArea {
     this._numRooms = model.numRooms;
     const queueCopy = this._queue;
     this._queue = [];
-    this._teachingAssistantsByID = model.teachingAssistants;
+    this._teachingAssistantsByID = model.teachingAssistantsByID;
   }
 
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
       this._teachingAssistantsByID.push(player.id);
+      this._emitAreaChanged();
     }
   }
 
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
-    this._queue.forEach(q => q.removeStudent(player.id));
+    this._queue.forEach(q => q.removeStudent(player));
+    if (isTA(player)) {
+      this._emitAreaChanged();
+    }
   }
 
   public getQuestion(questionID: string): Question | undefined {
@@ -114,7 +118,7 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!question) {
       return;
     }
-    question.removeStudent(student.id);
+    question.removeStudent(student);
     if (question.studentsByID.length === 0) {
       this._queue = this._queue.filter(q => q.id !== questionID);
     }

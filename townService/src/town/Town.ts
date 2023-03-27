@@ -415,6 +415,25 @@ export default class Town {
     return true;
   }
 
+  public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
+    if (officeHoursArea.teachingAssistantsByID.length <= 0 || officeHoursArea.numRooms <= 0) {
+      return false;
+    }
+    const existingOfficeHoursArea = <OfficeHoursArea>(
+      this._interactables.find(
+        area => area.id === officeHoursArea.id && area instanceof OfficeHoursArea,
+      )
+    );
+    if (!existingOfficeHoursArea || existingOfficeHoursArea.teachingAssistantsByID.length > 0) {
+      return false;
+    }
+
+    existingOfficeHoursArea.updateModel(officeHoursArea);
+    existingOfficeHoursArea.addPlayersWithinBounds(this._players);
+    this._broadcastEmitter.emit('interactableUpdate', existingOfficeHoursArea.toModel());
+    return true;
+  }
+
   /**
    * Fetch a player's session based on the provided session token. Returns undefined if the
    * session token is not valid.

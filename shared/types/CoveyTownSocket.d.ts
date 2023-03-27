@@ -93,7 +93,7 @@ export interface OfficeHoursQueue {
 export interface OfficeHoursArea {
   id: string;
   numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
-  teachingAssistants: string[]; // the TA's currently online
+  teachingAssistantsByID: string[]; // the TA's currently online
 }
 
 export interface ServerToClientEvents {
@@ -107,6 +107,8 @@ export interface ServerToClientEvents {
   interactableUpdate: (interactable: Interactable) => void;
 
   // TODO: Is this a bad idea?
+  
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
 
   // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
   officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;

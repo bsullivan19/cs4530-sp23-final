@@ -64,12 +64,14 @@ export default class Question {
     this._waitTime = 0;
   }
 
-  public addStudent(studentID: string) {
-    this._studentsByID.push(studentID);
+  public addStudent(student: Player) {
+    this._studentsByID.push(student.id);
+    student.townEmitter.emit('officeHoursQuestionUpdate', this.toModel());
   }
 
-  public removeStudent(studentID: string) {
-    this._studentsByID = this._studentsByID.filter(s => s !== studentID);
+  public removeStudent(student: Player) {
+    this._studentsByID = this._studentsByID.filter(s => s !== student.id);
+    student.townEmitter.emit('officeHoursQuestionUpdate', this.toModel());
   }
 
   public toModel(): OfficeHoursQuestion {
