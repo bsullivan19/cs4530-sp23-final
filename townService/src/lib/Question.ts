@@ -57,10 +57,7 @@ export default class Question {
   }
 
   public removeStudent(studentID: string) {
-    const index = this._studentsByID.findIndex(currStudentID => currStudentID === studentID);
-    if (index !== -1) {
-      this._studentsByID.splice(index, 1);
-    }
+    this._studentsByID = this._studentsByID.filter(s => s !== studentID);
   }
 
   public toModel(): OfficeHoursQuestion {

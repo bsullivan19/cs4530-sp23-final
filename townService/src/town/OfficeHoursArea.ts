@@ -15,7 +15,7 @@ import InteractableArea from './InteractableArea';
 export default class OfficeHoursArea extends InteractableArea {
   private _queue: Question[];
 
-  private _teachingAssistants: TA[];
+  private _teachingAssistants: TA[]; // TA's currently online
 
   private _numRooms: number;
 
@@ -29,10 +29,6 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public get numRooms() {
     return this._numRooms;
-  }
-
-  private _isTAOnline(player: Player): boolean {
-    return this._teachingAssistants.find(ta => ta.id === player.id) !== undefined;
   }
 
   public get isActive(): boolean {
@@ -74,14 +70,22 @@ export default class OfficeHoursArea extends InteractableArea {
     this._queue.forEach(q => q.removeStudent(player.id));
   }
 
+  public getQuestion(questionID: string): Question | undefined {
+    return this._queue.find(q => q.id === questionID);
+  }
+
   public addQuestion(student: Player, question: string) {
     this._queue.push(new Question(nanoid(), student.id, question));
   }
 
-  public takeQuestion(TA: Player, questionID: string) {
+  public takeQuestion(teachingAssistant: Player, questionID: string) {
     const question = this._queue.find(q => q.id === questionID);
-    if (question && isTA(TA) && this.teachingAssistants.find(p => p.id === TA.id)) {
-      TA.currentQuestion = question.id;
+    if (
+      question &&
+      isTA(teachingAssistant) &&
+      this.teachingAssistants.find(p => p.id === teachingAssistant.id)
+    ) {
+      teachingAssistant.currentQuestion = question.id;
     }
   }
 
@@ -89,6 +93,17 @@ export default class OfficeHoursArea extends InteractableArea {
     const question = this._queue.find(q => q.id === questionID);
     if (question && question.isGroup) {
       question.addStudent(student.id);
+    }
+  }
+
+  public leaveQuestion(student: Player, questionID: string) {
+    const question = this._queue.find(q => q.id === questionID);
+    if (!question) {
+      return;
+    }
+    question.removeStudent(student.id);
+    if (question.studentsByID.length === 0) {
+      this._queue = this._queue.filter(q => q.id !== questionID);
     }
   }
 }
