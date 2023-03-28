@@ -70,6 +70,10 @@
 					"mapFile": {
 						"type": "string",
 						"description": "Reserved for future use, currently only used for testing: this parameter can be\nspecified to control which Tiled map file is used for initializing the set of interactable areas\n\nNot currently used on frontend"
+					},
+					"taPassword": {
+						"type": "string",
+						"description": "The password to become a TA in this town. If none is given the taPassword will be set to a random string"
 					}
 				},
 				"required": [
