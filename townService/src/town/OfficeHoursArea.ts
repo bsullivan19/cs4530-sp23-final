@@ -18,7 +18,7 @@ export default class OfficeHoursArea extends InteractableArea {
 
   private _teachingAssistantsByID: string[]; // TA's currently online
 
-  private _numRooms: number;
+  private _numRooms: number; // TODO: How to store max number of breakout rooms?
 
   public get questionQueue() {
     return this._queue;
@@ -90,6 +90,10 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._queue.find(q => q.id === questionID);
   }
 
+  /**
+   * Adds a question queue if it does not exist in the queue,
+   * or updates the question if it does exist in the queue.
+   */
   public addUpdateQuestion(questionModel: OfficeHoursQuestion) {
     if (questionModel.officeHoursID !== this.id) {
       throw new Error();
@@ -102,8 +106,12 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  /**
+   * Assigns a questionID to a player if the player is a TA and the questionID exists in the queue.
+   * TODO: Currently, the question is not removed from the queue since the TA
+   */
   public takeQuestion(teachingAssistant: Player, questionID: string) {
-    const question = this._queue.find(q => q.id === questionID);
+    const question = this.getQuestion(questionID);
     if (
       question &&
       isTA(teachingAssistant) &&
@@ -113,14 +121,27 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  /**
+   * Removes an existing question from the queue if the player is the a TA.
+   */
+  public removeQuestion(teachingAssistant: Player, questionID: string) {
+    const question = this.getQuestion(questionID);
+    if (question && isTA(teachingAssistant)) {
+      this._queue.filter(q => q.id !== questionID);
+    }
+  }
+
+  /**
+   * Removes the student from an existing question.
+   * If the question has no students, the question is removed from the queue.
+   */
   public leaveQuestion(student: Player, questionID: string) {
     const question = this._queue.find(q => q.id === questionID);
-    if (!question) {
-      return;
-    }
-    question.removeStudent(student);
-    if (question.studentsByID.length === 0) {
-      this._queue = this._queue.filter(q => q.id !== questionID);
+    if (question) {
+      question.removeStudent(student);
+      if (question.studentsByID.length === 0) {
+        this._queue = this._queue.filter(q => q.id !== questionID);
+      }
     }
   }
 }
