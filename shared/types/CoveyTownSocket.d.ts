@@ -30,6 +30,12 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
 };
+export interface TAModel {
+  id: string;
+  userName: string;
+  location: PlayerLocation;
+  question?: OfficeHoursQuestion;
+};
 
 export type XY = { x: number, y: number };
 
@@ -121,4 +127,7 @@ export interface ClientToServerEvents {
 
   // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
   officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+  officeHoursQuestionTaken: (ta: TA) => void;
+  taTakeQuestion: (ta: TAModel) => void;
+
 }

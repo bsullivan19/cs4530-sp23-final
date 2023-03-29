@@ -17,6 +17,7 @@ import {
   PosterSessionArea as PosterSessionAreaModel,
   OfficeHoursArea as OfficeHoursAreaModel,
   OfficeHoursQuestion,
+  TAModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -133,6 +134,39 @@ export default class Town {
       }
       // create user as TA instead of Player
       newPlayer = new TA(userName, socket.to(this._townID));
+
+      /**
+       * Sets up a listener for when a TA accepts question to teleport players into
+       * the breakout room.
+       */
+      socket.on('taTakeQuestion', (ta: TAModel) => {
+        const { question } = ta;
+        if (!question) {
+          throw new Error('No question in ta model');
+        }
+        const interactable = this._interactables.find(
+          area => area.id === question.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!interactable) {
+          throw new Error('Not in an office hours area');
+        }
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        const questionObj = interactable.takeQuestion(taPlayer, question.id);
+        if (!questionObj) {
+          throw new Error('Given question does not exist');
+        }
+
+        // teleport each student in question to ta
+        questionObj.studentsByID.forEach(studentID => {
+          const playerInQuestion = this.players.find(player => player.id === studentID);
+          if (playerInQuestion) {
+            this._updatePlayerLocation(playerInQuestion, taPlayer.location);
+          }
+        });
+      });
     } else {
       newPlayer = new Player(userName, socket.to(this._townID));
     }

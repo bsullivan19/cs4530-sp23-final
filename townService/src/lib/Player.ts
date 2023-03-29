@@ -9,10 +9,10 @@ export default class Player {
   public location: PlayerLocation;
 
   /** The unique identifier for this player * */
-  private readonly _id: string;
+  protected readonly _id: string;
 
   /** The player's username, which is not guaranteed to be unique within the town * */
-  private readonly _userName: string;
+  protected readonly _userName: string;
 
   /** The secret token that allows this client to access our Covey.Town service for this town * */
   private readonly _sessionToken: string;

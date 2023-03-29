@@ -110,15 +110,16 @@ export default class OfficeHoursArea extends InteractableArea {
    * Assigns a questionID to a player if the player is a TA and the questionID exists in the queue.
    * TODO: Currently, the question is not removed from the queue since the TA
    */
-  public takeQuestion(teachingAssistant: Player, questionID: string) {
+  public takeQuestion(teachingAssistant: Player, questionID: string): Question | undefined {
     const question = this.getQuestion(questionID);
     if (
       question &&
       isTA(teachingAssistant) &&
       this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)
     ) {
-      teachingAssistant.currentQuestion = question.id;
+      teachingAssistant.currentQuestion = question;
     }
+    return question;
   }
 
   /**

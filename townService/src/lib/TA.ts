@@ -1,7 +1,11 @@
-import { Player as PlayerModel, PlayerLocation, TownEmitter } from '../types/CoveyTownSocket';
+import {
+  Player as PlayerModel,
+  PlayerLocation,
+  TAModel,
+  TownEmitter,
+} from '../types/CoveyTownSocket';
 import Player from './Player';
-
-export type Question = string;
+import Question from './Question';
 
 // Returns true if player is a TA and false if not
 export function isTA(player: Player): player is TA {
@@ -15,11 +19,11 @@ export default class TA extends Player {
   // If this TA's office hours are open or not
   private _officeHoursOpen: boolean;
 
-  set currentQuestion(currentQuestion: string | undefined) {
+  set currentQuestion(currentQuestion: Question | undefined) {
     this._currrentQuestion = currentQuestion;
   }
 
-  get currentQuestion(): string | undefined {
+  get currentQuestion(): Question | undefined {
     return this._currrentQuestion;
   }
 
@@ -34,5 +38,14 @@ export default class TA extends Player {
   constructor(userName: string, townEmitter: TownEmitter) {
     super(userName, townEmitter);
     this._officeHoursOpen = false;
+  }
+
+  toModel(): TAModel {
+    return {
+      id: this._id,
+      location: this.location,
+      userName: this._userName,
+      question: this._currrentQuestion?.toModel(),
+    };
   }
 }
