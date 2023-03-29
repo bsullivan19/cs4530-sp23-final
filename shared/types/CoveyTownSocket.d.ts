@@ -83,6 +83,13 @@ export interface PosterSessionArea {
   title?: string;
 }
 
+export interface BreakoutRoomArea {
+  id: string;
+  topic?: string;
+  occupantsByID: string[];
+};
+
+
 export interface OfficeHoursQuestion {
   id: string;
   officeHoursID: string;
