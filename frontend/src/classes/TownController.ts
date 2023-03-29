@@ -405,10 +405,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
            * If we are told that WE moved, we shouldn't update our x,y because it's probably lagging behind
            * real time. However: we SHOULD update our interactable ID, because its value is managed by the server
            *
-           * Added edge case of teleporting a player to and from a breakout room as this is an intended move
+           * TODO add edge case of teleporting a player to and from a breakout room as this is an intended move
            * initiated by the server
            */
-          if (isplayerToUpdate.location.interactableID)
           playerToUpdate.location.interactableID = movedPlayer.location.interactableID;
         } else {
           playerToUpdate.location = movedPlayer.location;
