@@ -3,7 +3,7 @@
  * will have the same priority. This makes it possible for students who join later get their question answered quickly
  * if the group question they choose has early priority.
  */
-export default class Ticket {
+export default abstract class Ticket {
   /* Time ticket was made (student submit ticket) */
   readonly _time: number;
 
@@ -13,7 +13,7 @@ export default class Ticket {
   /* description of the students specific needs */
   private _description: string;
 
-  public constructor(questionType: string, description: string) {
+  protected constructor(questionType: string, description: string) {
     this._time = Date.now();
     this._questionType = questionType;
     this._description = description;
@@ -34,4 +34,5 @@ export default class Ticket {
   public getQuestionType(): string {
     return this._questionType;
   }
+  // TODO: add abstract method toModel
 }
