@@ -159,11 +159,45 @@ export default class Town {
           throw new Error('Given question does not exist');
         }
 
-        // teleport each student in question to ta
+        // teleport each student in question to ta's
         questionObj.studentsByID.forEach(studentID => {
           const playerInQuestion = this.players.find(player => player.id === studentID);
           if (playerInQuestion) {
             this._updatePlayerLocation(playerInQuestion, taPlayer.location);
+          }
+        });
+      });
+
+      /**
+       * Sets up a listener for when a TA completes a question to remove players
+       * from the breakout room
+       */
+      socket.on('taQuestionCompleted', (ta: TAModel) => {
+        const { question } = ta;
+        if (!question) {
+          throw new Error('No question in ta model');
+        }
+        const interactable = this._interactables.find(
+          area => area.id === question.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!interactable) {
+          throw new Error('Not in an office hours area');
+        }
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        const questionObj = interactable.takeQuestion(taPlayer, question.id);
+        if (!questionObj) {
+          throw new Error('Given question does not exist');
+        }
+        const officeHoursLoc: PlayerLocation = interactable.areasCenter();
+
+        // teleport each student in question to office hours area's
+        questionObj.studentsByID.forEach(studentID => {
+          const playerInQuestion = this.players.find(player => player.id === studentID);
+          if (playerInQuestion) {
+            this._updatePlayerLocation(playerInQuestion, officeHoursLoc);
           }
         });
       });

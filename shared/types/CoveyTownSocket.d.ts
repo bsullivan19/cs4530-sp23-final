@@ -129,5 +129,6 @@ export interface ClientToServerEvents {
   officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
   officeHoursQuestionTaken: (ta: TA) => void;
   taTakeQuestion: (ta: TAModel) => void;
+  taQuestionCompleted: (ta: TAModel) => void;
 
 }
