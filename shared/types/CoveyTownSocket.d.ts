@@ -105,7 +105,7 @@ export interface OfficeHoursQueue {
 
 export interface OfficeHoursArea {
   id: string;
-  numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
+  openBreakoutRooms: PlayerLocation[];     // Number of TA Rooms in this OfficeHoursArea
   teachingAssistantsByID: string[]; // the TA's currently online
 }
 
@@ -135,6 +135,9 @@ export interface ClientToServerEvents {
   // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
   officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
   officeHoursQuestionTaken: (ta: TA) => void;
+
+  taStartOfficeHours: (ta: TAModel) => void;
+  taStopOfficeHours: (ta: TAModel) => void;
   taTakeQuestion: (ta: TAModel) => void;
   taQuestionCompleted: (ta: TAModel) => void;
 

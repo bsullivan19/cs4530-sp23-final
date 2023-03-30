@@ -136,34 +136,68 @@ export default class Town {
       newPlayer = new TA(userName, socket.to(this._townID));
 
       /**
-       * Sets up a listener for when a TA accepts question to teleport players into
-       * the breakout room.
+       * Sets up a listener for when a TA starts their office hours and teleports
+       * them into an open breakout room.
        */
-      socket.on('taTakeQuestion', (ta: TAModel) => {
-        const { question } = ta;
-        if (!question) {
-          throw new Error('No question in ta model');
-        }
-        const interactable = this._interactables.find(
-          area => area.id === question.officeHoursID,
+      socket.on('taStartOfficeHours', (ta: TAModel) => {
+        const officeHoursArea = this._interactables.find(
+          area => area.id === ta.location.interactableID,
         ) as OfficeHoursArea;
-        if (!interactable) {
+        if (!officeHoursArea) {
           throw new Error('Not in an office hours area');
         }
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
         if (!taPlayer) {
           throw new Error('Not a TA');
         }
-        const questionObj = interactable.takeQuestion(taPlayer, question.id);
+        // Teleport player to breakout room
+        this._teleportPlayer(taPlayer, officeHoursArea.startOfficeHours(taPlayer));
+      });
+
+      /**
+       * Sets up a listener for when a TA stops their office hours and teleports
+       * back to the office hours area
+       */
+      socket.on('taStopOfficeHours', (ta: TAModel) => {
+        const officeHoursArea = this._interactables.find(
+          area => area.id === ta.location.interactableID,
+        ) as OfficeHoursArea;
+        if (!officeHoursArea) {
+          throw new Error('Not in a breakout room area');
+        }
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        // Teleport player to breakout room
+        this._teleportPlayer(taPlayer, officeHoursArea.stopOfficeHours(taPlayer));
+      });
+
+      /**
+       * Sets up a listener for when a TA accepts question to teleport players into
+       * the breakout room.
+       */
+      socket.on('taTakeQuestion', (ta: TAModel) => {
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        const interactable = this._interactables.find(
+          area => area.id === taPlayer.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!interactable) {
+          throw new Error('TA not linked to an office hours area');
+        }
+        const questionObj = interactable.nextQuestion(taPlayer);
         if (!questionObj) {
-          throw new Error('Given question does not exist');
+          throw new Error('No next question available');
         }
 
-        // teleport each student in question to ta's
+        // teleport each student in question to breakout room
         questionObj.studentsByID.forEach(studentID => {
           const playerInQuestion = this.players.find(player => player.id === studentID);
-          if (playerInQuestion) {
-            this._updatePlayerLocation(playerInQuestion, taPlayer.location);
+          if (playerInQuestion && taPlayer.breakoutRoomLoc) {
+            this._teleportPlayer(playerInQuestion, taPlayer.breakoutRoomLoc);
           }
         });
       });
@@ -173,31 +207,28 @@ export default class Town {
        * from the breakout room
        */
       socket.on('taQuestionCompleted', (ta: TAModel) => {
-        const { question } = ta;
-        if (!question) {
-          throw new Error('No question in ta model');
-        }
-        const interactable = this._interactables.find(
-          area => area.id === question.officeHoursID,
-        ) as OfficeHoursArea;
-        if (!interactable) {
-          throw new Error('Not in an office hours area');
-        }
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
         if (!taPlayer) {
           throw new Error('Not a TA');
         }
-        const questionObj = interactable.takeQuestion(taPlayer, question.id);
-        if (!questionObj) {
-          throw new Error('Given question does not exist');
+        const officeHoursArea = this._interactables.find(
+          area => area.id === taPlayer.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!officeHoursArea) {
+          throw new Error('Not linked to an office hours area');
         }
-        const officeHoursLoc: PlayerLocation = interactable.areasCenter();
 
+        // Get teleportation destination
+        const officeHoursLoc: PlayerLocation = officeHoursArea.areasCenter();
+
+        if (!taPlayer.currentQuestion) {
+          throw new Error('No current question');
+        }
         // teleport each student in question to office hours area's
-        questionObj.studentsByID.forEach(studentID => {
+        taPlayer.currentQuestion.studentsByID.forEach(studentID => {
           const playerInQuestion = this.players.find(player => player.id === studentID);
           if (playerInQuestion) {
-            this._updatePlayerLocation(playerInQuestion, officeHoursLoc);
+            this._teleportPlayer(playerInQuestion, officeHoursLoc);
           }
         });
       });
@@ -484,7 +515,10 @@ export default class Town {
   }
 
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
-    if (officeHoursArea.teachingAssistantsByID.length <= 0 || officeHoursArea.numRooms <= 0) {
+    if (
+      officeHoursArea.teachingAssistantsByID.length <= 0 ||
+      officeHoursArea.openBreakoutRooms.length <= 0
+    ) {
       return false;
     }
     const existingOfficeHoursArea = <OfficeHoursArea>(
@@ -580,6 +614,10 @@ export default class Town {
       .concat(conversationAreas)
       .concat(posterSessionAreas);
     this._validateInteractables();
+  }
+
+  private _teleportPlayer(player: Player, loc: PlayerLocation) {
+    this._updatePlayerLocation(player, loc);
   }
 
   private _validateInteractables() {

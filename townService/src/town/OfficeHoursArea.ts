@@ -10,6 +10,7 @@ import {
   OfficeHoursQuestion,
   Interactable,
   OfficeHoursQueue,
+  PlayerLocation,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
@@ -18,7 +19,7 @@ export default class OfficeHoursArea extends InteractableArea {
 
   private _teachingAssistantsByID: string[]; // TA's currently online
 
-  private _numRooms: number; // TODO: How to store max number of breakout rooms?
+  private _openBreakoutRooms: PlayerLocation[]; // TODO: How to store max number of breakout rooms?
 
   public get questionQueue() {
     return this._queue;
@@ -28,8 +29,8 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._teachingAssistantsByID;
   }
 
-  public get numRooms() {
-    return this._numRooms;
+  public get openBreakoutRooms() {
+    return this._openBreakoutRooms;
   }
 
   public get isActive(): boolean {
@@ -37,13 +38,13 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   public constructor(
-    { id, numRooms }: OfficeHoursModel,
+    { id, openBreakoutRooms }: OfficeHoursModel,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
     this._teachingAssistantsByID = [];
-    this._numRooms = numRooms;
+    this._openBreakoutRooms = openBreakoutRooms;
     this._queue = [];
   }
 
@@ -57,13 +58,13 @@ export default class OfficeHoursArea extends InteractableArea {
   public toModel(): OfficeHoursModel {
     return {
       id: this.id,
-      numRooms: this.numRooms,
+      openBreakoutRooms: this._openBreakoutRooms,
       teachingAssistantsByID: this.teachingAssistantsByID,
     };
   }
 
   public updateModel(model: OfficeHoursModel) {
-    this._numRooms = model.numRooms;
+    this._openBreakoutRooms = model.openBreakoutRooms;
     const queueCopy = this._queue;
     this._queue = [];
     this._teachingAssistantsByID = model.teachingAssistantsByID;
@@ -104,6 +105,47 @@ export default class OfficeHoursArea extends InteractableArea {
     } else {
       this._queue.push(Question.fromQuestionModel(questionModel));
     }
+  }
+
+  /**
+   * Starts an office hours breakout room for the TA. Throws an error if there are no
+   * more breakout rooms.
+   */
+  public startOfficeHours(ta: TA): PlayerLocation {
+    const breakoutRoom = this.openBreakoutRooms.pop();
+    if (!breakoutRoom) {
+      throw new Error('No breakout rooms left');
+    }
+    ta.breakoutRoomLoc = breakoutRoom;
+    ta.currentQuestion = undefined;
+    return ta.breakoutRoomLoc;
+  }
+
+  /**
+   * Stops an office hours breakout room for the TA. Throws an error if there are no
+   * more breakout rooms.
+   */
+  public stopOfficeHours(ta: TA): PlayerLocation {
+    if (!ta.breakoutRoomLoc) {
+      throw new Error('TA is not in a breakout room');
+    }
+    // Add breakout room back as being open
+    this.openBreakoutRooms.push(ta.breakoutRoomLoc);
+
+    ta.breakoutRoomLoc = undefined;
+    ta.currentQuestion = undefined;
+    return this.areasCenter();
+  }
+
+  /**
+   * Assigns the next question in the queue to the ta and removes it
+   */
+  public nextQuestion(teachingAssistant: TA): Question | undefined {
+    const question = this._queue.pop();
+    if (question && this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)) {
+      teachingAssistant.currentQuestion = question;
+    }
+    return question;
   }
 
   /**

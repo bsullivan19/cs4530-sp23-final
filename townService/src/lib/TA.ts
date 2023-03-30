@@ -16,8 +16,11 @@ export default class TA extends Player {
   // The current question this TA is answering
   private _currrentQuestion?: Question;
 
-  // If this TA's office hours are open or not
-  private _officeHoursOpen: boolean;
+  // Location of this TAs breakout room
+  private _breakoutRoomLoc?: PlayerLocation;
+
+  // ID of the office hours interactable this TA is apart of
+  private _officeHoursID?: string;
 
   set currentQuestion(currentQuestion: Question | undefined) {
     this._currrentQuestion = currentQuestion;
@@ -27,17 +30,25 @@ export default class TA extends Player {
     return this._currrentQuestion;
   }
 
-  set officeHoursOpen(officeHoursOpen: boolean) {
-    this._officeHoursOpen = officeHoursOpen;
+  set breakoutRoomLoc(breakoutRoomLoc: PlayerLocation | undefined) {
+    this._breakoutRoomLoc = breakoutRoomLoc;
   }
 
-  get officeHoursOpen() {
-    return this._officeHoursOpen;
+  get breakoutRoomLoc(): PlayerLocation | undefined {
+    return this._breakoutRoomLoc;
+  }
+
+  set officeHoursID(breakoutRoomLoc: string | undefined) {
+    this._officeHoursID = breakoutRoomLoc;
+  }
+
+  get officeHoursID(): string | undefined {
+    return this._officeHoursID;
   }
 
   constructor(userName: string, townEmitter: TownEmitter) {
     super(userName, townEmitter);
-    this._officeHoursOpen = false;
+    this._breakoutRoomLoc = undefined;
   }
 
   toModel(): TAModel {
