@@ -83,6 +83,7 @@ export interface OfficeHoursQuestion {
   questionContent: string;
   students: string[];
   groupQuestion: boolean;
+  timeAsked?: number;
 }
 
 export interface OfficeHoursQueue {
