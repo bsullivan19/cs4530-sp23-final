@@ -23,11 +23,16 @@ import {
   TownSettingsUpdate,
   ViewingArea,
   PosterSessionArea,
+  OfficeHoursArea,
+  OfficeHoursQuestion,
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
-import { isPosterSessionArea } from '../TestUtils';
+import OfficeHoursAreaReal from './OfficeHoursArea';
+import { isOfficeHoursArea, isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
+import { isTA } from '../lib/TA';
+import Question from '../lib/Question';
 
 /**
  * This is the town route
@@ -280,6 +285,115 @@ export class TownsController extends Controller {
   }
 
   /**
+   * Creates an Office Hours Area in a given town.
+   *
+   * @param townID ID of the town in which to create the new poster session area
+   * @param sessionToken session token of the player making the request, must
+   *        match the session token returned when the player joined the town
+   * @param requestBody The new office hours area to create
+   *
+   * @throws InvalidParametersError if the session token is not valid, or if the
+   *          office hours area could not be created, or if the player is not a TA
+   */
+  @Post('{townID}/officeHoursArea')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async createOfficeHoursArea(
+    @Path() townID: string,
+    @Header('X-Session-Token') sessionToken: string,
+    @Body() requestBody: OfficeHoursArea,
+  ): Promise<void> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const player = curTown.getPlayerBySessionToken(sessionToken);
+    if (!player || !isTA(player)) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    // add viewing area to the town, throw error if it fails
+    if (!curTown.addOfficeHoursArea(requestBody)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+  }
+
+  /**
+   * Adds a question to an existing, active OfficeHoursArea in a given town.
+   *
+   * @param townID ID of the town in which to add or update a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken session token of the player making the request, must
+   *        match the session token returned when the player joined the town
+   * @param requestBody The question to add or modify
+   *
+   * @throws InvalidParametersError if the session token is not valid or if the OH Area is not active
+   */
+  @Patch('{townID}/{officeHoursAreaId}/addQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async addOfficeHoursQuestion(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+    @Body() requestBody: OfficeHoursQuestion,
+  ): Promise<void> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    if (!curTown.getPlayerBySessionToken(sessionToken)) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
+      throw new InvalidParametersError('Cant add a question when no TAs online');
+    }
+    (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(requestBody);
+  }
+
+  /**
+   * Joins an existing group question
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken
+   * @param requestBody
+   */
+  @Patch('{townID}/{officeHoursAreaId}/joinQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async joinOfficeHoursQuestion(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Path() officeHoursQuestionId: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<void> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const player = curTown.getPlayerBySessionToken(sessionToken);
+    if (!player) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
+      throw new InvalidParametersError('Cant join a question when no TAs online');
+    }
+    const officeHoursQuestion = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
+      q => q.id === officeHoursQuestionId,
+    );
+    if (!officeHoursQuestion || !officeHoursQuestion.isGroup) {
+      throw new InvalidParametersError(
+        'Can only join a question that exists with groupQuestion enable',
+      );
+    }
+    officeHoursQuestion.addStudent(player);
+  }
+
+  /**
    * Connects a client's socket to the requested town, or disconnects the socket if no such town exists
    *
    * @param socket A new socket connection, with the userName and townID parameters of the socket's
@@ -309,7 +423,7 @@ export class TownsController extends Controller {
     try {
       newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
     } catch (e) {
-      if (e instanceof InvalidTAPasswordError){
+      if (e instanceof InvalidTAPasswordError) {
         // TODO Toast that ta password is invalid
       } else {
         // TODO Toast that a BAD error occurrd

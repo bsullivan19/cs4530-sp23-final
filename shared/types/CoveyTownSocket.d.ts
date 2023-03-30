@@ -17,7 +17,7 @@ export type TownJoinResponse = {
   interactables: Interactable[];
 }
 
-export type Interactable = ViewingArea | ConversationArea | PosterSessionArea;
+export type Interactable = ViewingArea | ConversationArea | PosterSessionArea | OfficeHoursArea;
 
 export type TownSettingsUpdate = {
   friendlyName?: string;
@@ -77,6 +77,25 @@ export interface PosterSessionArea {
   title?: string;
 }
 
+export interface OfficeHoursQuestion {
+  id: string;
+  officeHoursID: string;
+  questionContent: string;
+  students: string[];
+  groupQuestion: boolean;
+}
+
+export interface OfficeHoursQueue {
+  officeHoursID: string;
+  questionQueue: OfficeHoursQuestion[];
+}
+
+export interface OfficeHoursArea {
+  id: string;
+  numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
+  teachingAssistantsByID: string[]; // the TA's currently online
+}
+
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
@@ -86,10 +105,20 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+
+  // TODO: Is this a bad idea?
+  
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+
+  // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
+  officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+
+  // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
 }
