@@ -19,7 +19,8 @@ export default class OfficeHoursArea extends InteractableArea {
 
   private _teachingAssistantsByID: string[]; // TA's currently online
 
-  private _openBreakoutRooms: PlayerLocation[]; // TODO: How to store max number of breakout rooms?
+  // Map of breakout room IDs to the TA in the breakout room
+  private _openBreakoutRooms: Map<string, string | undefined>;
 
   public get questionQueue() {
     return this._queue;
@@ -38,13 +39,19 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   public constructor(
-    { id, openBreakoutRooms }: OfficeHoursModel,
+    { id }: OfficeHoursModel,
+    breakoutRoomIDs: string[],
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
     this._teachingAssistantsByID = [];
-    this._openBreakoutRooms = openBreakoutRooms;
+
+    // initialize breakout rooms map
+    this._openBreakoutRooms = new Map<string, string | undefined>();
+    breakoutRoomIDs.forEach(breakoutRoomID =>
+      this._openBreakoutRooms.set(breakoutRoomID, undefined),
+    );
     this._queue = [];
   }
 
@@ -58,13 +65,11 @@ export default class OfficeHoursArea extends InteractableArea {
   public toModel(): OfficeHoursModel {
     return {
       id: this.id,
-      openBreakoutRooms: this._openBreakoutRooms,
       teachingAssistantsByID: this.teachingAssistantsByID,
     };
   }
 
   public updateModel(model: OfficeHoursModel) {
-    this._openBreakoutRooms = model.openBreakoutRooms;
     const queueCopy = this._queue;
     this._queue = [];
     this._teachingAssistantsByID = model.teachingAssistantsByID;
@@ -109,16 +114,19 @@ export default class OfficeHoursArea extends InteractableArea {
 
   /**
    * Starts an office hours breakout room for the TA. Throws an error if there are no
-   * more breakout rooms.
+   * more breakout rooms. Returns the breakout room area id
    */
-  public startOfficeHours(ta: TA): PlayerLocation {
-    const breakoutRoom = this.openBreakoutRooms.pop();
-    if (!breakoutRoom) {
+  public startOfficeHours(ta: TA): string {
+    const breakoutRoomID = this._getOpenBreakoutRoom();
+    if (!breakoutRoomID) {
       throw new Error('No breakout rooms left');
     }
-    ta.breakoutRoomLoc = breakoutRoom;
+    this._openBreakoutRooms.set(breakoutRoomID, ta.id);
+
+    ta.breakoutRoomID = breakoutRoomID;
     ta.currentQuestion = undefined;
-    return ta.breakoutRoomLoc;
+    ta.officeHoursID = this.id;
+    return ta.breakoutRoomID;
   }
 
   /**
@@ -126,14 +134,18 @@ export default class OfficeHoursArea extends InteractableArea {
    * more breakout rooms.
    */
   public stopOfficeHours(ta: TA): PlayerLocation {
-    if (!ta.breakoutRoomLoc) {
+    if (!ta.breakoutRoomID) {
       throw new Error('TA is not in a breakout room');
     }
     // Add breakout room back as being open
-    this.openBreakoutRooms.push(ta.breakoutRoomLoc);
+    if (this._openBreakoutRooms.get(ta.breakoutRoomID) !== ta.id) {
+      throw new Error('TA does not have open office hours in this area');
+    }
+    this._openBreakoutRooms.set(ta.breakoutRoomID, undefined);
 
-    ta.breakoutRoomLoc = undefined;
+    ta.breakoutRoomID = undefined;
     ta.currentQuestion = undefined;
+    ta.officeHoursID = undefined;
     return this.areasCenter();
   }
 
@@ -141,6 +153,7 @@ export default class OfficeHoursArea extends InteractableArea {
    * Assigns the next question in the queue to the ta and removes it
    */
   public nextQuestion(teachingAssistant: TA): Question | undefined {
+    // TODO: update to use new question queue structure
     const question = this._queue.pop();
     if (question && this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)) {
       teachingAssistant.currentQuestion = question;
@@ -186,5 +199,14 @@ export default class OfficeHoursArea extends InteractableArea {
         this._queue = this._queue.filter(q => q.id !== questionID);
       }
     }
+  }
+
+  private _getOpenBreakoutRoom(): string | undefined {
+    for (const [areaID, ta] of this._openBreakoutRooms) {
+      if (!ta) {
+        return areaID;
+      }
+    }
+    return undefined;
   }
 }

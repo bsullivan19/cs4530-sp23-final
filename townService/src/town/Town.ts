@@ -26,6 +26,7 @@ import PosterSessionArea from './PosterSessionArea';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import TA from '../lib/TA';
 import OfficeHoursArea from './OfficeHoursArea';
+import BreakoutRoomArea from './BreakoutRoomArea';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -151,7 +152,14 @@ export default class Town {
           throw new Error('Not a TA');
         }
         // Teleport player to breakout room
-        this._teleportPlayer(taPlayer, officeHoursArea.startOfficeHours(taPlayer));
+        const breakoutRoomId = officeHoursArea.startOfficeHours(taPlayer);
+        const breakoutRoomArea = this._interactables.find(
+          area => area.id === breakoutRoomId,
+        ) as BreakoutRoomArea;
+        if (!breakoutRoomArea) {
+          throw new Error('Not in an office hours area');
+        }
+        this._teleportPlayer(taPlayer, breakoutRoomArea.areasCenter());
       });
 
       /**
@@ -169,7 +177,7 @@ export default class Town {
         if (!taPlayer) {
           throw new Error('Not a TA');
         }
-        // Teleport player to breakout room
+        // Teleport player to office hours area
         this._teleportPlayer(taPlayer, officeHoursArea.stopOfficeHours(taPlayer));
       });
 
@@ -196,8 +204,14 @@ export default class Town {
         // teleport each student in question to breakout room
         questionObj.studentsByID.forEach(studentID => {
           const playerInQuestion = this.players.find(player => player.id === studentID);
-          if (playerInQuestion && taPlayer.breakoutRoomLoc) {
-            this._teleportPlayer(playerInQuestion, taPlayer.breakoutRoomLoc);
+          if (playerInQuestion && taPlayer.breakoutRoomID) {
+            const breakoutRoomArea = this._interactables.find(
+              area => area.id === taPlayer.breakoutRoomID,
+            ) as BreakoutRoomArea;
+            if (!breakoutRoomArea) {
+              throw new Error('Not in an office hours area');
+            }
+            this._teleportPlayer(playerInQuestion, breakoutRoomArea.areasCenter());
           }
         });
       });
@@ -515,10 +529,7 @@ export default class Town {
   }
 
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
-    if (
-      officeHoursArea.teachingAssistantsByID.length <= 0 ||
-      officeHoursArea.openBreakoutRooms.length <= 0
-    ) {
+    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
       return false;
     }
     const existingOfficeHoursArea = <OfficeHoursArea>(

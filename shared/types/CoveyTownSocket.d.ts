@@ -105,7 +105,6 @@ export interface OfficeHoursQueue {
 
 export interface OfficeHoursArea {
   id: string;
-  openBreakoutRooms: PlayerLocation[];     // Number of TA Rooms in this OfficeHoursArea
   teachingAssistantsByID: string[]; // the TA's currently online
 }
 

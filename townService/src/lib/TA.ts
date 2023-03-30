@@ -17,7 +17,7 @@ export default class TA extends Player {
   private _currrentQuestion?: Question;
 
   // Location of this TAs breakout room
-  private _breakoutRoomLoc?: PlayerLocation;
+  private _breakoutRoomID?: string;
 
   // ID of the office hours interactable this TA is apart of
   private _officeHoursID?: string;
@@ -30,12 +30,12 @@ export default class TA extends Player {
     return this._currrentQuestion;
   }
 
-  set breakoutRoomLoc(breakoutRoomLoc: PlayerLocation | undefined) {
-    this._breakoutRoomLoc = breakoutRoomLoc;
+  set breakoutRoomID(breakoutRoomID: string | undefined) {
+    this._breakoutRoomID = breakoutRoomID;
   }
 
-  get breakoutRoomLoc(): PlayerLocation | undefined {
-    return this._breakoutRoomLoc;
+  get breakoutRoomID(): string | undefined {
+    return this._breakoutRoomID;
   }
 
   set officeHoursID(breakoutRoomLoc: string | undefined) {
@@ -48,7 +48,7 @@ export default class TA extends Player {
 
   constructor(userName: string, townEmitter: TownEmitter) {
     super(userName, townEmitter);
-    this._breakoutRoomLoc = undefined;
+    this._breakoutRoomID = undefined;
   }
 
   toModel(): TAModel {
