@@ -23,8 +23,10 @@ import { Town } from '../../generated/client';
 import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
+import { nanoid } from 'nanoid';
 
 export default function TownSelection(): JSX.Element {
+  const [adminPwd, setAdminPwd] = useState<string>(nanoid());
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -79,6 +81,7 @@ export default function TownSelection(): JSX.Element {
         await videoConnect(videoToken);
         setTownController(newController);
       } catch (err) {
+        /** TODO: Catch error if incorrect TA password entered */
         if (err instanceof Error) {
           toast({
             title: 'Unable to connect to Towns Service',
@@ -185,7 +188,7 @@ export default function TownSelection(): JSX.Element {
             <Heading p='4' as='h2' size='lg'>
               Create a New Town
             </Heading>
-            <Flex p='4'>
+            <Flex p='2'>
               <Box flex='1'>
                 <FormControl>
                   <FormLabel htmlFor='townName'>New Town Name</FormLabel>
@@ -210,12 +213,26 @@ export default function TownSelection(): JSX.Element {
                   />
                 </FormControl>
               </Box>
-              <Box>
-                <Button data-testid='newTownButton' onClick={handleCreate}>
-                  Create
-                </Button>
+              {/** TODO:(Enter admin password) Set TA password for town */}
+            </Flex>
+            <Flex p='2'>
+              <Box flex='1'>
+                <FormControl>
+                  <FormLabel htmlFor='adminPwd'>Admin Password</FormLabel>
+                  <Input
+                    name='adminPwd'
+                    placeholder='Admin Password (*optional)'
+                    value={adminPwd}
+                    onChange={event => setAdminPwd(event.target.value)}
+                  />
+                </FormControl>
               </Box>
             </Flex>
+            <Box>
+              <Button data-testid='newTownButton' onClick={handleCreate}>
+                Create
+              </Button>
+            </Box>
           </Box>
           <Heading p='4' as='h2' size='lg'>
             -or-
@@ -236,6 +253,20 @@ export default function TownSelection(): JSX.Element {
                     onChange={event => setTownIDToJoin(event.target.value)}
                   />
                 </FormControl>
+                {/** TODO: Join as TA, admin password */}
+                <Flex p='2'>
+                  <Box flex='1'>
+                    <FormControl>
+                      <FormLabel htmlFor='adminPwd'>Admin Password</FormLabel>
+                      <Input
+                        name='adminPwd'
+                        placeholder='Admin Password (*optional)'
+                        value={adminPwd}
+                        onChange={event => setAdminPwd(event.target.value)}
+                      />
+                    </FormControl>
+                  </Box>
+                </Flex>
                 <Button data-testid='joinTownByIDButton' onClick={() => handleJoin(townIDToJoin)}>
                   Connect
                 </Button>
