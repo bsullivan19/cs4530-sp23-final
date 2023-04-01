@@ -17,12 +17,16 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
   PosterSessionArea as PosterSessionAreaModel,
+  OfficeHoursArea as OfficeHoursAreaModel,
+  OfficeHoursQuestion,
+  OfficeHoursQueue,
 } from '../types/CoveyTownSocket';
 import { isConversationArea, isViewingArea, isPosterSessionArea } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import PosterSessionAreaController from './PosterSessionAreaController';
+import OfficeHoursAreaController from './OfficeHoursAreaController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
@@ -199,6 +203,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _viewingAreas: ViewingAreaController[] = [];
 
   private _posterSessionAreas: PosterSessionAreaController[] = [];
+
+  private _officeHoursAreas: OfficeHoursAreaController[] = [];
 
   public constructor({ userName, townID, loginController }: ConnectionProperties) {
     super();
@@ -621,6 +627,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     });
   }
 
+  // TODO: Add once OfficeHoursArea frontend Interactable is implemented
+  /*
+  public getOfficeHoursAreaController(officeHoursArea: OfficeHoursArea): OfficeHoursAreaController {
+    const existingController = this._officeHoursAreas.find(
+      area => area.id === officeHoursArea.name,
+    );
+    if (existingController) {
+      return existingController;
+    } else {
+      const newController = new OfficeHoursAreaController({
+        id: officeHoursArea.name,
+        officeHoursActive: false,
+        teachingAssistantsByID: [],
+      });
+      this._officeHoursAreas.push(newController);
+      return newController;
+    }
+  }*/
+
   /**
    * Retrieve the viewing area controller that corresponds to a viewingAreaModel, creating one if necessary
    *
@@ -715,6 +740,69 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._townsService.incrementPosterAreaStars(
       this.townID,
       posterSessionArea.id,
+      this.sessionToken,
+    );
+  }
+
+  /**
+   * Adds a question to a specified office hours area.
+   */
+  public async addOfficeHoursQuestion(
+    officeHoursArea: OfficeHoursAreaController,
+    questionContent: string,
+    groupQuestion: boolean,
+  ): Promise<OfficeHoursQuestion> {
+    return this._townsService.addOfficeHoursQuestion(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+      { questionContent, groupQuestion },
+    );
+  }
+
+  /**
+   * Join a question in a specified office hours area.
+   */
+  public async joinOfficeHoursQuestion(
+    officeHoursArea: OfficeHoursAreaController,
+    questionID: string,
+  ): Promise<OfficeHoursQuestion> {
+    return this._townsService.joinOfficeHoursQuestion(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+      questionID,
+    );
+  }
+
+  /**
+   * Take the top question off the queue, if this user is a TA.
+   */
+
+  /**
+   * Leave a question in a specified office hours area.
+   */
+  public async leaveOfficeHoursQuestion(
+    officeHoursArea: OfficeHoursAreaController,
+    questionID: string,
+  ): Promise<OfficeHoursQuestion> {
+    return this._townsService.leaveOfficeHoursQuestion(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+      questionID,
+    );
+  }
+
+  /**
+   * Get the office hours queue for the specified office hours area.
+   */
+  public async getOfficeHoursQueue(
+    officeHoursArea: OfficeHoursAreaController,
+  ): Promise<OfficeHoursQueue> {
+    return this._townsService.getOfficeHoursQueue(
+      this.townID,
+      officeHoursArea.id,
       this.sessionToken,
     );
   }

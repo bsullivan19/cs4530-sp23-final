@@ -30,10 +30,8 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
 };
-export interface TAModel {
-  id: string;
-  userName: string;
-  location: PlayerLocation;
+export interface TAModel extends Player {
+  breakoutRoomID?: string;
   question?: OfficeHoursQuestion;
 };
 
@@ -106,7 +104,8 @@ export interface OfficeHoursQueue {
 
 export interface OfficeHoursArea {
   id: string;
-  // teachingAssistantsByID: string[]; // the TA's currently online
+  officeHoursActive: boolean; // TODO: Whether students can add questions to the queue.
+  teachingAssistantsByID: string[];
 }
 
 export interface ServerToClientEvents {
@@ -126,6 +125,8 @@ export interface ServerToClientEvents {
 
   // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
   officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
+
+  officeHoursQuestionTaken: (ta: TAModel) => void;
 }
 
 export interface ClientToServerEvents {

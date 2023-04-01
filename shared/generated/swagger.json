@@ -175,6 +175,83 @@
 				],
 				"type": "object",
 				"additionalProperties": false
+			},
+			"OfficeHoursArea": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"officeHoursActive": {
+						"type": "boolean"
+					},
+					"teachingAssistantsByID": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"id",
+					"officeHoursActive",
+					"teachingAssistantsByID"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"OfficeHoursQuestion": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"officeHoursID": {
+						"type": "string"
+					},
+					"questionContent": {
+						"type": "string"
+					},
+					"students": {
+						"items": {
+							"type": "string"
+						},
+						"type": "array"
+					},
+					"groupQuestion": {
+						"type": "boolean"
+					},
+					"timeAsked": {
+						"type": "number",
+						"format": "double"
+					}
+				},
+				"required": [
+					"id",
+					"officeHoursID",
+					"questionContent",
+					"students",
+					"groupQuestion"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"OfficeHoursQueue": {
+				"properties": {
+					"officeHoursID": {
+						"type": "string"
+					},
+					"questionQueue": {
+						"items": {
+							"$ref": "#/components/schemas/OfficeHoursQuestion"
+						},
+						"type": "array"
+					}
+				},
+				"required": [
+					"officeHoursID",
+					"questionQueue"
+				],
+				"type": "object",
+				"additionalProperties": false
 			}
 		},
 		"securitySchemes": {}
@@ -647,6 +724,345 @@
 					},
 					{
 						"description": "session token of the player making the request, must\nmatch the session token returned when the player joined the town",
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/towns/{townID}/officeHoursArea": {
+			"post": {
+				"operationId": "CreateOfficeHoursArea",
+				"responses": {
+					"204": {
+						"description": "No content"
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Creates an Office Hours Area in a given town.",
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"description": "ID of the town in which to create the new poster session area",
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "session token of the player making the request, must\nmatch the session token returned when the player joined the town",
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "The new office hours area to create",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/OfficeHoursArea",
+								"description": "The new office hours area to create"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/towns/{townID}/{officeHoursAreaId}/addQuestion": {
+			"patch": {
+				"operationId": "AddOfficeHoursQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OfficeHoursQuestion"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Adds a question to an existing, active OfficeHoursArea in a given town.",
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"description": "ID of the town in which to add or update a question",
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "ID of the OfficeHoursArea the question belongs to",
+						"in": "path",
+						"name": "officeHoursAreaId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "session token of the player making the request, must\nmatch the session token returned when the player joined the town",
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"description": "The question to add or modify",
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"properties": {
+									"groupQuestion": {
+										"type": "boolean"
+									},
+									"questionContent": {
+										"type": "string"
+									}
+								},
+								"required": [
+									"groupQuestion",
+									"questionContent"
+								],
+								"type": "object",
+								"description": "The question to add or modify"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/towns/{townID}/{officeHoursAreaId}/joinQuestion": {
+			"patch": {
+				"operationId": "JoinOfficeHoursQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OfficeHoursQuestion"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Joins an existing group question",
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"description": "ID of the town in which to join a question",
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "ID of the OfficeHoursArea the question belongs to",
+						"in": "path",
+						"name": "officeHoursAreaId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/towns/{townID}/{officeHoursAreaId}/leaveQuestion": {
+			"patch": {
+				"operationId": "LeaveOfficeHoursQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OfficeHoursQuestion"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"description": "Joins an existing group question",
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"description": "ID of the town in which to join a question",
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"description": "ID of the OfficeHoursArea the question belongs to",
+						"in": "path",
+						"name": "officeHoursAreaId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"required": true,
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/towns/{townID}/{officeHoursAreaId}/queue": {
+			"patch": {
+				"operationId": "GetOfficeHoursQueue",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/OfficeHoursQueue"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "officeHoursAreaId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
 						"in": "header",
 						"name": "X-Session-Token",
 						"required": true,

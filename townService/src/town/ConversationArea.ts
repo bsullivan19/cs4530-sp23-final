@@ -12,7 +12,7 @@ export default class ConversationArea extends InteractableArea {
   public topic?: string;
 
   /** The conversation area is "active" when there are players inside of it  */
-  public get isActive(): boolean {
+  public get officeHoursActive(): boolean {
     return this._occupants.length > 0;
   }
 

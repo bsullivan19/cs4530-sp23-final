@@ -211,5 +211,5 @@ export function isConversationArea(interactable: Interactable): interactable is 
 }
 
 export function isOfficeHoursArea(interactable: Interactable): interactable is OfficeHoursArea {
-  return 'teachingAssistantsByID' in interactable;
+  return 'officeHoursActive' in interactable;
 }

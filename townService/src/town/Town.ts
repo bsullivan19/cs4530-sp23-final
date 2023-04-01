@@ -396,7 +396,7 @@ export default class Town {
         prevInteractable.remove(player);
       }
       const newInteractable = this._interactables.find(
-        eachArea => eachArea.isActive && eachArea.contains(location),
+        eachArea => eachArea.officeHoursActive && eachArea.contains(location),
       );
       if (newInteractable) {
         newInteractable.add(player);

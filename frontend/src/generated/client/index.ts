@@ -11,6 +11,9 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { ConversationArea } from './models/ConversationArea';
 export type { InvalidParametersError } from './models/InvalidParametersError';
+export type { OfficeHoursArea } from './models/OfficeHoursArea';
+export type { OfficeHoursQuestion } from './models/OfficeHoursQuestion';
+export type { OfficeHoursQueue } from './models/OfficeHoursQueue';
 export type { PosterSessionArea } from './models/PosterSessionArea';
 export type { Town } from './models/Town';
 export type { TownCreateParams } from './models/TownCreateParams';

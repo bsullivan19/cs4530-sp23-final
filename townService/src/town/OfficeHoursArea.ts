@@ -22,6 +22,8 @@ export default class OfficeHoursArea extends InteractableArea {
   // Map of breakout room IDs to the TA in the breakout room
   private _openBreakoutRooms: Map<string, string | undefined>;
 
+  private _roomEmitter: TownEmitter;
+
   public get questionQueue() {
     return this._queue;
   }
@@ -34,7 +36,7 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._openBreakoutRooms;
   }
 
-  public get isActive(): boolean {
+  public get officeHoursActive(): boolean {
     return this.teachingAssistantsByID.length > 0;
   }
 
@@ -45,6 +47,7 @@ export default class OfficeHoursArea extends InteractableArea {
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
+    this._roomEmitter = townEmitter.to(this.id);
     this._teachingAssistantsByID = [];
 
     // initialize breakout rooms map
@@ -66,6 +69,8 @@ export default class OfficeHoursArea extends InteractableArea {
   public toModel(): OfficeHoursModel {
     return {
       id: this.id,
+      officeHoursActive: this.officeHoursActive,
+      teachingAssistantsByID: this.teachingAssistantsByID,
     };
   }
 
@@ -103,12 +108,17 @@ export default class OfficeHoursArea extends InteractableArea {
     if (questionModel.officeHoursID !== this.id) {
       throw new Error();
     }
-    const question = this._queue.find(q => q.id === questionModel.id);
+    let question = this._queue.find(q => q.id === questionModel.id);
     if (question) {
       question.updateModel(questionModel);
     } else {
-      this._queue.push(Question.fromQuestionModel(questionModel));
+      question = Question.fromQuestionModel(questionModel);
+      this._queue.push(question);
     }
+    if (question.studentsByID.length === 0) {
+      this._queue = this._queue.filter(q => q.id !== question?.id);
+    }
+    this._emitQueueChanged();
   }
 
   /**
@@ -221,7 +231,12 @@ export default class OfficeHoursArea extends InteractableArea {
       height: mapObject.height,
     };
     // return new OfficeHoursArea()
-    return new OfficeHoursArea({ id: mapObject.name }, breakoutRoomAreaIDs, box, townEmitter);
+    return new OfficeHoursArea(
+      { id: mapObject.name, officeHoursActive: false, teachingAssistantsByID: [] },
+      breakoutRoomAreaIDs,
+      box,
+      townEmitter,
+    );
   }
 
   private _getOpenBreakoutRoom(): string | undefined {
@@ -231,5 +246,9 @@ export default class OfficeHoursArea extends InteractableArea {
       }
     }
     return undefined;
+  }
+
+  protected _emitQueueChanged() {
+    this._roomEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
   }
 }
