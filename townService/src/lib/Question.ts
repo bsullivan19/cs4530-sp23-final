@@ -6,20 +6,27 @@ export default class Question {
   /* The unique identifier for this question */
   private readonly _id: string;
 
+  /* The interactableID of the OfficeHoursArea */
+  private readonly _officeHoursID: string;
+
+  /* The time when this question was created */
+  private readonly _timeAsked: number;
+
   /* The actual content of the question */
-  private _questionContent: string;
+  private readonly _questionContent: string;
 
   /* The current set of players in this question. */
-  protected _studentsByID: string[] = [];
+  private _studentsByID: string[] = [];
 
   /* Is this question a group question */
   private _groupQuestion: boolean;
 
-  /* How long has this question gone unanswered? */
-  private _waitTime: number;
-
   public get id() {
     return this._id;
+  }
+
+  public get officeHoursID() {
+    return this._officeHoursID;
   }
 
   public get questionContent() {
@@ -34,8 +41,8 @@ export default class Question {
     return this._groupQuestion;
   }
 
-  public get waitTime() {
-    return this._waitTime;
+  public get timeAsked() {
+    return this._timeAsked;
   }
 
   /**
@@ -44,40 +51,83 @@ export default class Question {
    * @param studentCreator The player that asked the question
    * @param questionContent The content of the question
    */
-  constructor(id: string, studentCreatorID: string, questionContent: string) {
-    this._id = id;
-    this._questionContent = questionContent;
-    this._studentsByID.push(studentCreatorID);
-    this._groupQuestion = false;
-    this._waitTime = 0;
-  }
-
-  public addStudent(studentID: string) {
-    this._studentsByID.push(studentID);
-  }
-
-  public removeStudent(studentID: string) {
-    this._studentsByID = this._studentsByID.filter(s => s !== studentID);
-  }
-
-  public toModel(): OfficeHoursQuestion {
-    return {
-      id: this.id,
-      students: this.studentsByID,
-      questionContent: this.questionContent,
-      groupQuestion: this._groupQuestion,
-    };
-  }
-
-  public static fromQuestionModel(
+  constructor(
     id: string,
+    officeHoursID: string,
     studentsByID: string[],
     questionContent: string,
     groupQuestion: boolean,
-  ): Question {
-    const question = new Question(id, studentsByID[0], questionContent);
-    question._groupQuestion = groupQuestion;
-    question._studentsByID = studentsByID;
+    timeAsked?: number,
+  ) {
+    if (!groupQuestion && studentsByID.length > 1) {
+      throw new Error('An individual question can only 1 student');
+    }
+    this._id = id;
+    this._officeHoursID = officeHoursID;
+    this._questionContent = questionContent;
+    this._studentsByID = studentsByID;
+    this._groupQuestion = groupQuestion;
+    this._timeAsked = timeAsked || Date.now();
+  }
+
+  /**
+   * Adds a student to the list of students asking the question.
+   * Throws an error if trying to add another student to an individual question.
+   *
+   * @param student Player to add to this Question.
+   */
+  public addStudent(student: Player) {
+    if (!this.isGroup) {
+      throw new Error('Cannot add another student to an individual question');
+    }
+    this._studentsByID.push(student.id);
+  }
+
+  /**
+   * Removes a student from the list of players asking the question.
+   *
+   * @param student Player to remove from this Question.
+   */
+  public removeStudent(student: Player) {
+    this._studentsByID = this._studentsByID.filter(s => s !== student.id);
+  }
+
+  /**
+   * Converts this Question to an OfficeHoursQuestion model.
+   * @returns OfficeHoursQuestion representing this Question.
+   */
+  public toModel(): OfficeHoursQuestion {
+    return {
+      id: this.id,
+      officeHoursID: this.officeHoursID,
+      students: this.studentsByID,
+      questionContent: this.questionContent,
+      groupQuestion: this.isGroup,
+      timeAsked: this.timeAsked,
+    };
+  }
+
+  /**
+   * Updates this Question using an OfficeHoursQuestion model.
+   * @param model OfficeHoursQuestion model to update this Question.
+   */
+  public updateModel(model: OfficeHoursQuestion) {
+    if (model.id !== this.id || model.officeHoursID !== this._officeHoursID) {
+      throw new Error('Model must be the same ID and in the same OfficeHoursArea');
+    }
+    this._studentsByID = model.students;
+    this._groupQuestion = model.groupQuestion;
+  }
+
+  public static fromQuestionModel(model: OfficeHoursQuestion): Question {
+    const question = new Question(
+      model.id,
+      model.officeHoursID,
+      model.students,
+      model.questionContent,
+      model.groupQuestion,
+      model.timeAsked,
+    );
     return question;
   }
 }

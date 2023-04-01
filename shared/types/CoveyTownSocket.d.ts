@@ -30,6 +30,12 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
 };
+export interface TAModel {
+  id: string;
+  userName: string;
+  location: PlayerLocation;
+  question?: OfficeHoursQuestion;
+};
 
 export type XY = { x: number, y: number };
 
@@ -77,21 +83,35 @@ export interface PosterSessionArea {
   title?: string;
 }
 
+export interface BreakoutRoomArea {
+  id: string;
+  topic?: string;
+  occupantsByID: string[];
+};
+
+
 export interface OfficeHoursQuestion {
   id: string;
+  officeHoursID: string;
   questionContent: string;
   students: string[];
   groupQuestion: boolean;
+  timeAsked?: number;
+}
+
+export interface OfficeHoursQueue {
+  officeHoursID: string;
+  questionQueue: OfficeHoursQuestion[];
 }
 
 export interface OfficeHoursArea {
   id: string;
-  numRooms: number;     // Number of TA Rooms in this OfficeHoursArea
-  questions?: OfficeHoursQuestion[]; // id's of questions in queue
+  // teachingAssistantsByID: string[]; // the TA's currently online
 }
 
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
+  playerTeleported: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
   playerJoined: (newPlayer: Player) => void;
   initialize: (initialData: TownJoinResponse) => void;
@@ -99,10 +119,27 @@ export interface ServerToClientEvents {
   townClosing: () => void;
   chatMessage: (message: ChatMessage) => void;
   interactableUpdate: (interactable: Interactable) => void;
+
+  // TODO: Is this a bad idea?
+  
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+
+  // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
+  officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
 }
 
 export interface ClientToServerEvents {
   chatMessage: (message: ChatMessage) => void;
   playerMovement: (movementData: PlayerLocation) => void;
   interactableUpdate: (update: Interactable) => void;
+
+  // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
+  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+  officeHoursQuestionTaken: (ta: TA) => void;
+
+  taStartOfficeHours: (ta: TAModel) => void;
+  taStopOfficeHours: (ta: TAModel) => void;
+  taTakeQuestion: (ta: TAModel) => void;
+  taQuestionCompleted: (ta: TAModel) => void;
+
 }

@@ -4,7 +4,7 @@ import { BroadcastOperator } from 'socket.io';
 import IVideoClient from '../lib/IVideoClient';
 import Player from '../lib/Player';
 import TwilioVideo from '../lib/TwilioVideo';
-import { isPosterSessionArea, isViewingArea } from '../TestUtils';
+import { isOfficeHoursArea, isPosterSessionArea, isViewingArea } from '../TestUtils';
 import {
   ChatMessage,
   ConversationArea as ConversationAreaModel,
@@ -15,6 +15,9 @@ import {
   SocketData,
   ViewingArea as ViewingAreaModel,
   PosterSessionArea as PosterSessionAreaModel,
+  OfficeHoursArea as OfficeHoursAreaModel,
+  OfficeHoursQuestion,
+  TAModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -22,6 +25,8 @@ import ViewingArea from './ViewingArea';
 import PosterSessionArea from './PosterSessionArea';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import TA from '../lib/TA';
+import OfficeHoursArea from './OfficeHoursArea';
+import BreakoutRoomArea from './BreakoutRoomArea';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -130,6 +135,118 @@ export default class Town {
       }
       // create user as TA instead of Player
       newPlayer = new TA(userName, socket.to(this._townID));
+
+      // TODO change to office hours active if TA in office hours area
+      /**
+       * Sets up a listener for when a TA starts their office hours and teleports
+       * them into an open breakout room.
+       */
+      socket.on('taStartOfficeHours', (ta: TAModel) => {
+        const officeHoursArea = this._interactables.find(
+          area => area.id === ta.location.interactableID,
+        ) as OfficeHoursArea;
+        if (!officeHoursArea) {
+          throw new Error('Not in an office hours area');
+        }
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        // Teleport player to breakout room
+        const breakoutRoomId = officeHoursArea.startOfficeHours(taPlayer);
+        const breakoutRoomArea = this._interactables.find(
+          area => area.id === breakoutRoomId,
+        ) as BreakoutRoomArea;
+        if (!breakoutRoomArea) {
+          throw new Error('Not in an office hours area');
+        }
+        this._teleportPlayer(taPlayer, breakoutRoomArea.areasCenter());
+      });
+
+      /**
+       * Sets up a listener for when a TA stops their office hours and teleports
+       * back to the office hours area
+       */
+      socket.on('taStopOfficeHours', (ta: TAModel) => {
+        const officeHoursArea = this._interactables.find(
+          area => area.id === ta.location.interactableID,
+        ) as OfficeHoursArea;
+        if (!officeHoursArea) {
+          throw new Error('Not in a breakout room area');
+        }
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        // Teleport player to office hours area
+        this._teleportPlayer(taPlayer, officeHoursArea.stopOfficeHours(taPlayer));
+      });
+
+      /**
+       * Sets up a listener for when a TA accepts question to teleport players into
+       * the breakout room.
+       */
+      socket.on('taTakeQuestion', (ta: TAModel) => {
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        const interactable = this._interactables.find(
+          area => area.id === taPlayer.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!interactable) {
+          throw new Error('TA not linked to an office hours area');
+        }
+        const questionObj = interactable.nextQuestion(taPlayer);
+        if (!questionObj) {
+          throw new Error('No next question available');
+        }
+
+        // teleport each student in question to breakout room
+        questionObj.studentsByID.forEach(studentID => {
+          const playerInQuestion = this.players.find(player => player.id === studentID);
+          if (playerInQuestion && taPlayer.breakoutRoomID) {
+            const breakoutRoomArea = this._interactables.find(
+              area => area.id === taPlayer.breakoutRoomID,
+            ) as BreakoutRoomArea;
+            if (!breakoutRoomArea) {
+              throw new Error('Not in an office hours area');
+            }
+            this._teleportPlayer(playerInQuestion, breakoutRoomArea.areasCenter());
+          }
+        });
+      });
+
+      /**
+       * Sets up a listener for when a TA completes a question to remove players
+       * from the breakout room
+       */
+      socket.on('taQuestionCompleted', (ta: TAModel) => {
+        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
+        if (!taPlayer) {
+          throw new Error('Not a TA');
+        }
+        const officeHoursArea = this._interactables.find(
+          area => area.id === taPlayer.officeHoursID,
+        ) as OfficeHoursArea;
+        if (!officeHoursArea) {
+          throw new Error('Not linked to an office hours area');
+        }
+
+        // Get teleportation destination
+        const officeHoursLoc: PlayerLocation = officeHoursArea.areasCenter();
+
+        if (!taPlayer.currentQuestion) {
+          throw new Error('No current question');
+        }
+        // teleport each student in question to office hours area's
+        taPlayer.currentQuestion.studentsByID.forEach(studentID => {
+          const playerInQuestion = this.players.find(player => player.id === studentID);
+          if (playerInQuestion) {
+            this._teleportPlayer(playerInQuestion, officeHoursLoc);
+          }
+        });
+      });
     } else {
       newPlayer = new Player(userName, socket.to(this._townID));
     }
@@ -164,8 +281,20 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
+    // If the player enters an OfficeHoursArea, emits the queue data to them.
     socket.on('playerMovement', (movementData: PlayerLocation) => {
+      const prevInteractableID = newPlayer.location.interactableID;
       this._updatePlayerLocation(newPlayer, movementData);
+
+      if (prevInteractableID !== newPlayer.location.interactableID) {
+        // Emit the queue data if entering an OfficeHoursArea
+        const interatable = this._interactables.find(
+          area => area.id === newPlayer.location.interactableID,
+        );
+        if (interatable instanceof OfficeHoursArea) {
+          socket.emit('officeHoursQueueUpdate', interatable.toQueueModel());
+        }
+      }
     });
 
     // Set up a listener to process updates to interactables.
@@ -197,8 +326,39 @@ export default class Town {
         if (existingPosterSessionAreaArea) {
           existingPosterSessionAreaArea.updateModel(update);
         }
+      } else if (isOfficeHoursArea(update)) {
+        newPlayer.townEmitter.emit('interactableUpdate', update);
+        const officeHoursArea = this._interactables.find(
+          eachInteractable => eachInteractable.id === update.id,
+        );
+        if (officeHoursArea) {
+          (officeHoursArea as OfficeHoursArea).updateModel(update);
+        }
       }
     });
+
+    /**
+     * Sets up a listener to update the OfficeHoursArea when a question is added, removed, or modified.
+     * Emits an officeHoursQueueUpdate to all players in the OfficeHoursArea with the updated queue.
+     */
+    socket.on('officeHoursQuestionUpdate', (question: OfficeHoursQuestion) => {
+      const officeHoursArea = <OfficeHoursArea>(
+        this._interactables.find(
+          area => area.id === question.officeHoursID && area instanceof OfficeHoursArea,
+        )
+      );
+      if (officeHoursArea) {
+        const prevModel = officeHoursArea.toModel();
+        officeHoursArea.addUpdateQuestion(question);
+        if (prevModel !== officeHoursArea.toModel()) {
+          socket.emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
+          socket
+            .to(officeHoursArea.id)
+            .emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
+        }
+      }
+    });
+
     return newPlayer;
   }
 
@@ -369,6 +529,26 @@ export default class Town {
     return true;
   }
 
+  public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
+    // TODO fix check
+    // if (!officeHoursArea.isActive) {
+    //   return false;
+    // }
+    const existingOfficeHoursArea = <OfficeHoursArea>(
+      this._interactables.find(
+        area => area.id === officeHoursArea.id && area instanceof OfficeHoursArea,
+      )
+    );
+    if (!existingOfficeHoursArea || existingOfficeHoursArea.teachingAssistantsByID.length > 0) {
+      return false;
+    }
+
+    existingOfficeHoursArea.updateModel(officeHoursArea);
+    existingOfficeHoursArea.addPlayersWithinBounds(this._players);
+    this._broadcastEmitter.emit('interactableUpdate', existingOfficeHoursArea.toModel());
+    return true;
+  }
+
   /**
    * Fetch a player's session based on the provided session token. Returns undefined if the
    * session token is not valid.
@@ -442,11 +622,29 @@ export default class Town {
       .filter(eachObject => eachObject.type === 'PosterSessionArea')
       .map(eachPSAreaObj => PosterSessionArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
+    const breakoutRoomAreas = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'BreakoutRoomArea')
+      .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
+
+    const breakoutRoomAreaIDs = breakoutRoomAreas.map(area => area.id);
+
+    const officeHoursArea = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'OfficeHoursArea')
+      .map(eachPSAreaObj =>
+        OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter, breakoutRoomAreaIDs),
+      );
+
     this._interactables = this._interactables
       .concat(viewingAreas)
       .concat(conversationAreas)
-      .concat(posterSessionAreas);
+      .concat(posterSessionAreas)
+      .concat(breakoutRoomAreas)
+      .concat(officeHoursArea);
     this._validateInteractables();
+  }
+
+  private _teleportPlayer(player: Player, loc: PlayerLocation) {
+    this._updatePlayerLocation(player, loc);
   }
 
   private _validateInteractables() {
