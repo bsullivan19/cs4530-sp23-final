@@ -105,7 +105,7 @@ export interface OfficeHoursQueue {
 
 export interface OfficeHoursArea {
   id: string;
-  teachingAssistantsByID: string[]; // the TA's currently online
+  // teachingAssistantsByID: string[]; // the TA's currently online
 }
 
 export interface ServerToClientEvents {

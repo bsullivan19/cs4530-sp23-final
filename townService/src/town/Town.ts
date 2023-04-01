@@ -136,6 +136,7 @@ export default class Town {
       // create user as TA instead of Player
       newPlayer = new TA(userName, socket.to(this._townID));
 
+      // TODO change to office hours active if TA in office hours area
       /**
        * Sets up a listener for when a TA starts their office hours and teleports
        * them into an open breakout room.
@@ -620,10 +621,24 @@ export default class Town {
       .filter(eachObject => eachObject.type === 'PosterSessionArea')
       .map(eachPSAreaObj => PosterSessionArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
+    const breakoutRoomAreas = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'BreakoutRoomArea')
+      .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
+
+    const breakoutRoomAreaIDs = breakoutRoomAreas.map(area => area.id);
+
+    const officeHoursArea = objectLayer.objects
+      .filter(eachObject => eachObject.type === 'OfficeHoursArea')
+      .map(eachPSAreaObj =>
+        OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter, breakoutRoomAreaIDs),
+      );
+
     this._interactables = this._interactables
       .concat(viewingAreas)
       .concat(conversationAreas)
-      .concat(posterSessionAreas);
+      .concat(posterSessionAreas)
+      .concat(breakoutRoomAreas)
+      .concat(officeHoursArea);
     this._validateInteractables();
   }
 

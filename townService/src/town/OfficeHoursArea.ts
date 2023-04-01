@@ -49,10 +49,11 @@ export default class OfficeHoursArea extends InteractableArea {
 
     // initialize breakout rooms map
     this._openBreakoutRooms = new Map<string, string | undefined>();
-    breakoutRoomIDs.forEach(breakoutRoomID =>
-      this._openBreakoutRooms.set(breakoutRoomID, undefined),
-    );
     this._queue = [];
+  }
+
+  public addBreakoutRoom(breakoutRoomAreaID: string) {
+    this._openBreakoutRooms.set(breakoutRoomAreaID, undefined);
   }
 
   public toQueueModel(): OfficeHoursQueue {
@@ -65,14 +66,12 @@ export default class OfficeHoursArea extends InteractableArea {
   public toModel(): OfficeHoursModel {
     return {
       id: this.id,
-      teachingAssistantsByID: this.teachingAssistantsByID,
     };
   }
 
   public updateModel(model: OfficeHoursModel) {
     const queueCopy = this._queue;
     this._queue = [];
-    this._teachingAssistantsByID = model.teachingAssistantsByID;
   }
 
   public add(player: Player) {
@@ -199,6 +198,30 @@ export default class OfficeHoursArea extends InteractableArea {
         this._queue = this._queue.filter(q => q.id !== questionID);
       }
     }
+  }
+
+  /**
+   * Creates a new OfficeHoursArea object that will represent a OfficeHoursArea object in the town map.
+   * @param mapObject An ITiledMapObject that represents a rectangle in which this viewing area exists
+   * @param townEmitter An emitter that can be used by this viewing area to broadcast updates to players in the town
+   * @returns
+   */
+  public static fromMapObject(
+    mapObject: ITiledMapObject,
+    townEmitter: TownEmitter,
+    breakoutRoomAreaIDs: string[],
+  ): OfficeHoursArea {
+    if (!mapObject.width || !mapObject.height) {
+      throw new Error('missing width/height for map object');
+    }
+    const box = {
+      x: mapObject.x,
+      y: mapObject.y,
+      width: mapObject.width,
+      height: mapObject.height,
+    };
+    // return new OfficeHoursArea()
+    return new OfficeHoursArea({ id: mapObject.name }, breakoutRoomAreaIDs, box, townEmitter);
   }
 
   private _getOpenBreakoutRoom(): string | undefined {

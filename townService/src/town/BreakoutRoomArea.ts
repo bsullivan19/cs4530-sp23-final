@@ -8,6 +8,8 @@ import {
 import ConversationArea from './ConversationArea';
 
 export default class BreakoutRoomArea extends ConversationArea {
+  // TODO add office hours area id link
+
   /**
    * Creates a new BreakoutRoomArea
    *
