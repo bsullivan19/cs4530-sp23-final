@@ -6,6 +6,7 @@ import type { OfficeHoursArea } from '../models/OfficeHoursArea';
 import type { OfficeHoursQuestion } from '../models/OfficeHoursQuestion';
 import type { OfficeHoursQueue } from '../models/OfficeHoursQueue';
 import type { PosterSessionArea } from '../models/PosterSessionArea';
+import type { TAModel } from '../models/TAModel';
 import type { Town } from '../models/Town';
 import type { TownCreateParams } from '../models/TownCreateParams';
 import type { TownCreateResponse } from '../models/TownCreateResponse';
@@ -406,6 +407,34 @@ xSessionToken: string,
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/queue',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param xSessionToken 
+     * @returns TAModel Ok
+     * @throws ApiError
+     */
+    public takeNextOfficeHoursQuestion(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+): CancelablePromise<TAModel> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/takeQuestion',
             path: {
                 'townID': townId,
                 'officeHoursAreaId': officeHoursAreaId,

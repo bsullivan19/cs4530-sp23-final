@@ -81,11 +81,11 @@ export interface PosterSessionArea {
   title?: string;
 }
 
-export interface BreakoutRoomArea {
-  id: string;
-  topic?: string;
-  occupantsByID: string[];
-};
+// export interface BreakoutRoomArea {
+//   id: string;
+//   topic?: string;
+//   occupantsByID: string[];
+// };
 
 
 export interface OfficeHoursQuestion {
@@ -110,7 +110,8 @@ export interface OfficeHoursArea {
 
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
-  playerTeleported: (movedPlayer: Player) => void;
+  // TODO: we can do the questionTake all in one event for teleporting and removing questions after this merge
+  teleportPlayer: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
   playerJoined: (newPlayer: Player) => void;
   initialize: (initialData: TownJoinResponse) => void;
@@ -138,8 +139,7 @@ export interface ClientToServerEvents {
   officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
   officeHoursQuestionTaken: (ta: TA) => void;
 
-  taStartOfficeHours: (ta: TAModel) => void;
-  taStopOfficeHours: (ta: TAModel) => void;
+  // TODO: restructure because we are using REST
   taTakeQuestion: (ta: TAModel) => void;
   taQuestionCompleted: (ta: TAModel) => void;
 

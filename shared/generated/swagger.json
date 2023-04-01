@@ -67,18 +67,19 @@
 						"type": "boolean",
 						"description": "Players will identify towns by either knowing the (randomly generated) town ID, or the town ID will be publicly\nlisted along wiht the friendly name of the town. This behavior can be controlled when creating the town by changing\nthis flag."
 					},
-					"mapFile": {
-						"type": "string",
-						"description": "Reserved for future use, currently only used for testing: this parameter can be\nspecified to control which Tiled map file is used for initializing the set of interactable areas\n\nNot currently used on frontend"
-					},
 					"taPassword": {
 						"type": "string",
 						"description": "The password to become a TA in this town. If none is given the taPassword will be set to a random string"
+					},
+					"mapFile": {
+						"type": "string",
+						"description": "Reserved for future use, currently only used for testing: this parameter can be\nspecified to control which Tiled map file is used for initializing the set of interactable areas\n\nNot currently used on frontend"
 					}
 				},
 				"required": [
 					"friendlyName",
-					"isPubliclyListed"
+					"isPubliclyListed",
+					"taPassword"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -249,6 +250,70 @@
 				"required": [
 					"officeHoursID",
 					"questionQueue"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"Direction": {
+				"type": "string",
+				"enum": [
+					"front",
+					"back",
+					"left",
+					"right"
+				]
+			},
+			"PlayerLocation": {
+				"properties": {
+					"x": {
+						"type": "number",
+						"format": "double"
+					},
+					"y": {
+						"type": "number",
+						"format": "double"
+					},
+					"rotation": {
+						"$ref": "#/components/schemas/Direction"
+					},
+					"moving": {
+						"type": "boolean"
+					},
+					"interactableID": {
+						"type": "string"
+					}
+				},
+				"required": [
+					"x",
+					"y",
+					"rotation",
+					"moving"
+				],
+				"type": "object",
+				"additionalProperties": false
+			},
+			"TAModel": {
+				"properties": {
+					"id": {
+						"type": "string"
+					},
+					"userName": {
+						"type": "string"
+					},
+					"location": {
+						"$ref": "#/components/schemas/PlayerLocation"
+					},
+					"breakoutRoomID": {
+						"type": "string"
+					},
+					"question": {
+						"$ref": "#/components/schemas/OfficeHoursQuestion"
+					}
+				},
+				"required": [
+					"id",
+					"userName",
+					"location"
 				],
 				"type": "object",
 				"additionalProperties": false
@@ -1026,6 +1091,63 @@
 							"application/json": {
 								"schema": {
 									"$ref": "#/components/schemas/OfficeHoursQueue"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Invalid values specified",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/InvalidParametersError"
+								}
+							}
+						}
+					}
+				},
+				"tags": [
+					"towns"
+				],
+				"security": [],
+				"parameters": [
+					{
+						"in": "path",
+						"name": "townID",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "path",
+						"name": "officeHoursAreaId",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"in": "header",
+						"name": "X-Session-Token",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				]
+			}
+		},
+		"/towns/{townID}/{officeHoursAreaId}/takeQuestion": {
+			"patch": {
+				"operationId": "TakeNextOfficeHoursQuestion",
+				"responses": {
+					"200": {
+						"description": "Ok",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/TAModel"
 								}
 							}
 						}

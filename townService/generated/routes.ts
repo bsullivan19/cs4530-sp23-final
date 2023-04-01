@@ -35,8 +35,8 @@ const models: TsoaRoute.Models = {
         "properties": {
             "friendlyName": {"dataType":"string","required":true},
             "isPubliclyListed": {"dataType":"boolean","required":true},
+            "taPassword": {"dataType":"string","required":true},
             "mapFile": {"dataType":"string"},
-            "taPassword": {"dataType":"string"},
         },
         "additionalProperties": false,
     },
@@ -115,6 +115,35 @@ const models: TsoaRoute.Models = {
         "properties": {
             "officeHoursID": {"dataType":"string","required":true},
             "questionQueue": {"dataType":"array","array":{"dataType":"refObject","ref":"OfficeHoursQuestion"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Direction": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["front"]},{"dataType":"enum","enums":["back"]},{"dataType":"enum","enums":["left"]},{"dataType":"enum","enums":["right"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayerLocation": {
+        "dataType": "refObject",
+        "properties": {
+            "x": {"dataType":"double","required":true},
+            "y": {"dataType":"double","required":true},
+            "rotation": {"ref":"Direction","required":true},
+            "moving": {"dataType":"boolean","required":true},
+            "interactableID": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TAModel": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "userName": {"dataType":"string","required":true},
+            "location": {"ref":"PlayerLocation","required":true},
+            "breakoutRoomID": {"dataType":"string"},
+            "question": {"ref":"OfficeHoursQuestion"},
         },
         "additionalProperties": false,
     },
@@ -498,6 +527,33 @@ export function RegisterRoutes(app: express.Router) {
 
 
               const promise = controller.getOfficeHoursQueue.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/takeQuestion',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestion)),
+
+            function TownsController_takeNextOfficeHoursQuestion(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.takeNextOfficeHoursQuestion.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);

@@ -8,6 +8,8 @@ import ConversationArea from './interactables/ConversationArea';
 import Transporter from './interactables/Transporter';
 import ViewingArea from './interactables/ViewingArea';
 import PosterSessionArea from './interactables/PosterSessionArea';
+import OfficeHoursArea from './interactables/OfficeHoursArea';
+import BreakoutRoomArea from './interactables/BreakoutRoomArea';
 
 // Still not sure what the right type is here... "Interactable" doesn't do it
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +22,10 @@ function interactableTypeForObjectType(type: string): any {
     return ViewingArea;
   } else if (type == 'PosterSessionArea') {
     return PosterSessionArea;
+  } else if (type == 'OfficeHoursArea') {
+    return OfficeHoursArea;
+  } else if (type == 'BreakoutRoomArea') {
+    return BreakoutRoomArea;
   } else {
     throw new Error(`Unknown object type: ${type}`);
   }

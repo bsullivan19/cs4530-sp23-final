@@ -32,6 +32,7 @@ const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
 export type ConnectionProperties = {
   userName: string;
+  taPassword: string;
   townID: string;
   loginController: LoginController;
 };
@@ -167,6 +168,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private readonly _userName: string;
 
   /**
+   * The username of the player whose browser created this TownController
+   */
+  private readonly _taPassword: string;
+
+  /**
    * The user ID of the player whose browser created this TownController. The user ID is set by the backend townsService, and
    * is only available after the service is connected.
    */
@@ -206,11 +212,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   private _officeHoursAreas: OfficeHoursAreaController[] = [];
 
-  public constructor({ userName, townID, loginController }: ConnectionProperties) {
+  public constructor({ userName, taPassword, townID, loginController }: ConnectionProperties) {
     super();
     this._townID = townID;
     this._userName = userName;
     this._loginController = loginController;
+    this._taPassword = taPassword;
 
     /*
         The event emitter will show a warning if more than this number of listeners are registered, as it
@@ -221,7 +228,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.REACT_APP_TOWNS_SERVICE_URL;
     assert(url);
-    this._socket = io(url, { auth: { userName, townID } });
+    this._socket = io(url, { auth: { userName, townID, taPassword } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
   }
@@ -253,6 +260,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   public get userName() {
     return this._userName;
+  }
+
+  public get taPassword() {
+    return this._taPassword;
   }
 
   public get friendlyName() {
@@ -433,7 +444,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       }
     });
 
-    this._socket.on('playerTeleported', movedPlayer => {
+    this._socket.on('teleportPlayer', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
       if (playerToUpdate) {
         // Force update location

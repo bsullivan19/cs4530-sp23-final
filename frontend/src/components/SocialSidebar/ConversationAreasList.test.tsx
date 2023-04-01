@@ -162,6 +162,7 @@ describe('ConversationAreasList', () => {
         userName: nanoid(),
         townID: nanoid(),
         loginController: mock<LoginController>(),
+        taPassword: nanoid(),
       });
       if (areasToRender === undefined) {
         areasToRender = areas;

@@ -40,12 +40,7 @@ export default class OfficeHoursArea extends InteractableArea {
     return this.teachingAssistantsByID.length > 0;
   }
 
-  public constructor(
-    { id }: OfficeHoursModel,
-    breakoutRoomIDs: string[],
-    coordinates: BoundingBox,
-    townEmitter: TownEmitter,
-  ) {
+  public constructor({ id }: OfficeHoursModel, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
     this._roomEmitter = townEmitter.to(this.id);
     this._teachingAssistantsByID = [];
@@ -122,33 +117,17 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
-   * Starts an office hours breakout room for the TA. Throws an error if there are no
-   * more breakout rooms. Returns the breakout room area id
-   */
-  public startOfficeHours(ta: TA): string {
-    const breakoutRoomID = this._getOpenBreakoutRoom();
-    if (!breakoutRoomID) {
-      throw new Error('No breakout rooms left');
-    }
-    this._openBreakoutRooms.set(breakoutRoomID, ta.id);
-
-    ta.breakoutRoomID = breakoutRoomID;
-    ta.currentQuestion = undefined;
-    ta.officeHoursID = this.id;
-    return ta.breakoutRoomID;
-  }
-
-  /**
-   * Stops an office hours breakout room for the TA. Throws an error if there are no
+   * Stops an office hours breakout room for the TA. Resets all pertaining fields
+   * in office hours area and breakout room. Throws an error if there are no
    * more breakout rooms.
    */
   public stopOfficeHours(ta: TA): PlayerLocation {
-    if (!ta.breakoutRoomID) {
-      throw new Error('TA is not in a breakout room');
-    }
     // Add breakout room back as being open
+    if (!ta.breakoutRoomID) {
+      throw new Error('TA does not have a breakout room');
+    }
     if (this._openBreakoutRooms.get(ta.breakoutRoomID) !== ta.id) {
-      throw new Error('TA does not have open office hours in this area');
+      throw new Error('Breakout room and ta mismatch');
     }
     this._openBreakoutRooms.set(ta.breakoutRoomID, undefined);
 
@@ -164,25 +143,29 @@ export default class OfficeHoursArea extends InteractableArea {
   public nextQuestion(teachingAssistant: TA): Question | undefined {
     // TODO: update to use new question queue structure
     const question = this._queue.pop();
-    if (question && this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)) {
+    if (question) {
       teachingAssistant.currentQuestion = question;
     }
     return question;
+    // TODO: add emit event later
   }
 
   /**
-   * Assigns a questionID to a player if the player is a TA and the questionID exists in the queue.
-   * TODO: Currently, the question is not removed from the queue since the TA
+   * TA is assigned a question and breakout room if both are available, otherwise
+   * throws and error.
    */
-  public takeQuestion(teachingAssistant: Player, questionID: string): Question | undefined {
-    const question = this.getQuestion(questionID);
-    if (
-      question &&
-      isTA(teachingAssistant) &&
-      this.teachingAssistantsByID.find(ta => ta === teachingAssistant.id)
-    ) {
-      teachingAssistant.currentQuestion = question;
+  public takeQuestion(teachingAssistant: TA): Question {
+    const breakoutRoomAreaID = this._getOpenBreakoutRoom();
+    if (!breakoutRoomAreaID) {
+      throw new Error('No open breakout rooms');
     }
+    const question = this.nextQuestion(teachingAssistant);
+    if (!question) {
+      throw new Error('No questions available');
+    }
+    teachingAssistant.currentQuestion = question;
+    teachingAssistant.officeHoursID = this.id;
+    teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
     return question;
   }
 
@@ -219,7 +202,6 @@ export default class OfficeHoursArea extends InteractableArea {
   public static fromMapObject(
     mapObject: ITiledMapObject,
     townEmitter: TownEmitter,
-    breakoutRoomAreaIDs: string[],
   ): OfficeHoursArea {
     if (!mapObject.width || !mapObject.height) {
       throw new Error('missing width/height for map object');
@@ -233,7 +215,6 @@ export default class OfficeHoursArea extends InteractableArea {
     // return new OfficeHoursArea()
     return new OfficeHoursArea(
       { id: mapObject.name, officeHoursActive: false, teachingAssistantsByID: [] },
-      breakoutRoomAreaIDs,
       box,
       townEmitter,
     );
