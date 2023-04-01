@@ -427,7 +427,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       }
     });
 
-    this._socket.on('playerTeleported', movedPlayer => {
+    this._socket.on('teleportPlayer', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
       if (playerToUpdate) {
         // Force update location

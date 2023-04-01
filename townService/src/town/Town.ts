@@ -136,52 +136,6 @@ export default class Town {
       // create user as TA instead of Player
       newPlayer = new TA(userName, socket.to(this._townID));
 
-      // TODO change to office hours active if TA in office hours area
-      /**
-       * Sets up a listener for when a TA starts their office hours and teleports
-       * them into an open breakout room.
-       */
-      socket.on('taStartOfficeHours', (ta: TAModel) => {
-        const officeHoursArea = this._interactables.find(
-          area => area.id === ta.location.interactableID,
-        ) as OfficeHoursArea;
-        if (!officeHoursArea) {
-          throw new Error('Not in an office hours area');
-        }
-        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
-        if (!taPlayer) {
-          throw new Error('Not a TA');
-        }
-        // Teleport player to breakout room
-        const breakoutRoomId = officeHoursArea.startOfficeHours(taPlayer);
-        const breakoutRoomArea = this._interactables.find(
-          area => area.id === breakoutRoomId,
-        ) as BreakoutRoomArea;
-        if (!breakoutRoomArea) {
-          throw new Error('Not in an office hours area');
-        }
-        this._teleportPlayer(taPlayer, breakoutRoomArea.areasCenter());
-      });
-
-      /**
-       * Sets up a listener for when a TA stops their office hours and teleports
-       * back to the office hours area
-       */
-      socket.on('taStopOfficeHours', (ta: TAModel) => {
-        const officeHoursArea = this._interactables.find(
-          area => area.id === ta.location.interactableID,
-        ) as OfficeHoursArea;
-        if (!officeHoursArea) {
-          throw new Error('Not in a breakout room area');
-        }
-        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
-        if (!taPlayer) {
-          throw new Error('Not a TA');
-        }
-        // Teleport player to office hours area
-        this._teleportPlayer(taPlayer, officeHoursArea.stopOfficeHours(taPlayer));
-      });
-
       /**
        * Sets up a listener for when a TA accepts question to teleport players into
        * the breakout room.
@@ -191,59 +145,71 @@ export default class Town {
         if (!taPlayer) {
           throw new Error('Not a TA');
         }
-        const interactable = this._interactables.find(
-          area => area.id === taPlayer.officeHoursID,
+        const officeHoursArea = this._interactables.find(
+          area => area.id === taPlayer.location.interactableID,
         ) as OfficeHoursArea;
-        if (!interactable) {
-          throw new Error('TA not linked to an office hours area');
+        if (!officeHoursArea) {
+          throw new Error('TA not in an office hours area');
         }
-        const questionObj = interactable.nextQuestion(taPlayer);
-        if (!questionObj) {
-          throw new Error('No next question available');
+        // Ends early if no available office hours area or question
+        let questionObj;
+        try {
+          questionObj = officeHoursArea.takeQuestion(taPlayer);
+        } catch (err) {
+          return;
         }
+
+        // Teleport TA and players to breakout room
+        const breakoutRoomArea = this._interactables.find(
+          area => area.id === taPlayer.breakoutRoomID,
+        ) as BreakoutRoomArea;
+        if (!breakoutRoomArea) {
+          throw new Error('No breakout room set to TA');
+        }
+        const teleportLocation: PlayerLocation = breakoutRoomArea.areasCenter();
+        this._teleportPlayer(taPlayer, teleportLocation);
 
         // teleport each student in question to breakout room
         questionObj.studentsByID.forEach(studentID => {
           const playerInQuestion = this.players.find(player => player.id === studentID);
-          if (playerInQuestion && taPlayer.breakoutRoomID) {
-            const breakoutRoomArea = this._interactables.find(
-              area => area.id === taPlayer.breakoutRoomID,
-            ) as BreakoutRoomArea;
-            if (!breakoutRoomArea) {
-              throw new Error('Not in an office hours area');
-            }
-            this._teleportPlayer(playerInQuestion, breakoutRoomArea.areasCenter());
+          if (playerInQuestion) {
+            this._teleportPlayer(playerInQuestion, teleportLocation);
           }
         });
+        breakoutRoomArea.topic = questionObj.questionContent;
       });
 
       /**
-       * Sets up a listener for when a TA completes a question to remove players
-       * from the breakout room
+       * Sets up a listener for when a TA completes a question to teleport all players
+       * in the breakout room back to the linked office hours area
        */
       socket.on('taQuestionCompleted', (ta: TAModel) => {
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
         if (!taPlayer) {
           throw new Error('Not a TA');
         }
+        const breakoutRoomArea = this._interactables.find(
+          area => area.id === taPlayer.location.interactableID,
+        ) as BreakoutRoomArea;
+        if (!breakoutRoomArea) {
+          throw new Error('TA not in an breakout area');
+        }
         const officeHoursArea = this._interactables.find(
-          area => area.id === taPlayer.officeHoursID,
+          area => area.id === breakoutRoomArea.linkedOfficeHoursID,
         ) as OfficeHoursArea;
         if (!officeHoursArea) {
           throw new Error('Not linked to an office hours area');
         }
 
-        // Get teleportation destination
-        const officeHoursLoc: PlayerLocation = officeHoursArea.areasCenter();
+        // updates office hours area and TA info that question is answered
+        const officeHoursLoc: PlayerLocation = officeHoursArea.stopOfficeHours(taPlayer);
 
-        if (!taPlayer.currentQuestion) {
-          throw new Error('No current question');
-        }
-        // teleport each student in question to office hours area's
-        taPlayer.currentQuestion.studentsByID.forEach(studentID => {
-          const playerInQuestion = this.players.find(player => player.id === studentID);
-          if (playerInQuestion) {
-            this._teleportPlayer(playerInQuestion, officeHoursLoc);
+        // TODO low priority make more efficient
+        // teleport everyone in breakout room back to office hours area's
+        breakoutRoomArea.occupantsByID.forEach(playerID => {
+          const playerInBreakoutRoom = this.players.find(player => player.id === playerID);
+          if (playerInBreakoutRoom) {
+            this._teleportPlayer(playerInBreakoutRoom, officeHoursLoc);
           }
         });
       });
@@ -626,20 +592,26 @@ export default class Town {
       .filter(eachObject => eachObject.type === 'BreakoutRoomArea')
       .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
-    const breakoutRoomAreaIDs = breakoutRoomAreas.map(area => area.id);
-
-    const officeHoursArea = objectLayer.objects
+    const officeHoursAreas = objectLayer.objects
       .filter(eachObject => eachObject.type === 'OfficeHoursArea')
-      .map(eachPSAreaObj =>
-        OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter, breakoutRoomAreaIDs),
+      .map(eachPSAreaObj => OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
+
+    // Link breakout room areas to office hour area with matching ID set in ITiledMap
+    breakoutRoomAreas.forEach(breakoutRoomArea => {
+      const officeHoursArea = officeHoursAreas.find(
+        area => area.id === breakoutRoomArea.linkedOfficeHoursID,
       );
+      if (officeHoursArea) {
+        officeHoursArea.addBreakoutRoom(breakoutRoomArea.id);
+      }
+    });
 
     this._interactables = this._interactables
       .concat(viewingAreas)
       .concat(conversationAreas)
       .concat(posterSessionAreas)
       .concat(breakoutRoomAreas)
-      .concat(officeHoursArea);
+      .concat(officeHoursAreas);
     this._validateInteractables();
   }
 
