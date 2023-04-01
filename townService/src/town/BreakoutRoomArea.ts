@@ -71,11 +71,21 @@ export default class BreakoutRoomArea extends ConversationArea {
       throw new Error(`Malformed viewing area ${name}`);
     }
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
+
+    // Get linked office hours id from ITiledMap
+    const officeHoursProp = mapObject.properties?.find(prop => prop.name === 'linkedOfficeHoursID')
+    if (!officeHoursProp) {
+      throw new Error('no linkedOfficeHoursID property');
+    }
+    const officeHoursIDVal: string = officeHoursProp.value as string;
+    if (!officeHoursIDVal) {
+      throw new Error('no linkedOfficeHoursID value');
+    }
     return new BreakoutRoomArea(
       { id: name, occupantsByID: [] },
       rect,
       broadcastEmitter,
-      mapObject.linkedOfficeHoursID,
+      officeHoursIDVal,
     );
   }
 }
