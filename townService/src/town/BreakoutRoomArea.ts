@@ -6,9 +6,15 @@ import {
   TownEmitter,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
+import OfficeHoursArea from './OfficeHoursArea';
 
 export default class BreakoutRoomArea extends ConversationArea {
   // TODO add office hours area id link
+  private readonly _linkedOfficeHoursID: string;
+
+  public get linkedOfficeHoursID(): string {
+    return this._linkedOfficeHoursID;
+  }
 
   /**
    * Creates a new BreakoutRoomArea
@@ -21,8 +27,10 @@ export default class BreakoutRoomArea extends ConversationArea {
     areaModel: BreakoutRoomAreaModel,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
+    linkedOfficeHoursID: string,
   ) {
     super(areaModel, coordinates, townEmitter);
+    this._linkedOfficeHoursID = linkedOfficeHoursID;
   }
 
   /**
@@ -64,6 +72,11 @@ export default class BreakoutRoomArea extends ConversationArea {
       throw new Error(`Malformed viewing area ${name}`);
     }
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
-    return new BreakoutRoomArea({ id: name, occupantsByID: [] }, rect, broadcastEmitter);
+    return new BreakoutRoomArea(
+      { id: name, occupantsByID: [] },
+      rect,
+      broadcastEmitter,
+      mapObject.linkedOfficeHoursID,
+    );
   }
 }

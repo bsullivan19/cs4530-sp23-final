@@ -111,7 +111,7 @@ export interface OfficeHoursArea {
 
 export interface ServerToClientEvents {
   playerMoved: (movedPlayer: Player) => void;
-  playerTeleported: (movedPlayer: Player) => void;
+  teleportPlayer: (movedPlayer: Player) => void;
   playerDisconnect: (disconnectedPlayer: Player) => void;
   playerJoined: (newPlayer: Player) => void;
   initialize: (initialData: TownJoinResponse) => void;
@@ -137,8 +137,6 @@ export interface ClientToServerEvents {
   officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
   officeHoursQuestionTaken: (ta: TA) => void;
 
-  taStartOfficeHours: (ta: TAModel) => void;
-  taStopOfficeHours: (ta: TAModel) => void;
   taTakeQuestion: (ta: TAModel) => void;
   taQuestionCompleted: (ta: TAModel) => void;
 
