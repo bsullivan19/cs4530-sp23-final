@@ -142,7 +142,7 @@ export default function TownSelection(): JSX.Element {
       const newTownInfo = await townsService.createTown({
         friendlyName: newTownName,
         isPubliclyListed: newTownIsPublic,
-        taPassword,
+        taPassword: taPassword,
       });
       let privateMessage = <></>;
       if (!newTownIsPublic) {

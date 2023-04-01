@@ -23,5 +23,7 @@ export type TownCreateParams = {
      * Not currently used on frontend
      */
     mapFile?: string;
+
+    taPassword: string;
 };
 
