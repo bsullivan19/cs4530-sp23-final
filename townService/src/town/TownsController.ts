@@ -346,7 +346,7 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
+    if (!officeHoursArea.isActive) {
       throw new InvalidParametersError('Cant add a question when no TAs online');
     }
     (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(requestBody);
@@ -379,7 +379,7 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
+    if (!officeHoursArea.isActive) {
       throw new InvalidParametersError('Cant join a question when no TAs online');
     }
     const officeHoursQuestion = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(

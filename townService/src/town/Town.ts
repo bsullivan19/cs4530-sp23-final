@@ -530,9 +530,10 @@ export default class Town {
   }
 
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
-    if (officeHoursArea.teachingAssistantsByID.length <= 0) {
-      return false;
-    }
+    // TODO fix check
+    // if (!officeHoursArea.isActive) {
+    //   return false;
+    // }
     const existingOfficeHoursArea = <OfficeHoursArea>(
       this._interactables.find(
         area => area.id === officeHoursArea.id && area instanceof OfficeHoursArea,
