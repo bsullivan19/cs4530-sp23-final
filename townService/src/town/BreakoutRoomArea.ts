@@ -2,7 +2,9 @@ import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import Player from '../lib/Player';
 import {
   BoundingBox,
-  BreakoutRoomArea as BreakoutRoomAreaModel,
+  // Use conversation area representation as a breakot room model.
+  // No special frontend functionallity needed.
+  ConversationArea as BreakoutRoomAreaModel,
   TownEmitter,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';

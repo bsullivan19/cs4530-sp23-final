@@ -15,7 +15,7 @@ describe('BreakoutRoomArea', () => {
 
   beforeEach(() => {
     mockClear(townEmitter);
-    testArea = new BreakoutRoomArea({ topic, id, occupantsByID: [] }, testAreaBox, townEmitter);
+    testArea = new BreakoutRoomArea({ topic, id }, testAreaBox, townEmitter, '2');
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
   });
