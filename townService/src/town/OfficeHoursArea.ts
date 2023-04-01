@@ -137,6 +137,7 @@ export default class OfficeHoursArea extends InteractableArea {
       teachingAssistant.currentQuestion = question;
     }
     return question;
+    // TODO: add emit event later
   }
 
   /**

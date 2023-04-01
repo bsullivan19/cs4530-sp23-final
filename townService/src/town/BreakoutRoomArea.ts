@@ -2,7 +2,9 @@ import { ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import Player from '../lib/Player';
 import {
   BoundingBox,
-  BreakoutRoomArea as BreakoutRoomAreaModel,
+  // Use conversation area representation as a breakot room model.
+  // No special frontend functionallity needed.
+  ConversationArea as BreakoutRoomAreaModel,
   TownEmitter,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
@@ -73,7 +75,7 @@ export default class BreakoutRoomArea extends ConversationArea {
     const rect: BoundingBox = { x: mapObject.x, y: mapObject.y, width, height };
 
     // Get linked office hours id from ITiledMap
-    const officeHoursProp = mapObject.properties?.find(prop => prop.name === 'linkedOfficeHoursID')
+    const officeHoursProp = mapObject.properties?.find(prop => prop.name === 'linkedOfficeHoursID');
     if (!officeHoursProp) {
       throw new Error('no linkedOfficeHoursID property');
     }

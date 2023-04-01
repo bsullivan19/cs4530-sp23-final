@@ -83,8 +83,8 @@ export default class TownsStore {
   async createTown(
     friendlyName: string,
     isPubliclyListed: boolean,
+    taPassword: string,
     mapFile = '../frontend/public/assets/tilemaps/indoors.json',
-    taPassword = nanoid(),
   ): Promise<Town> {
     if (friendlyName.length === 0) {
       throw new Error('FriendlyName must be specified');

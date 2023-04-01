@@ -70,8 +70,8 @@ export class TownsController extends Controller {
     const { townID, townUpdatePassword } = await this._townsStore.createTown(
       request.friendlyName,
       request.isPubliclyListed,
-      request.mapFile,
       request.taPassword,
+      request.mapFile,
     );
     return {
       townID,
@@ -402,11 +402,11 @@ export class TownsController extends Controller {
    */
   public async joinTown(socket: CoveyTownSocket) {
     // Parse the client's requested username from the connection
-    const { userName, townID, enteredTAPassword } = socket.handshake.auth as {
+    const { userName, townID, taPassword } = socket.handshake.auth as {
       userName: string;
       townID: string;
       // TODO implement password enter on the frontend
-      enteredTAPassword?: string;
+      taPassword: string;
     };
 
     const town = this._townsStore.getTownByID(townID);
@@ -421,7 +421,7 @@ export class TownsController extends Controller {
     // add players with the entered ta passward or undefined if none
     let newPlayer: Player;
     try {
-      newPlayer = await town.addPlayer(userName, socket, enteredTAPassword);
+      newPlayer = await town.addPlayer(userName, socket, taPassword);
     } catch (e) {
       if (e instanceof InvalidTAPasswordError) {
         // TODO Toast that ta password is invalid

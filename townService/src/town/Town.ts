@@ -125,22 +125,23 @@ export default class Town {
   async addPlayer(
     userName: string,
     socket: CoveyTownSocket,
-    enteredTAPassword?: string,
+    enteredTAPassword: string,
   ): Promise<Player> {
     let newPlayer: Player;
     // Check if password entered and verify if it is correct
-    if (enteredTAPassword) {
-      if (enteredTAPassword !== this._taPassword) {
-        throw new InvalidTAPasswordError('Incorrect ta password entered');
-      }
+    if (enteredTAPassword && enteredTAPassword === this._taPassword) {
+      // if (enteredTAPassword !== this._taPassword) {
+      //   throw new InvalidTAPasswordError('Incorrect ta password entered');
+      // }
       // create user as TA instead of Player
-      newPlayer = new TA(userName, socket.to(this._townID));
+      newPlayer = new TA('TA: '.concat(userName), socket.to(this._townID));
 
       /**
        * Sets up a listener for when a TA accepts question to teleport players into
        * the breakout room.
        */
       socket.on('taTakeQuestion', (ta: TAModel) => {
+        // TODO: we might change this to REST call after this merge
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
         if (!taPlayer) {
           throw new Error('Not a TA');
@@ -167,6 +168,8 @@ export default class Town {
           throw new Error('No breakout room set to TA');
         }
         const teleportLocation: PlayerLocation = breakoutRoomArea.areasCenter();
+        // TODO change teleport player to announcing players question taken and allow them
+        // to teleport themselves.
         this._teleportPlayer(taPlayer, teleportLocation);
 
         // teleport each student in question to breakout room
