@@ -51,15 +51,15 @@ export interface TownCreateParams {
   isPubliclyListed: boolean;
 
   /**
+   * The password to become a TA in this town. If none is given the taPassword will be set to a random string
+   */
+  taPassword: string;
+
+  /**
    * Reserved for future use, currently only used for testing: this parameter can be
    * specified to control which Tiled map file is used for initializing the set of interactable areas
    *
    * Not currently used on frontend
    */
   mapFile?: string;
-
-  /**
-   * The password to become a TA in this town. If none is given the taPassword will be set to a random string
-   */
-  taPassword?: string;
 }

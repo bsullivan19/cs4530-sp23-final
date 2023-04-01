@@ -28,7 +28,7 @@ import { nanoid } from 'nanoid';
 
 export default function TownSelection(): JSX.Element {
   const [adminPwd, setAdminPwd] = useState<string>(nanoid());
-  const [taPwd, setTaPwd] = useState<string>('');
+  const [taPassword, setTaPassword] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
   const [newTownIsPublic, setNewTownIsPublic] = useState<boolean>(true);
@@ -72,7 +72,7 @@ export default function TownSelection(): JSX.Element {
           });
           return;
         }
-        if (!taPwd) {
+        if (!taPassword) {
           toast({
             title: 'ta password does not exist',
             description: 'Should not happen',
@@ -82,12 +82,12 @@ export default function TownSelection(): JSX.Element {
         }
         const newController = new TownController({
           userName,
+          taPassword: taPassword,
           townID: coveyRoomID,
           loginController,
-          taPassword: taPwd,
         });
-        // if (taPwd && taPwd.length > 0) {
-        //   newController.authPassword(taPwd);
+        // if (taPassword && taPassword.length > 0) {
+        //   newController.authPassword(taPassword);
         // }
         await newController.connect();
         const videoToken = newController.providerVideoToken;
@@ -118,7 +118,7 @@ export default function TownSelection(): JSX.Element {
         }
       }
     },
-    [userName, taPwd, loginController, videoConnect, setTownController, toast],
+    [userName, taPassword, loginController, videoConnect, setTownController, toast],
   );
 
   const handleCreate = async () => {
@@ -142,6 +142,7 @@ export default function TownSelection(): JSX.Element {
       const newTownInfo = await townsService.createTown({
         friendlyName: newTownName,
         isPubliclyListed: newTownIsPublic,
+        taPassword,
       });
       let privateMessage = <></>;
       if (!newTownIsPublic) {
@@ -244,7 +245,10 @@ export default function TownSelection(): JSX.Element {
                     name='adminPwd'
                     placeholder='Admin Password (*optional)'
                     value={adminPwd}
-                    onChange={event => setAdminPwd(event.target.value)}
+                    onChange={event => {
+                      setAdminPwd(event.target.value);
+                      setTaPassword(event.target.value);
+                    }}
                   />
                 </FormControl>
               </Box>
@@ -278,12 +282,12 @@ export default function TownSelection(): JSX.Element {
                 <Flex p='2'>
                   <Box flex='1'>
                     <FormControl>
-                      <FormLabel htmlFor='taPwd'>TA Password</FormLabel>
+                      <FormLabel htmlFor='taPassword'>TA Password</FormLabel>
                       <Input
-                        name='taPwd'
+                        name='taPassword'
                         placeholder='TA Password (*optional)'
-                        value={taPwd}
-                        onChange={event => setTaPwd(event.target.value)}
+                        value={taPassword}
+                        onChange={event => setTaPassword(event.target.value)}
                       />
                     </FormControl>
                   </Box>

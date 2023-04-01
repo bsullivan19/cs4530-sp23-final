@@ -125,22 +125,14 @@ export default class Town {
   async addPlayer(
     userName: string,
     socket: CoveyTownSocket,
-    enteredTAPassword?: string,
+    enteredTAPassword: string,
   ): Promise<Player> {
     let newPlayer: Player;
     // Check if password entered and verify if it is correct
     if (enteredTAPassword && enteredTAPassword === this._taPassword) {
-      const msg: ChatMessage = {
-        sid: nanoid(),
-        body: 'added player as TA',
-        author: 'debug',
-        dateCreated: new Date(),
-      };
-      socket.emit('chatMessage', msg);
-      // console.log('adding player as TA');
-      // if (enteredTAPassword !== this._taPassword) {
-      //   throw new InvalidTAPasswordError('Incorrect ta password entered');
-      // }
+      if (enteredTAPassword !== this._taPassword) {
+        throw new InvalidTAPasswordError('Incorrect ta password entered');
+      }
       // create user as TA instead of Player
       newPlayer = new TA('TA: '.concat(userName), socket.to(this._townID));
 
