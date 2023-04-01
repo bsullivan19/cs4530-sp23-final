@@ -586,6 +586,12 @@
                  "height":320,
                  "id":45,
                  "name":"Breakout1",
+                 "properties":[
+                        {
+                         "name":"linkedOfficeHoursID",
+                         "type":"string",
+                         "value":"41"
+                        }],
                  "rotation":0,
                  "type":"BreakoutRoomArea",
                  "visible":true,
