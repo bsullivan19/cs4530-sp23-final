@@ -77,7 +77,8 @@ export default class BreakoutRoomArea extends ConversationArea {
       { id: name, occupantsByID: [] },
       rect,
       broadcastEmitter,
-      mapObject.linkedOfficeHoursID,
+      '12',
+      // mapObject.linkedOfficeHoursID,
     );
   }
 }

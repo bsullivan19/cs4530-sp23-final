@@ -30,6 +30,7 @@ export type ConnectionProperties = {
   userName: string;
   townID: string;
   loginController: LoginController;
+  taPassword: string;
 };
 
 /**
@@ -200,7 +201,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   private _posterSessionAreas: PosterSessionAreaController[] = [];
 
-  public constructor({ userName, townID, loginController }: ConnectionProperties) {
+  public constructor({ userName, townID, loginController, taPassword }: ConnectionProperties) {
     super();
     this._townID = townID;
     this._userName = userName;
@@ -215,7 +216,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
     const url = process.env.REACT_APP_TOWNS_SERVICE_URL;
     assert(url);
-    this._socket = io(url, { auth: { userName, townID } });
+    this._socket = io(url, { auth: { userName, townID, taPassword } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
   }
