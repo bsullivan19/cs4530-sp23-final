@@ -364,8 +364,8 @@ export class TownsController extends Controller {
   public async joinOfficeHoursQuestion(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
-    @Path() officeHoursQuestionId: string,
     @Header('X-Session-Token') sessionToken: string,
+    @Body() officeHoursQuestionId: string,
   ): Promise<void> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {

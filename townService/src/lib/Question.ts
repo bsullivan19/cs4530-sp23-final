@@ -6,19 +6,20 @@ export default class Question {
   /* The unique identifier for this question */
   private readonly _id: string;
 
+  /* The interactableID of the OfficeHoursArea */
   private readonly _officeHoursID: string;
 
+  /* The time when this question was created */
+  private readonly _timeAsked: number;
+
   /* The actual content of the question */
-  private _questionContent: string;
+  private readonly _questionContent: string;
 
   /* The current set of players in this question. */
-  protected _studentsByID: string[] = [];
+  private _studentsByID: string[] = [];
 
   /* Is this question a group question */
   private _groupQuestion: boolean;
-
-  /* How long has this question gone unanswered? */
-  private _waitTime: number;
 
   public get id() {
     return this._id;
@@ -40,8 +41,8 @@ export default class Question {
     return this._groupQuestion;
   }
 
-  public get waitTime() {
-    return this._waitTime;
+  public get timeAsked() {
+    return this._timeAsked;
   }
 
   /**
@@ -53,43 +54,68 @@ export default class Question {
   constructor(
     id: string,
     officeHoursID: string,
-    studentCreatorID: string,
+    studentsByID: string[],
     questionContent: string,
+    groupQuestion: boolean,
+    timeAsked?: number,
   ) {
+    if (!groupQuestion && studentsByID.length > 1) {
+      throw new Error('An individual question can only 1 student');
+    }
     this._id = id;
     this._officeHoursID = officeHoursID;
     this._questionContent = questionContent;
-    this._studentsByID.push(studentCreatorID);
-    this._groupQuestion = false;
-    this._waitTime = 0;
+    this._studentsByID = studentsByID;
+    this._groupQuestion = groupQuestion;
+    this._timeAsked = timeAsked || Date.now();
   }
 
+  /**
+   * Adds a student to the list of students asking the question.
+   * Throws an error if trying to add another student to an individual question.
+   *
+   * @param student Player to add to this Question.
+   */
   public addStudent(student: Player) {
+    if (!this.isGroup) {
+      throw new Error('Cannot add another student to an individual question');
+    }
     this._studentsByID.push(student.id);
-    student.townEmitter.emit('officeHoursQuestionUpdate', this.toModel());
   }
 
+  /**
+   * Removes a student from the list of players asking the question.
+   *
+   * @param student Player to remove from this Question.
+   */
   public removeStudent(student: Player) {
     this._studentsByID = this._studentsByID.filter(s => s !== student.id);
-    student.townEmitter.emit('officeHoursQuestionUpdate', this.toModel());
   }
 
+  /**
+   * Converts this Question to an OfficeHoursQuestion model.
+   * @returns OfficeHoursQuestion representing this Question.
+   */
   public toModel(): OfficeHoursQuestion {
     return {
       id: this.id,
       officeHoursID: this.officeHoursID,
       students: this.studentsByID,
       questionContent: this.questionContent,
-      groupQuestion: this._groupQuestion,
+      groupQuestion: this.isGroup,
+      timeAsked: this.timeAsked,
     };
   }
 
+  /**
+   * Updates this Question using an OfficeHoursQuestion model.
+   * @param model OfficeHoursQuestion model to update this Question.
+   */
   public updateModel(model: OfficeHoursQuestion) {
     if (model.id !== this.id || model.officeHoursID !== this._officeHoursID) {
       throw new Error('Model must be the same ID and in the same OfficeHoursArea');
     }
     this._studentsByID = model.students;
-    this._questionContent = model.questionContent;
     this._groupQuestion = model.groupQuestion;
   }
 
@@ -97,11 +123,11 @@ export default class Question {
     const question = new Question(
       model.id,
       model.officeHoursID,
-      model.students[0],
+      model.students,
       model.questionContent,
+      model.groupQuestion,
+      model.timeAsked,
     );
-    question._groupQuestion = model.groupQuestion;
-    question._studentsByID = model.students;
     return question;
   }
 }
