@@ -1,7 +1,11 @@
-import { Player as PlayerModel, PlayerLocation, TownEmitter } from '../types/CoveyTownSocket';
+import {
+  Player as PlayerModel,
+  PlayerLocation,
+  TAModel,
+  TownEmitter,
+} from '../types/CoveyTownSocket';
 import Player from './Player';
-
-export type Question = string;
+import Question from './Question';
 
 // Returns true if player is a TA and false if not
 export function isTA(player: Player): player is TA {
@@ -12,27 +16,47 @@ export default class TA extends Player {
   // The current question this TA is answering
   private _currrentQuestion?: Question;
 
-  // If this TA's office hours are open or not
-  private _officeHoursOpen: boolean;
+  // Location of this TAs breakout room
+  private _breakoutRoomID?: string;
 
-  set currentQuestion(currentQuestion: string | undefined) {
+  // ID of the office hours interactable this TA is apart of
+  private _officeHoursID?: string;
+
+  set currentQuestion(currentQuestion: Question | undefined) {
     this._currrentQuestion = currentQuestion;
   }
 
-  get currentQuestion(): string | undefined {
+  get currentQuestion(): Question | undefined {
     return this._currrentQuestion;
   }
 
-  set officeHoursOpen(officeHoursOpen: boolean) {
-    this._officeHoursOpen = officeHoursOpen;
+  set breakoutRoomID(breakoutRoomID: string | undefined) {
+    this._breakoutRoomID = breakoutRoomID;
   }
 
-  get officeHoursOpen() {
-    return this._officeHoursOpen;
+  get breakoutRoomID(): string | undefined {
+    return this._breakoutRoomID;
+  }
+
+  set officeHoursID(breakoutRoomLoc: string | undefined) {
+    this._officeHoursID = breakoutRoomLoc;
+  }
+
+  get officeHoursID(): string | undefined {
+    return this._officeHoursID;
   }
 
   constructor(userName: string, townEmitter: TownEmitter) {
     super(userName, townEmitter);
-    this._officeHoursOpen = false;
+    this._breakoutRoomID = undefined;
+  }
+
+  toModel(): TAModel {
+    return {
+      id: this._id,
+      location: this.location,
+      userName: this._userName,
+      question: this._currrentQuestion?.toModel(),
+    };
   }
 }

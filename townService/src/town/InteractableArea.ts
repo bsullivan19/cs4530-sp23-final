@@ -146,6 +146,22 @@ export default abstract class InteractableArea {
     return !noOverlap;
   }
 
+  // TODO: don't put any object with hitboxes in the center of the room
+  /**
+   * Calculates the center location of the area based on the bounding box
+   *
+   * @return a PlayerLocation of the center of the area
+   */
+  public areasCenter(): PlayerLocation {
+    const loc: PlayerLocation = {
+      x: this.boundingBox.x + this.boundingBox.width / 2,
+      y: this.boundingBox.y + this.boundingBox.height / 2,
+      rotation: 'front',
+      moving: false,
+    };
+    return loc;
+  }
+
   /**
    * Emits an event to the players in the town notifying them that this InteractableArea has changed, passing
    * the model for this InteractableArea in that event.

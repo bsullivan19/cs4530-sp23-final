@@ -49,6 +49,19 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
     return { id: this.id, userName: this.userName, location: this.location };
   }
 
+  teleportSprite(newLocation: PlayerLocation) {
+    // TODO Test to see if this works.
+    if (this.gameObjects) {
+      const { sprite, label } = this.gameObjects;
+      if (!sprite.anims) return;
+      sprite.setX(newLocation.x);
+      sprite.setY(newLocation.y);
+      label.setX(newLocation.x);
+      label.setY(newLocation.y - 20);
+    }
+    this.emit('movement', newLocation);
+  }
+
   private _updateGameComponentLocation() {
     if (this.gameObjects && !this.gameObjects.locationManagedByGameScene) {
       const { sprite, label } = this.gameObjects;

@@ -399,11 +399,20 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      */
     this._socket.on('playerMoved', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
+      // Depricated?
+      // TODO check to make sure not moving out of breakout room area
+      // const fromArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
+      // if (fromArea) {
+      //   const toArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
+      // }
       if (playerToUpdate) {
         if (playerToUpdate === this._ourPlayer) {
           /*
            * If we are told that WE moved, we shouldn't update our x,y because it's probably lagging behind
            * real time. However: we SHOULD update our interactable ID, because its value is managed by the server
+           *
+           * TODO add edge case of teleporting a player to and from a breakout room as this is an intended move
+           * initiated by the server
            */
           playerToUpdate.location.interactableID = movedPlayer.location.interactableID;
         } else {
@@ -415,6 +424,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         const newPlayer = PlayerController.fromPlayerModel(movedPlayer);
         this._players = this.players.concat(newPlayer);
         this.emit('playerMoved', newPlayer);
+      }
+    });
+
+    this._socket.on('playerTeleported', movedPlayer => {
+      const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
+      if (playerToUpdate) {
+        // Force update location
+        playerToUpdate.teleportSprite(movedPlayer.location);
+        // this.emit('playerMoved', playerToUpdate);
       }
     });
 
