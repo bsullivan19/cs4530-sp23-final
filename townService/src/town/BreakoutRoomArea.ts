@@ -6,7 +6,6 @@ import {
   TownEmitter,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
-import OfficeHoursArea from './OfficeHoursArea';
 
 export default class BreakoutRoomArea extends ConversationArea {
   // TODO add office hours area id link
