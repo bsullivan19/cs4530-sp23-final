@@ -340,6 +340,7 @@ export class TownsController extends Controller {
     @Header('X-Session-Token') sessionToken: string,
     @Body() requestBody: { questionContent: string; groupQuestion: boolean },
   ): Promise<OfficeHoursQuestion> {
+    console.log('addOfficeHoursQuestion called');
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');
@@ -352,9 +353,9 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!officeHoursArea.officeHoursActive) {
-      throw new InvalidParametersError('Cant add a question when no TAs online');
-    }
+    // if (!officeHoursArea.officeHoursActive) {
+    //   throw new InvalidParametersError('Cant add a question when no TAs online');
+    // }
     // TODO: Check how many questions this student has asked. Limit to 1 for now.
     const newQuestion: OfficeHoursQuestion = {
       id: nanoid(),
@@ -518,7 +519,10 @@ export class TownsController extends Controller {
       throw new Error('Could not update breakout room');
     }
 
-    curPlayer.townEmitter.emit('officeHoursQuestionTaken', curPlayer.toModel());
+    (<OfficeHoursAreaReal>officeHoursArea).roomEmitter.emit(
+      'officeHoursQuestionTaken',
+      curPlayer.toModel(),
+    );
     return curPlayer.toModel();
   }
 

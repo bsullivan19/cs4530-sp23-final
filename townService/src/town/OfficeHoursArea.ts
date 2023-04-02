@@ -40,6 +40,10 @@ export default class OfficeHoursArea extends InteractableArea {
     return this.teachingAssistantsByID.length > 0;
   }
 
+  public get roomEmitter() {
+    return this._roomEmitter;
+  }
+
   public constructor({ id }: OfficeHoursModel, coordinates: BoundingBox, townEmitter: TownEmitter) {
     super(id, coordinates, townEmitter);
     this._roomEmitter = townEmitter.to(this.id);
@@ -148,7 +152,6 @@ export default class OfficeHoursArea extends InteractableArea {
     }
     this._emitQueueChanged();
     return question;
-    // TODO: add emit event later
   }
 
   /**
