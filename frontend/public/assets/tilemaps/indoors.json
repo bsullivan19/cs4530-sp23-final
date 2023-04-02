@@ -590,7 +590,7 @@
                         {
                          "name":"linkedOfficeHoursID",
                          "type":"string",
-                         "value":"41"
+                         "value":"Office Hours"
                         }],
                  "rotation":0,
                  "type":"BreakoutRoomArea",

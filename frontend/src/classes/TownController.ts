@@ -521,6 +521,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
         if (question.students.includes(this.ourPlayer.id)) {
           this.ourPlayer.teleportSprite(taModel.location);
+        } else if (taModel.id === this.ourPlayer.id) {
+          this.ourPlayer.teleportSprite(taModel.location);
         }
       }
     });
@@ -661,6 +663,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         this._conversationAreas = [];
         this._viewingAreas = [];
         this._posterSessionAreas = [];
+        this._officeHoursAreas = [];
         initialData.interactables.forEach(eachInteractable => {
           if (isConversationArea(eachInteractable)) {
             this._conversationAreasInternal.push(
@@ -673,6 +676,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
             this._viewingAreas.push(new ViewingAreaController(eachInteractable));
           } else if (isPosterSessionArea(eachInteractable)) {
             this._posterSessionAreas.push(new PosterSessionAreaController(eachInteractable));
+          } else if (isOfficeHoursArea(eachInteractable)) {
+            this._officeHoursAreas.push(new OfficeHoursAreaController(eachInteractable));
           }
         });
         this._userID = initialData.userID;
