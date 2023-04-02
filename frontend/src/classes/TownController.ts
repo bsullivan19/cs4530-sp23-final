@@ -8,7 +8,7 @@ import Interactable from '../components/Town/Interactable';
 import ViewingArea from '../components/Town/interactables/ViewingArea';
 import PosterSesssionArea from '../components/Town/interactables/PosterSessionArea';
 import { LoginController } from '../contexts/LoginControllerContext';
-import { TownsService, TownsServiceClient } from '../generated/client';
+import { TAModel, TownsService, TownsServiceClient } from '../generated/client';
 import useTownController from '../hooks/useTownController';
 import {
   ChatMessage,
@@ -350,6 +350,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   public set posterSessionAreas(newPosterSessionAreas: PosterSessionAreaController[]) {
     this._posterSessionAreas = newPosterSessionAreas;
     this.emit('posterSessionAreasChanged', newPosterSessionAreas);
+  }
+
+  public get officeHoursAreas() {
+    return this._officeHoursAreas;
   }
 
   /**
@@ -862,6 +866,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
+  public async takeNextOfficeHoursQuestion(
+    officeHoursArea: OfficeHoursAreaController,
+  ): Promise<TAModel> {
+    return this._townsService.takeNextOfficeHoursQuestion(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+    );
+  }
+
   /**
    * Determine which players are "nearby" -- that they should be included in our video call
    */
@@ -1011,6 +1025,15 @@ export function usePosterSessionAreaController(
   );
   if (!ret) {
     throw new Error(`Unable to locate poster session area id ${posterSessionAreaID}`);
+  }
+  return ret;
+}
+
+export function useOfficeHoursAreaController(officeHoursAreaID: string): OfficeHoursAreaController {
+  const townController = useTownController();
+  const ret = townController.officeHoursAreas.find(area => area.id === officeHoursAreaID);
+  if (!ret) {
+    throw new Error(`Unable to locate office hours area id ${officeHoursAreaID}`);
   }
   return ret;
 }
