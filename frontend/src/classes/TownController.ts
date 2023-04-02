@@ -21,7 +21,12 @@ import {
   OfficeHoursQuestion,
   OfficeHoursQueue,
 } from '../types/CoveyTownSocket';
-import { isConversationArea, isViewingArea, isPosterSessionArea } from '../types/TypeUtils';
+import {
+  isConversationArea,
+  isViewingArea,
+  isPosterSessionArea,
+  isOfficeHoursArea,
+} from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
@@ -211,6 +216,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   private _posterSessionAreas: PosterSessionAreaController[] = [];
 
   private _officeHoursAreas: OfficeHoursAreaController[] = [];
+
+  private _breakoutRoomAreas: ConversationAreaController[] = [];
 
   public constructor({ userName, taPassword, townID, loginController }: ConnectionProperties) {
     super();
@@ -486,6 +493,43 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         if (relArea) {
           relArea.updateFrom(interactable);
         }
+      } else if (isOfficeHoursArea(interactable)) {
+        const relArea = this._officeHoursAreas.find(area => area.id == interactable.id);
+        if (relArea) {
+          relArea.updateModel(interactable);
+        }
+      }
+    });
+
+    /**
+     * On the Server to Client message officeHoursQuestionTaken, removes the taken question from the queue, and teleports
+     * our player to the breakout room if they are in the question.
+     */
+    this._socket.on('officeHoursQuestionTaken', taModel => {
+      const question = taModel.question;
+      if (question) {
+        const ohArea = this._officeHoursAreas.find(
+          area => area.id === taModel.question?.officeHoursID,
+        );
+        if (ohArea) {
+          ohArea.questionQueue = ohArea.questionQueue.filter(q => q.id !== taModel.question?.id);
+        }
+
+        if (question.students.includes(this.ourPlayer.id)) {
+          this.ourPlayer.teleportSprite(taModel.location);
+        }
+      }
+    });
+
+    /**
+     * Updates the state of the office hours area question queue.
+     */
+    this._socket.on('officeHoursQueueUpdate', queueModel => {
+      const ohAreaController = this._officeHoursAreas.find(
+        area => area.id === queueModel.officeHoursID,
+      );
+      if (ohAreaController) {
+        ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });
   }

@@ -56,7 +56,10 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
   }
 
   public set teachingAssistantsByID(newTeachingAssistantsByID: string[]) {
-    if (!newTeachingAssistantsByID.every(taID => this.teachingAssistantsByID.includes(taID))) {
+    if (
+      newTeachingAssistantsByID.length !== this.teachingAssistantsByID.length ||
+      !newTeachingAssistantsByID.every(taID => this.teachingAssistantsByID.includes(taID))
+    ) {
       this._model.teachingAssistantsByID = newTeachingAssistantsByID;
       this.emit('officeHoursTAChange', this.teachingAssistantsByID);
     }

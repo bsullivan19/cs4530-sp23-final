@@ -28,9 +28,11 @@ import {
   OfficeHoursQuestion,
   OfficeHoursQueue,
   TAModel,
+  XY,
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
 import OfficeHoursAreaReal from './OfficeHoursArea';
+import BreakoutRoomAreaReal from './BreakoutRoomArea';
 import { isOfficeHoursArea, isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
@@ -491,7 +493,33 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    throw new Error('Method not implemented');
+    if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer)) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+    if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+
+    /* Set TA's location to center of breakout room, used by players for teleporting */
+    const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
+    const box = (<BreakoutRoomAreaReal>breakoutRoom).boundingBox;
+    const location: XY = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    curPlayer.location.x = location.x;
+    curPlayer.location.y = location.y;
+    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+
+    // TODO: does addConvo area work for breakout rooms?
+    const success = curTown.addConversationArea({
+      id: curPlayer.breakoutRoomID,
+      topic: curPlayer.currentQuestion?.questionContent,
+      occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
+    });
+    if (!success) {
+      throw new Error('Could not update breakout room');
+    }
+
+    curPlayer.townEmitter.emit('officeHoursQuestionTaken', curPlayer.toModel());
+    return curPlayer.toModel();
   }
 
   /**

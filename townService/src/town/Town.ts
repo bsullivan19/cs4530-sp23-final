@@ -140,6 +140,7 @@ export default class Town {
        * Sets up a listener for when a TA accepts question to teleport players into
        * the breakout room.
        */
+      /*
       socket.on('taTakeQuestion', (ta: TAModel) => {
         // TODO: we might change this to REST call after this merge
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
@@ -181,11 +182,13 @@ export default class Town {
         });
         breakoutRoomArea.topic = questionObj.questionContent;
       });
+      */
 
       /**
        * Sets up a listener for when a TA completes a question to teleport all players
        * in the breakout room back to the linked office hours area
        */
+      /*
       socket.on('taQuestionCompleted', (ta: TAModel) => {
         const taPlayer = this.players.find(player => player.id === ta.id) as TA;
         if (!taPlayer) {
@@ -216,6 +219,7 @@ export default class Town {
           }
         });
       });
+      */
     } else {
       newPlayer = new Player(userName, socket.to(this._townID));
     }
@@ -310,6 +314,7 @@ export default class Town {
      * Sets up a listener to update the OfficeHoursArea when a question is added, removed, or modified.
      * Emits an officeHoursQueueUpdate to all players in the OfficeHoursArea with the updated queue.
      */
+    /*
     socket.on('officeHoursQuestionUpdate', (question: OfficeHoursQuestion) => {
       const officeHoursArea = <OfficeHoursArea>(
         this._interactables.find(
@@ -327,6 +332,7 @@ export default class Town {
         }
       }
     });
+    */
 
     return newPlayer;
   }
