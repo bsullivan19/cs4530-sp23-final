@@ -12,6 +12,9 @@ import {
   useToast,
   Input,
   Checkbox,
+  List,
+  ListItem,
+  Tag,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -22,6 +25,7 @@ import OfficeHoursAreaController, {
 } from '../../../classes/OfficeHoursAreaController';
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
+import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 
 export function QueueViewer({
   controller,
@@ -42,6 +46,7 @@ export function QueueViewer({
   const townController = useTownController();
   const curPlayerId = townController.ourPlayer.id;
   const toast = useToast();
+  const queue = useQueue(controller);
 
   townController.pause();
 
@@ -64,7 +69,6 @@ export function QueueViewer({
         });
         setQuestion('');
         setGroupQuestion(false);
-        townController.unPause();
         close();
       } catch (err) {
         if (err instanceof Error) {
@@ -101,7 +105,6 @@ export function QueueViewer({
         title: `Successfully took question ${taModel.question?.id}, you will be teleported shortly`,
         status: 'success',
       });
-      townController.unPause();
       close();
     } catch (err) {
       if (err instanceof Error) {
@@ -119,7 +122,15 @@ export function QueueViewer({
       }
     }
   }, [controller, townController, toast, close]);
-
+  function QuestionView({ question }: { question: OfficeHoursQuestion }) {
+    return (
+      <ListItem>
+        <Tag>{question.id}</Tag>
+        <Tag>{question.questionContent}</Tag>
+        <Tag>{question.timeAsked}</Tag>
+      </ListItem>
+    );
+  }
   return (
     <Modal
       isOpen={isOpen}
@@ -131,6 +142,11 @@ export function QueueViewer({
       <ModalContent>
         <ModalHeader>Office Hours, {controller.questionQueue.length} Questions Asked </ModalHeader>
         <ModalCloseButton />
+        <List spacing={6}>
+          {queue.map(eachQuestion => (
+            <QuestionView key={eachQuestion.id} question={eachQuestion} />
+          ))}
+        </List>
         <form
           onSubmit={ev => {
             ev.preventDefault();
@@ -196,6 +212,7 @@ export function OfficeHoursViewer({
           // forces game to emit "posterSessionArea" event again so that
           // repoening the modal works as expected
           townController.interactEnd(officeHoursArea);
+          townController.unPause();
         }}
       />
     </>
