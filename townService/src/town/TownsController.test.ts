@@ -36,6 +36,7 @@ function expectTownListMatches(towns: Town[], town: TestTownData) {
 const broadcastEmitter = jest.fn();
 describe('TownsController integration tests', () => {
   let controller: TownsController;
+  const townTaPassword: string = nanoid();
 
   const createdTownEmitters: Map<string, DeepMockProxy<TownEmitter>> = new Map();
   async function createTownForTesting(
@@ -49,6 +50,7 @@ describe('TownsController integration tests', () => {
     const ret = await controller.createTown({
       friendlyName,
       isPubliclyListed: isPublic,
+      taPassword: townTaPassword,
       mapFile: 'testData/indoors.json',
     });
     return {
