@@ -120,67 +120,61 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close]);
   function QuestionView({ question }: { question: OfficeHoursQuestion }) {
-    // const allPlayers = townController.players;
-    // const players = allPlayers.filter(p => question.students.includes(p.id));
-
+    const allPlayers = townController.players;
+    const players = allPlayers.filter(p => question.students.includes(p.id));
+    const usernames = players.map(p => p.userName);
     return (
       // TODO: number of quesiton, playerName
       <ListItem>
-        <Tag>{}</Tag>
+        <Tag>{usernames}</Tag>
         <Tag>{question.questionContent}</Tag>
         <Tag>{question.timeAsked}</Tag>
       </ListItem>
     );
   }
-  function TAView(props: any) {
-    console.log(teachingAssistantsByID);
-    return (
-      <ModalFooter>
-        <Button colorScheme='red' mr={3} onClick={nextQuestion}>
-          Take next question (TAs only)
+  const taView = (
+    <ModalFooter>
+      <Button colorScheme='red' mr={3} onClick={nextQuestion}>
+        Take next question (TAs only)
+      </Button>
+      <Button onClick={close}>Cancel</Button>
+    </ModalFooter>
+  );
+  const studentView = (
+    <form
+      onSubmit={ev => {
+        ev.preventDefault();
+        addQuestion();
+      }}>
+      <ModalBody pb={6}>
+        <FormControl>
+          <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
+          <Input
+            id='questionContent'
+            placeholder='Enter your question here'
+            name='questionContent'
+            value={newQuestion}
+            onChange={e => setQuestion(e.target.value)}
+          />
+        </FormControl>
+        <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
+        <Checkbox
+          type='checkbox'
+          id='groupQuestion'
+          name='groupQuestion'
+          checked={groupQuestion}
+          onChange={e => setGroupQuestion(e.target.checked)}
+        />
+        <div> </div>
+        <Button colorScheme='blue' mr={3} onClick={addQuestion}>
+          Create
         </Button>
+      </ModalBody>
+      <ModalFooter>
         <Button onClick={close}>Cancel</Button>
       </ModalFooter>
-    );
-  }
-  function StudentView(props: any) {
-    console.log(teachingAssistantsByID);
-    return (
-      <form
-        onSubmit={ev => {
-          ev.preventDefault();
-          addQuestion();
-        }}>
-        <ModalBody pb={6}>
-          <FormControl>
-            <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
-            <Input
-              id='questionContent'
-              placeholder='Enter your question here'
-              name='questionContent'
-              value={newQuestion}
-              onChange={e => setQuestion(e.target.value)}
-            />
-          </FormControl>
-          <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
-          <Checkbox
-            type='checkbox'
-            id='groupQuestion'
-            name='groupQuestion'
-            checked={groupQuestion}
-            onChange={e => setGroupQuestion(e.target.checked)}
-          />
-          <div> </div>
-          <Button colorScheme='blue' mr={3} onClick={addQuestion}>
-            Create
-          </Button>
-        </ModalBody>
-        <ModalFooter>
-          <Button onClick={close}>Cancel</Button>
-        </ModalFooter>
-      </form>
-    );
-  }
+    </form>
+  );
   return (
     <Modal
       isOpen={isOpen}
@@ -197,14 +191,7 @@ export function QueueViewer({
             <QuestionView key={eachQuestion.id} question={eachQuestion} />
           ))}
         </List>
-        <div>
-          {teachingAssistantsByID.includes(curPlayerId) ? (
-            <TAView></TAView>
-          ) : (
-            <StudentView></StudentView>
-          )}
-        </div>
-        {/*<TAView> </TAView>*/}
+        <div>{teachingAssistantsByID.includes(curPlayerId) ? taView : studentView}</div>
       </ModalContent>
     </Modal>
   );
@@ -224,10 +211,6 @@ export function OfficeHoursViewer({
 }): JSX.Element {
   const townController = useTownController();
   const officeHoursAreaController = useOfficeHoursAreaController(officeHoursArea.name);
-  const queue = useQueue(officeHoursAreaController);
-  useEffect(() => {
-    townController.getOfficeHoursQueue(officeHoursAreaController);
-  }, [townController, officeHoursAreaController]);
   return (
     <>
       <QueueViewer

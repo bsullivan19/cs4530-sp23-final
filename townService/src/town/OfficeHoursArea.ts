@@ -88,10 +88,10 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  // doesn't remove player from queue if he walks out of area
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
-    this._queue.forEach(q => q.removeStudent(player));
     if (isTA(player)) {
       this._emitAreaChanged();
     }
