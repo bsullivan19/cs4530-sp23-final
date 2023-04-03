@@ -15,6 +15,7 @@ import {
   List,
   ListItem,
   Tag,
+  Stack,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -41,17 +42,48 @@ export function QueueViewer({
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
-
+  const [priorities, setPriorities] = useState(new Map<string, number>());
+  const [isSorted, setIsSorted] = useState(false);
+  const [flag, setFlag] = useState(false);
+  const [questionTypes, setQuestionTypes] = useState(['1', '2', '3', '4']);
+  const [questionType, setQuestionType] = useState('');
   const townController = useTownController();
   const curPlayerId = townController.ourPlayer.id;
   const toast = useToast();
-  const queue = useQueue(controller);
+  let queue = useQueue(controller);
+
   townController.pause();
   useEffect(() => {
     townController.getOfficeHoursQueue(controller);
   }, [townController, controller]);
 
+  useEffect(() => {
+    let newQuestions = queue.map(x => x);
+    newQuestions = newQuestions.sort((x,y) => {
+      const p1 = x.questionType;
+      const p2 = y.questionType;
+      if (
+        (p1 === undefined && p2 === undefined) ||
+        (p1 !== undefined && p2 !== undefined && p1 === p2)
+      ) {
+        if(p2 !== undefined && p1 != undefined){
+          return p1.timeAsked - p2.timeAsked;
+        }
+      }
+      if (p1 === undefined) {
+        return 1;
+      }
+      if (p2 === undefined) {
+        return -1;
+      }
+      return p1 - p2;
+    });
+    queue = newQuestions;
+  }, [isSorted, priorities, flag])
+
   const addQuestion = useCallback(async () => {
+    console.log('before addQuestion');
+    console.log(questionType);
     if (controller.questionsAsked(curPlayerId) != 0) {
       toast({
         title: 'Cannot add more than 1 question to the queue',
@@ -59,7 +91,12 @@ export function QueueViewer({
       });
     } else if (newQuestion) {
       try {
-        await townController.addOfficeHoursQuestion(controller, newQuestion, groupQuestion);
+        await townController.addOfficeHoursQuestion(
+          controller,
+          newQuestion,
+          groupQuestion,
+          questionType,
+        );
         toast({
           title: 'Question Created!',
           status: 'success',
@@ -84,6 +121,8 @@ export function QueueViewer({
       }
     }
   }, [
+    questionType,
+    setQuestionType,
     controller,
     curPlayerId,
     newQuestion,
@@ -124,21 +163,81 @@ export function QueueViewer({
     const players = allPlayers.filter(p => question.students.includes(p.id));
     const usernames = players.map(p => p.userName);
     return (
-      // TODO: number of quesiton, playerName
+      // TODO: number of quesiton
       <ListItem>
         <Tag>{usernames}</Tag>
         <Tag>{question.questionContent}</Tag>
         <Tag>{question.timeAsked}</Tag>
+        <Tag>{question.questionType}</Tag>
       </ListItem>
     );
   }
+
   const taView = (
-    <ModalFooter>
+    <ModalBody pb={6}>
       <Button colorScheme='red' mr={3} onClick={nextQuestion}>
-        Take next question (TAs only)
+        Take next question
       </Button>
+      <List></List>{' '}
+      {/* <h1>line break cuz idk how to do better, this makes everything vertical</h1> */}
       <Button onClick={close}>Cancel</Button>
-    </ModalFooter>
+      <Input
+        placeholder='Add question type'
+        required
+        onChange={e => {
+          setQuestionType(e.target.value);
+        }}></Input>
+      <Button
+        colorScheme='green'
+        onClick={() => {
+          if (!questionTypes.includes(questionType) && questionType.length > 0) {
+            const temp = questionTypes.concat(questionType);
+            setQuestionTypes(temp);
+          }
+        }}>
+        Add Question Type
+      </Button>
+      <div></div>
+      <label>Sort by question type?</label>
+      <Checkbox type='checkbox' name='Should Sort' onChange={e => setIsSorted(!isSorted)} />
+      <ul>
+        {questionTypes.map(eachQuestionType => {
+          return (
+            <li key={eachQuestionType}>
+              <Checkbox
+                type='checkbox'
+                name='Should use Question Type in Priorities'
+                onChange={e => {
+                  if (priorities.has(eachQuestionType)) {
+                    priorities.delete(eachQuestionType);
+                    const copy = new Map(priorities);
+                    setPriorities(copy);
+                  } else {
+                    priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
+                    const copy = new Map(priorities);
+                    setPriorities(copy);
+                  }
+                }}
+              />
+              <span>{eachQuestionType}</span>
+              <Button
+                colorScheme='red'
+                onClick={() => {
+                  const temp = questionTypes.filter(q => q !== eachQuestionType);
+                  setQuestionTypes(temp);
+                  if (priorities.has(eachQuestionType)) {
+                    priorities.delete(eachQuestionType);
+                    const copy = new Map(priorities);
+                    setPriorities(copy);
+                  }
+                }}>
+                Delete
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </ModalBody>
   );
   const studentView = (
     <form
@@ -153,10 +252,37 @@ export function QueueViewer({
             id='questionContent'
             placeholder='Enter your question here'
             name='questionContent'
-            value={newQuestion}
+            // value={newQuestion}
             onChange={e => setQuestion(e.target.value)}
           />
+          <FormLabel htmlFor='questionType'>Question Type</FormLabel>
+          <Input
+            id='questionType'
+            placeholder='Enter question type'
+            name='questionType'
+            // value={questionType}
+            onChange={e => {
+              console.log('in on change');
+              console.log(e.target.value);
+              setQuestionType(e.target.value);
+            }}
+          />
         </FormControl>
+        {/*<FormControl>*/}
+        {/*  <FormLabel htmlFor='questionType'>Question Type</FormLabel>*/}
+        {/*  <Input*/}
+        {/*    id='questionType'*/}
+        {/*    placeholder='Enter question type'*/}
+        {/*    name='questionType'*/}
+        {/*    value={questionType}*/}
+        {/*    onChange={e => {*/}
+        {/*      console.log('in on change');*/}
+        {/*      console.log(questionType);*/}
+        {/*      setQuestionType(questionType);*/}
+        {/*    }*/}
+        {/*    }*/}
+        {/*  />*/}
+        {/*</FormControl>*/}
         <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
         <Checkbox
           type='checkbox'

@@ -7,3 +7,4 @@ export type OfficeHoursArea = {
     officeHoursActive: boolean;
     teachingAssistantsByID: Array<string>;
 };
+
