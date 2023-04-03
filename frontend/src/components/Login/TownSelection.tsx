@@ -72,14 +72,6 @@ export default function TownSelection(): JSX.Element {
           });
           return;
         }
-        if (!taPassword) {
-          toast({
-            title: 'ta password does not exist',
-            description: 'Should not happen',
-            status: 'error',
-          });
-          return;
-        }
         const newController = new TownController({
           userName,
           taPassword: taPassword,

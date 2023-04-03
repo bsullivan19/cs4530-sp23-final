@@ -2,8 +2,6 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type ConversationArea = {
+export type OfficeHoursArea = {
     id: string;
-    topic?: string;
-    occupantsByID: Array<string>;
 };
