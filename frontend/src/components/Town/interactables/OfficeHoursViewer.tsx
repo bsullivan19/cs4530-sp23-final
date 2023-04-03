@@ -36,9 +36,8 @@ export function QueueViewer({
   isOpen: boolean;
   close: () => void;
 }): JSX.Element {
-  // const teachingAssistantsByID = useTAsByID(controller);
-  // const active = useActive(controller);
-  // const queue = useQueue(controller);
+  const teachingAssistantsByID = useTAsByID(controller);
+  const active = useActive(controller);
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
@@ -47,9 +46,7 @@ export function QueueViewer({
   const curPlayerId = townController.ourPlayer.id;
   const toast = useToast();
   const queue = useQueue(controller);
-
   townController.pause();
-
   useEffect(() => {
     townController.getOfficeHoursQueue(controller);
   }, [townController, controller]);
@@ -123,14 +120,61 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close]);
   function QuestionView({ question }: { question: OfficeHoursQuestion }) {
+    const allPlayers = townController.players;
+    const players = allPlayers.filter(p => question.students.includes(p.id));
+    const usernames = players.map(p => p.userName);
     return (
+      // TODO: number of quesiton, playerName
       <ListItem>
-        <Tag>{question.id}</Tag>
+        <Tag>{usernames}</Tag>
         <Tag>{question.questionContent}</Tag>
         <Tag>{question.timeAsked}</Tag>
       </ListItem>
     );
   }
+  const taView = (
+    <ModalFooter>
+      <Button colorScheme='red' mr={3} onClick={nextQuestion}>
+        Take next question (TAs only)
+      </Button>
+      <Button onClick={close}>Cancel</Button>
+    </ModalFooter>
+  );
+  const studentView = (
+    <form
+      onSubmit={ev => {
+        ev.preventDefault();
+        addQuestion();
+      }}>
+      <ModalBody pb={6}>
+        <FormControl>
+          <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
+          <Input
+            id='questionContent'
+            placeholder='Enter your question here'
+            name='questionContent'
+            value={newQuestion}
+            onChange={e => setQuestion(e.target.value)}
+          />
+        </FormControl>
+        <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
+        <Checkbox
+          type='checkbox'
+          id='groupQuestion'
+          name='groupQuestion'
+          checked={groupQuestion}
+          onChange={e => setGroupQuestion(e.target.checked)}
+        />
+        <div> </div>
+        <Button colorScheme='blue' mr={3} onClick={addQuestion}>
+          Create
+        </Button>
+      </ModalBody>
+      <ModalFooter>
+        <Button onClick={close}>Cancel</Button>
+      </ModalFooter>
+    </form>
+  );
   return (
     <Modal
       isOpen={isOpen}
@@ -147,41 +191,7 @@ export function QueueViewer({
             <QuestionView key={eachQuestion.id} question={eachQuestion} />
           ))}
         </List>
-        <form
-          onSubmit={ev => {
-            ev.preventDefault();
-            addQuestion();
-          }}>
-          <ModalBody pb={6}>
-            <FormControl>
-              <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
-              <Input
-                id='questionContent'
-                placeholder='Enter your question here'
-                name='questionContent'
-                value={newQuestion}
-                onChange={e => setQuestion(e.target.value)}
-              />
-            </FormControl>
-            <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
-            <Checkbox
-              type='checkbox'
-              id='groupQuestion'
-              name='groupQuestion'
-              checked={groupQuestion}
-              onChange={e => setGroupQuestion(e.target.checked)}
-            />
-            <Button colorScheme='blue' mr={3} onClick={addQuestion}>
-              Create
-            </Button>
-          </ModalBody>
-          <ModalFooter>
-            <Button colorScheme='red' mr={3} onClick={nextQuestion}>
-              Take next question (TAs only)
-            </Button>
-            <Button onClick={close}>Cancel</Button>
-          </ModalFooter>
-        </form>
+        <div>{teachingAssistantsByID.includes(curPlayerId) ? taView : studentView}</div>
       </ModalContent>
     </Modal>
   );
@@ -201,7 +211,6 @@ export function OfficeHoursViewer({
 }): JSX.Element {
   const townController = useTownController();
   const officeHoursAreaController = useOfficeHoursAreaController(officeHoursArea.name);
-
   return (
     <>
       <QueueViewer

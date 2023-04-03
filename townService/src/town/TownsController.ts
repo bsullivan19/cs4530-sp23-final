@@ -470,7 +470,10 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    return (<OfficeHoursAreaReal>officeHoursArea).toQueueModel();
+    const officeHoursAreaReal =  (<OfficeHoursAreaReal>officeHoursArea);
+    officeHoursAreaReal.roomEmitter.emit('officeHoursQueueUpdate', officeHoursAreaReal.toQueueModel());
+    // officeHoursArea
+    return officeHoursAreaReal.toQueueModel();
   }
 
   @Patch('{townID}/{officeHoursAreaId}/takeQuestion')
