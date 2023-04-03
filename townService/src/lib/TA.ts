@@ -9,6 +9,7 @@ import Question from './Question';
 
 // Returns true if player is a TA and false if not
 export function isTA(player: Player): player is TA {
+  console.log(player);
   return 'currentQuestion' in player;
 }
 
