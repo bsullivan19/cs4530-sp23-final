@@ -462,7 +462,11 @@ describe('Town', () => {
   beforeEach(async () => {
     town = new Town(nanoid(), false, nanoid(), townEmitter, 'very secure password');
     playerTestData = mockPlayer(town.townID);
-    player = await town.addPlayer(playerTestData.userName, playerTestData.socket);
+    player = await town.addPlayer(
+      playerTestData.userName,
+      playerTestData.socket,
+      playerTestData.taPassword,
+    );
     playerTestData.player = player;
     // Set this dummy player to be off the map so that they do not show up in conversation areas
     playerTestData.moveTo(-1, -1);
@@ -492,18 +496,25 @@ describe('Town', () => {
         const newPlayerObj = await testTown.addPlayer(newPlayer.userName, newPlayer.socket, townPW);
         expect(isTA(newPlayerObj)).toBe(true);
       });
-      it('Check pw is set in town correctly by denying TA permissions if does not match', async () => {
+      it('Check pw is set in town correctly by creating as player if does not match', async () => {
         const newPlayer = mockPlayer(testTown.townID);
-        await expect(
-          testTown.addPlayer(newPlayer.userName, newPlayer.socket, nanoid()),
-        ).rejects.toThrowError('Incorrect ta password entered');
+        const newPlayerObj = await testTown.addPlayer(
+          newPlayer.userName,
+          newPlayer.socket,
+          nanoid(),
+        );
+        expect(isTA(newPlayerObj)).toBe(false);
       });
     });
     describe('addPlayer', () => {
       it('should use the townID and player ID properties when requesting a video token', async () => {
         const newPlayer = mockPlayer(town.townID);
         mockTwilioVideo.getTokenForTown.mockClear();
-        const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
+        const newPlayerObj = await town.addPlayer(
+          newPlayer.userName,
+          newPlayer.socket,
+          newPlayer.taPassword,
+        );
 
         expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
         expect(mockTwilioVideo.getTokenForTown).toBeCalledWith(town.townID, newPlayerObj.id);
@@ -556,7 +567,11 @@ describe('Town', () => {
       describe('TA password testing', () => {
         it('Adds user as a player when no passowrd is given', async () => {
           const newPlayer = mockPlayer(town.townID);
-          const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
+          const newPlayerObj = await town.addPlayer(
+            newPlayer.userName,
+            newPlayer.socket,
+            newPlayer.taPassword,
+          );
           expect(isTA(newPlayerObj)).toBe(false);
         });
         it('Adds user as a TA when correct passowrd is given', async () => {
@@ -568,11 +583,10 @@ describe('Town', () => {
           );
           expect(isTA(newPlayerObj)).toBe(true);
         });
-        it('Throws error when incorrect passowrd is given', async () => {
+        it('Creates player without TA permissions when incorrect passowrd is given', async () => {
           const newPlayer = mockPlayer(town.townID);
-          await expect(
-            town.addPlayer(newPlayer.userName, newPlayer.socket, '1234'),
-          ).rejects.toThrowError('Incorrect ta password entered');
+          const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket, nanoid());
+          expect(isTA(newPlayerObj)).toBe(false);
         });
       });
       describe('When called passing a valid viewing area', () => {
@@ -588,7 +602,7 @@ describe('Town', () => {
           expect(town.addViewingArea(newArea)).toBe(true);
           secondPlayer = mockPlayer(town.townID);
           mockTwilioVideo.getTokenForTown.mockClear();
-          await town.addPlayer(secondPlayer.userName, secondPlayer.socket);
+          await town.addPlayer(secondPlayer.userName, secondPlayer.socket, secondPlayer.taPassword);
 
           newArea.elapsedTimeSec = 100;
           newArea.isPlaying = false;
@@ -932,7 +946,11 @@ describe('Town', () => {
       });
       it('Adds a player to a new interactable and sets their conversation label, if they move into it', async () => {
         const newPlayer = mockPlayer(town.townID);
-        const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket);
+        const newPlayerObj = await town.addPlayer(
+          newPlayer.userName,
+          newPlayer.socket,
+          newPlayer.taPassword,
+        );
         newPlayer.moveTo(51, 121);
 
         // Check that the player's location was updated

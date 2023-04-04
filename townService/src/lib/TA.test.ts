@@ -27,13 +27,14 @@ describe('TA', () => {
   });
   describe('toModel', () => {
     let taModel: TAModel;
-    const questionSample: Question = new Question(nanoid(), nanoid(), nanoid(), nanoid());
+    let questionSample: Question;
     let taModelNoQ: TAModel;
     beforeEach(() => {
+      questionSample = new Question(nanoid(), nanoid(), [newPlayer.id], nanoid(), false);
       taModel = {
         id: newTA.id,
-        userName: taUsername,
         location: newTA.location,
+        userName: taUsername,
         question: questionSample.toModel(),
       };
       taModelNoQ = {
