@@ -338,7 +338,7 @@ export class TownsController extends Controller {
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() requestBody: { questionContent: string; groupQuestion: boolean; questionType: string; },
+    @Body() requestBody: { questionContent: string; groupQuestion: boolean; questionType: string },
   ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
@@ -470,8 +470,11 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    const officeHoursAreaReal =  (<OfficeHoursAreaReal>officeHoursArea);
-    officeHoursAreaReal.roomEmitter.emit('officeHoursQueueUpdate', officeHoursAreaReal.toQueueModel());
+    const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
+    officeHoursAreaReal.roomEmitter.emit(
+      'officeHoursQueueUpdate',
+      officeHoursAreaReal.toQueueModel(),
+    );
     // officeHoursArea
     return officeHoursAreaReal.toQueueModel();
   }

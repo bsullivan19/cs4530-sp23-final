@@ -11,6 +11,7 @@ import {
   Interactable,
   OfficeHoursQueue,
   PlayerLocation,
+  TAInfo,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
@@ -25,6 +26,12 @@ export default class OfficeHoursArea extends InteractableArea {
   private _roomEmitter: TownEmitter;
 
   private _questionTypes: string[];
+
+  private _taInfos: TAInfo[];
+
+  public get taInfos() {
+    return this._taInfos;
+  }
 
   public get questionQueue() {
     return this._queue;
@@ -59,6 +66,7 @@ export default class OfficeHoursArea extends InteractableArea {
     this._openBreakoutRooms = new Map<string, string | undefined>();
     this._queue = [];
     this._questionTypes = ['any'];
+    this._taInfos = [];
   }
 
   public addBreakoutRoom(breakoutRoomAreaID: string) {
@@ -77,6 +85,11 @@ export default class OfficeHoursArea extends InteractableArea {
       id: this.id,
       officeHoursActive: this.officeHoursActive,
       teachingAssistantsByID: this.teachingAssistantsByID,
+      questionTypes: this.questionTypes,
+      taInfos: this.taInfos.map(info => {
+        const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities};
+        return x;
+      }),
     };
   }
 
@@ -89,6 +102,12 @@ export default class OfficeHoursArea extends InteractableArea {
     super.add(player);
     if (isTA(player)) {
       this._teachingAssistantsByID.push(player.id);
+      const x: TAInfo = {
+        taID: player.id,
+        isSorted: false,
+        priorities: new Map<string, number>(),
+      };
+      this._taInfos.push(x);
       this._emitAreaChanged();
     }
   }
@@ -97,6 +116,7 @@ export default class OfficeHoursArea extends InteractableArea {
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
+    this._taInfos = this.taInfos.filter(info => info.taID !== player.id);
     if (isTA(player)) {
       this._emitAreaChanged();
     }
@@ -151,14 +171,16 @@ export default class OfficeHoursArea extends InteractableArea {
   /**
    * Assigns the next question in the queue to the ta and removes it
    */
-  public nextQuestion(teachingAssistant: TA, questionID: string | undefined = undefined): Question | undefined {
+  public nextQuestion(
+    teachingAssistant: TA,
+    questionID: string | undefined = undefined,
+  ): Question | undefined {
     // TODO: update to use new question queue structure
     let question;
-    if(questionID){
+    if (questionID) {
       question = this.getQuestion(questionID);
       this.removeQuestion(teachingAssistant, questionID);
-    }
-    else{
+    } else {
       question = this._queue.shift();
     }
     if (question) {
@@ -230,9 +252,14 @@ export default class OfficeHoursArea extends InteractableArea {
       width: mapObject.width,
       height: mapObject.height,
     };
-    // return new OfficeHoursArea()
     return new OfficeHoursArea(
-      { id: mapObject.name, officeHoursActive: false, teachingAssistantsByID: [] },
+      {
+        id: mapObject.name,
+        officeHoursActive: false,
+        teachingAssistantsByID: [],
+        questionTypes: ['any'],
+        taInfos: [],
+      },
       box,
       townEmitter,
     );

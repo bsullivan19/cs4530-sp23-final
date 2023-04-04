@@ -369,9 +369,7 @@ export default class Town {
         // Remove from old area
         prevInteractable.remove(player);
       }
-      const newInteractable = this._interactables.find(
-        eachArea => eachArea.contains(location),
-      );
+      const newInteractable = this._interactables.find(eachArea => eachArea.contains(location));
       if (newInteractable) {
         newInteractable.add(player);
       }
