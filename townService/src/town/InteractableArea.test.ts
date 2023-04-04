@@ -53,11 +53,11 @@ describe('InteractableArea', () => {
   });
   describe('isActive', () => {
     it('Returns true when there are players in the area', () => {
-      expect(testArea.isActive).toBe(true);
+      expect(testArea.officeHoursActive).toBe(true);
     });
     it('Returns false when there are no players in the area', () => {
       testArea.remove(newPlayer);
-      expect(testArea.isActive).toBe(false);
+      expect(testArea.officeHoursActive).toBe(false);
     });
   });
   describe('addPlayersWithinBounds', () => {

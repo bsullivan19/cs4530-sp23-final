@@ -30,10 +30,8 @@ export interface Player {
   userName: string;
   location: PlayerLocation;
 };
-export interface TAModel {
-  id: string;
-  userName: string;
-  location: PlayerLocation;
+export interface TAModel extends Player {
+  breakoutRoomID?: string;
   question?: OfficeHoursQuestion;
 };
 
@@ -106,7 +104,8 @@ export interface OfficeHoursQueue {
 
 export interface OfficeHoursArea {
   id: string;
-  // teachingAssistantsByID: string[]; // the TA's currently online
+  officeHoursActive: boolean; // TODO: Whether students can add questions to the queue.
+  teachingAssistantsByID: string[];
 }
 
 export interface ServerToClientEvents {
@@ -123,10 +122,12 @@ export interface ServerToClientEvents {
 
   // TODO: Is this a bad idea?
   
-  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+  // officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
 
   // officeHoursAreaUpdate is reserved for changes of state to the queue, only forward to people in the area
   officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
+
+  officeHoursQuestionTaken: (ta: TAModel) => void;
 }
 
 export interface ClientToServerEvents {
@@ -135,11 +136,11 @@ export interface ClientToServerEvents {
   interactableUpdate: (update: Interactable) => void;
 
   // officeHoursQuestionUpdate sends information about adding, joining, or leaving a question
-  officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
-  officeHoursQuestionTaken: (ta: TA) => void;
+  // officeHoursQuestionUpdate: (officeHoursQuestion: OfficeHoursQuestion) => void;
+  // officeHoursQuestionTaken: (ta: TA) => void;
 
   // TODO: restructure because we are using REST
-  taTakeQuestion: (ta: TAModel) => void;
-  taQuestionCompleted: (ta: TAModel) => void;
+  // taTakeQuestion: (ta: TAModel) => void;
+  // taQuestionCompleted: (ta: TAModel) => void;
 
 }

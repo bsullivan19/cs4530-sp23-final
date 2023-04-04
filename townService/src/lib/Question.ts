@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+// import { nanoid } from 'nanoid';
 import Player from './Player';
 import { OfficeHoursQuestion } from '../types/CoveyTownSocket';
 
@@ -114,6 +114,9 @@ export default class Question {
   public updateModel(model: OfficeHoursQuestion) {
     if (model.id !== this.id || model.officeHoursID !== this._officeHoursID) {
       throw new Error('Model must be the same ID and in the same OfficeHoursArea');
+    }
+    if (model.students.length > 1 && !model.groupQuestion) {
+      throw new Error('Cannot have more than 1 student in an individual question');
     }
     this._studentsByID = model.students;
     this._groupQuestion = model.groupQuestion;

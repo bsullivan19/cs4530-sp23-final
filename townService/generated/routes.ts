@@ -91,6 +91,8 @@ const models: TsoaRoute.Models = {
         "dataType": "refObject",
         "properties": {
             "id": {"dataType":"string","required":true},
+            "officeHoursActive": {"dataType":"boolean","required":true},
+            "teachingAssistantsByID": {"dataType":"array","array":{"dataType":"string"},"required":true},
         },
         "additionalProperties": false,
     },
@@ -104,6 +106,44 @@ const models: TsoaRoute.Models = {
             "students": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "groupQuestion": {"dataType":"boolean","required":true},
             "timeAsked": {"dataType":"double"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "OfficeHoursQueue": {
+        "dataType": "refObject",
+        "properties": {
+            "officeHoursID": {"dataType":"string","required":true},
+            "questionQueue": {"dataType":"array","array":{"dataType":"refObject","ref":"OfficeHoursQuestion"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Direction": {
+        "dataType": "refAlias",
+        "type": {"dataType":"union","subSchemas":[{"dataType":"enum","enums":["front"]},{"dataType":"enum","enums":["back"]},{"dataType":"enum","enums":["left"]},{"dataType":"enum","enums":["right"]}],"validators":{}},
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "PlayerLocation": {
+        "dataType": "refObject",
+        "properties": {
+            "x": {"dataType":"double","required":true},
+            "y": {"dataType":"double","required":true},
+            "rotation": {"ref":"Direction","required":true},
+            "moving": {"dataType":"boolean","required":true},
+            "interactableID": {"dataType":"string"},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TAModel": {
+        "dataType": "refObject",
+        "properties": {
+            "id": {"dataType":"string","required":true},
+            "userName": {"dataType":"string","required":true},
+            "location": {"ref":"PlayerLocation","required":true},
+            "breakoutRoomID": {"dataType":"string"},
+            "question": {"ref":"OfficeHoursQuestion"},
         },
         "additionalProperties": false,
     },
@@ -391,7 +431,7 @@ export function RegisterRoutes(app: express.Router) {
                     townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
                     officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
                     sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
-                    requestBody: {"in":"body","name":"requestBody","required":true,"ref":"OfficeHoursQuestion"},
+                    requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"groupQuestion":{"dataType":"boolean","required":true},"questionContent":{"dataType":"string","required":true}}},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -432,6 +472,88 @@ export function RegisterRoutes(app: express.Router) {
 
 
               const promise = controller.joinOfficeHoursQuestion.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/leaveQuestion',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.leaveOfficeHoursQuestion)),
+
+            function TownsController_leaveOfficeHoursQuestion(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+                    officeHoursQuestionId: {"in":"body","name":"officeHoursQuestionId","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.leaveOfficeHoursQuestion.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/queue',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.getOfficeHoursQueue)),
+
+            function TownsController_getOfficeHoursQueue(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.getOfficeHoursQueue.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/takeQuestion',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestion)),
+
+            function TownsController_takeNextOfficeHoursQuestion(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.takeNextOfficeHoursQuestion.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);

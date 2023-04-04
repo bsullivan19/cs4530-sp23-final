@@ -4,4 +4,6 @@
 
 export type OfficeHoursArea = {
     id: string;
+    officeHoursActive: boolean;
+    teachingAssistantsByID: Array<string>;
 };

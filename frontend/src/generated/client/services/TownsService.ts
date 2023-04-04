@@ -4,7 +4,9 @@
 import type { ConversationArea } from '../models/ConversationArea';
 import type { OfficeHoursArea } from '../models/OfficeHoursArea';
 import type { OfficeHoursQuestion } from '../models/OfficeHoursQuestion';
+import type { OfficeHoursQueue } from '../models/OfficeHoursQueue';
 import type { PosterSessionArea } from '../models/PosterSessionArea';
+import type { TAModel } from '../models/TAModel';
 import type { Town } from '../models/Town';
 import type { TownCreateParams } from '../models/TownCreateParams';
 import type { TownCreateResponse } from '../models/TownCreateResponse';
@@ -294,15 +296,18 @@ requestBody: OfficeHoursArea,
      * @param xSessionToken session token of the player making the request, must
  * match the session token returned when the player joined the town
      * @param requestBody The question to add or modify
-     * @returns void 
+     * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public addOfficeHoursQuestion(
 townId: string,
 officeHoursAreaId: string,
 xSessionToken: string,
-requestBody: OfficeHoursQuestion,
-): CancelablePromise<void> {
+requestBody: {
+groupQuestion: boolean;
+questionContent: string;
+},
+): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/addQuestion',
@@ -327,7 +332,7 @@ requestBody: OfficeHoursQuestion,
      * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
      * @param xSessionToken 
      * @param requestBody 
-     * @returns void 
+     * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public joinOfficeHoursQuestion(
@@ -335,7 +340,7 @@ townId: string,
 officeHoursAreaId: string,
 xSessionToken: string,
 requestBody: string,
-): CancelablePromise<void> {
+): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/joinQuestion',
@@ -348,6 +353,95 @@ requestBody: string,
             },
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * Joins an existing group question
+     * @param townId ID of the town in which to join a question
+     * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+     * @param xSessionToken 
+     * @param requestBody 
+     * @returns OfficeHoursQuestion Ok
+     * @throws ApiError
+     */
+    public leaveOfficeHoursQuestion(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+requestBody: string,
+): CancelablePromise<OfficeHoursQuestion> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/leaveQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param xSessionToken 
+     * @returns OfficeHoursQueue Ok
+     * @throws ApiError
+     */
+    public getOfficeHoursQueue(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+): CancelablePromise<OfficeHoursQueue> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/queue',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param xSessionToken 
+     * @returns TAModel Ok
+     * @throws ApiError
+     */
+    public takeNextOfficeHoursQuestion(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+): CancelablePromise<TAModel> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/takeQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
             errors: {
                 400: `Invalid values specified`,
             },
