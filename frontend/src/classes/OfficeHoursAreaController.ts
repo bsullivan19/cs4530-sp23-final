@@ -5,6 +5,7 @@ import {
   OfficeHoursArea as OfficeHoursAreaModel,
   OfficeHoursQueue,
   OfficeHoursQuestion,
+  TAInfo,
 } from '../types/CoveyTownSocket';
 
 /**
@@ -28,6 +29,10 @@ export type OfficeHoursAreaEvents = {
    * Listeners are passed the new state of the queue.
    */
   officeHoursQueueChange: (questionQueue: OfficeHoursQuestion[]) => void;
+
+  questionTypesChange: (questionTypes: string[]) => void;
+
+  taInfosChange: (taInfos: TAInfo[]) => void;
 };
 
 export default class OfficeHoursAreaController extends (EventEmitter as new () => TypedEventEmitter<OfficeHoursAreaEvents>) {
@@ -62,6 +67,25 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     ) {
       this._model.teachingAssistantsByID = newTeachingAssistantsByID;
       this.emit('officeHoursTAChange', this.teachingAssistantsByID);
+    }
+  }
+
+  public get taInfos() {
+    return this._model.taInfos;
+  }
+
+  public set taInfos(taInfos: TAInfo[]) {
+    this._model.taInfos = taInfos;
+  }
+
+  public get questionTypes() {
+    return this._model.questionTypes;
+  }
+
+  public set questionTypes(questionTypes: string[]) {
+    if (this.questionTypes !== questionTypes) {
+      this._model.questionTypes = questionTypes;
+      this.emit('questionTypesChange', this.questionTypes);
     }
   }
 
@@ -101,6 +125,8 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
   public updateModel(officeHoursAreaModel: OfficeHoursAreaModel) {
     this.isActive = officeHoursAreaModel.officeHoursActive;
     this.teachingAssistantsByID = officeHoursAreaModel.teachingAssistantsByID;
+    this.questionTypes = officeHoursAreaModel.questionTypes;
+    this.taInfos = officeHoursAreaModel.taInfos;
   }
 }
 
@@ -135,4 +161,26 @@ export function useTAsByID(controller: OfficeHoursAreaController): string[] {
     };
   }, [controller]);
   return teachingAssistantsByID;
+}
+
+export function useQuestionTypes(controller: OfficeHoursAreaController): string[] {
+  const [questionTypes, setQuestionTypes] = useState(controller.questionTypes);
+  useEffect(() => {
+    controller.addListener('questionTypesChange', setQuestionTypes);
+    return () => {
+      controller.removeListener('questionTypesChange', setQuestionTypes);
+    };
+  }, [controller]);
+  return questionTypes;
+}
+
+export function useTAInfos(controller: OfficeHoursAreaController): TAInfo[] {
+  const [taInfos, setTAInfos] = useState(controller.taInfos);
+  useEffect(() => {
+    controller.addListener('taInfosChange', setTAInfos);
+    return () => {
+      controller.removeListener('taInfosChange', setTAInfos);
+    };
+  }, [controller]);
+  return taInfos;
 }

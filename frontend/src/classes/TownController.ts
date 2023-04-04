@@ -531,8 +531,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * Updates the state of the office hours area question queue.
      */
     this._socket.on('officeHoursQueueUpdate', queueModel => {
-      console.log('on listener');
-      console.log(queueModel);
       const ohAreaController = this._officeHoursAreas.find(
         area => area.id === queueModel.officeHoursID,
       );
