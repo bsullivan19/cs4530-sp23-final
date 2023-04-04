@@ -23,6 +23,9 @@ import OfficeHoursAreaController, {
   useActive,
   useQueue,
   useTAsByID,
+  useQuestionTypes,
+  usePriorities,
+  useIsSorted,
 } from '../../../classes/OfficeHoursAreaController';
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
@@ -39,16 +42,17 @@ export function QueueViewer({
 }): JSX.Element {
   const teachingAssistantsByID = useTAsByID(controller);
   const active = useActive(controller);
+  const townController = useTownController();
+  const curPlayerId = townController.ourPlayer.id;
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
-  const [priorities, setPriorities] = useState(new Map<string, number>());
-  const [isSorted, setIsSorted] = useState(false);
+
   const [flag, setFlag] = useState(false);
-  const [questionTypes, setQuestionTypes] = useState(['1', '2', '3', '4']);
+  const questionTypes = useQuestionTypes(controller);
+  const priorities = usePriorities(controller, curPlayerId);
+  const isSorted = useIsSorted(controller, curPlayerId);
   const [questionType, setQuestionType] = useState('');
-  const townController = useTownController();
-  const curPlayerId = townController.ourPlayer.id;
   const toast = useToast();
   const queue = useQueue(controller);
 
@@ -192,14 +196,18 @@ export function QueueViewer({
         onClick={() => {
           if (!questionTypes.includes(questionType) && questionType.length > 0) {
             const temp = questionTypes.concat(questionType);
-            setQuestionTypes(temp);
+            controller.questionTypes = temp;
           }
         }}>
         Add Question Type
       </Button>
       <div></div>
       <label>Sort by question type?</label>
-      <Checkbox type='checkbox' name='Should Sort' onChange={e => setIsSorted(!isSorted)} />
+      <Checkbox
+        type='checkbox'
+        name='Should Sort'
+        onChange={e => controller.setIsSorted(curPlayerId, !isSorted)}
+      />
       <ul>
         {questionTypes.map(eachQuestionType => {
           return (
@@ -211,11 +219,11 @@ export function QueueViewer({
                   if (priorities.has(eachQuestionType)) {
                     priorities.delete(eachQuestionType);
                     const copy = new Map(priorities);
-                    setPriorities(copy);
+                    controller.setPriorities(curPlayerId, priorities);
                   } else {
                     priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
                     const copy = new Map(priorities);
-                    setPriorities(copy);
+                    controller.setPriorities(curPlayerId, priorities);
                   }
                 }}
               />
@@ -224,11 +232,11 @@ export function QueueViewer({
                 colorScheme='red'
                 onClick={() => {
                   const temp = questionTypes.filter(q => q !== eachQuestionType);
-                  setQuestionTypes(temp);
+                  controller.questionTypes = temp;
                   if (priorities.has(eachQuestionType)) {
                     priorities.delete(eachQuestionType);
                     const copy = new Map(priorities);
-                    setPriorities(copy);
+                    controller.setPriorities(curPlayerId, priorities);
                   }
                 }}>
                 Delete

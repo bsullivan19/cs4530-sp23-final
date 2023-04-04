@@ -32,7 +32,9 @@ export type OfficeHoursAreaEvents = {
 
   questionTypesChange: (questionTypes: string[]) => void;
 
-  taInfosChange: (taInfos: TAInfo[]) => void;
+  isSortedChange: (isSorted: boolean) => void;
+
+  prioritiesChange: (priorities: Map<string, number>) => void;
 };
 
 export default class OfficeHoursAreaController extends (EventEmitter as new () => TypedEventEmitter<OfficeHoursAreaEvents>) {
@@ -114,6 +116,38 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     }
   }
 
+  public getPriorities(taID: string): Map<string, number> {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    let p: Map<string, number> = new Map<string, number>();
+    if (x) {
+      p = x.priorities;
+    }
+    return p;
+  }
+
+  public setPriorities(taID: string, p: Map<string, number>) {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    if (x) {
+      x.priorities = p;
+    }
+  }
+
+  public getIsSorted(taID: string): boolean {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    let s = false;
+    if (x) {
+      s = x.isSorted;
+    }
+    return s;
+  }
+
+  public setIsSorted(taID: string, s: boolean) {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    if (x) {
+      x.isSorted = s;
+    }
+  }
+
   public questionsAsked(studentID: string): number {
     return this.questionQueue.filter(q => q.students.includes(studentID)).length;
   }
@@ -174,13 +208,37 @@ export function useQuestionTypes(controller: OfficeHoursAreaController): string[
   return questionTypes;
 }
 
-export function useTAInfos(controller: OfficeHoursAreaController): TAInfo[] {
-  const [taInfos, setTAInfos] = useState(controller.taInfos);
+export function useIsSorted(controller: OfficeHoursAreaController, id: string): boolean {
+  const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
+  let s = false;
+  if (x) {
+    s = x.isSorted;
+  }
+  const [isSorted, setIsSorted] = useState(s);
   useEffect(() => {
-    controller.addListener('taInfosChange', setTAInfos);
+    controller.addListener('isSortedChange', setIsSorted);
     return () => {
-      controller.removeListener('taInfosChange', setTAInfos);
+      controller.removeListener('isSortedChange', setIsSorted);
     };
   }, [controller]);
-  return taInfos;
+  return isSorted;
+}
+
+export function usePriorities(
+  controller: OfficeHoursAreaController,
+  id: string,
+): Map<string, number> {
+  const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
+  let p: Map<string, number> = new Map<string, number>();
+  if (x) {
+    p = x.priorities;
+  }
+  const [priorities, setPriorities] = useState(p);
+  useEffect(() => {
+    controller.addListener('prioritiesChange', setPriorities);
+    return () => {
+      controller.removeListener('prioritiesChange', setPriorities);
+    };
+  }, [controller]);
+  return priorities;
 }

@@ -107,6 +107,14 @@ export interface OfficeHoursArea {
   id: string;
   officeHoursActive: boolean; // TODO: Whether students can add questions to the queue.
   teachingAssistantsByID: string[];
+  questionTypes: string[];
+  taInfos: TAInfo[];
+}
+
+export interface TAInfo {
+  taID: string;
+  isSorted: boolean;
+  priorities: Map<string, number>;
 }
 
 export interface ServerToClientEvents {
