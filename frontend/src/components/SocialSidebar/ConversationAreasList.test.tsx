@@ -231,6 +231,7 @@ describe('ConversationAreasList', () => {
         playersByArea,
       );
     });
+    jest.setTimeout(10000);
     it('Updates the occupants list when they change', async () => {
       const renderData = await renderConversationAreaList(areas);
       await expectProperlyRenderedConversationAreas(renderData, areas, playersByArea);

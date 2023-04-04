@@ -332,6 +332,7 @@ describe('Town Selection', () => {
         it('includes a connect button, which creates a new TownController and connects with the entered username and coveyTownID', async () => {
           const coveyTownID = nanoid();
           const userName = nanoid();
+          const noTaPassword = '';
 
           await joinTownWithOptions({
             coveyTownID,
@@ -343,6 +344,7 @@ describe('Town Selection', () => {
             expect(coveyTownControllerConstructorSpy).toBeCalledWith({
               userName,
               townID: coveyTownID,
+              taPassword: noTaPassword,
               loginController: mockLoginController,
             }),
           );
@@ -407,6 +409,7 @@ describe('Town Selection', () => {
       describe('Joining an existing town from public town table', () => {
         it('includes a connect button in each row, which calls Video.setup, doLogin, and connect with the entered username and coveyTownID corresponding to that town', async () => {
           const rows = renderData.getAllByRole('row');
+          const noTaPassword = '';
           for (const town of expectedTowns) {
             if (town.currentOccupancy < town.maximumOccupancy) {
               mockClear(mockedTownController);
@@ -432,6 +435,7 @@ describe('Town Selection', () => {
                   expect(coveyTownControllerConstructorSpy).toBeCalledWith({
                     userName: username,
                     townID: town.townID,
+                    taPassword: noTaPassword,
                     loginController: mockLoginController,
                   }),
                 );
@@ -541,6 +545,7 @@ describe('Town Selection', () => {
           });
         });
         describe('with valid values', () => {
+          const noTaPassword = '';
           it('calls createTown on the apiClient with the provided values (public town)', async () => {
             const townID = nanoid();
             const roomPassword = nanoid();
@@ -555,6 +560,7 @@ describe('Town Selection', () => {
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: true,
+                taPassword: noTaPassword,
               }),
             );
           });
@@ -574,6 +580,7 @@ describe('Town Selection', () => {
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: false,
+                taPassword: noTaPassword,
               }),
             );
           });
@@ -593,6 +600,7 @@ describe('Town Selection', () => {
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: false,
+                taPassword: noTaPassword,
               }),
             );
             await waitFor(() =>
@@ -627,6 +635,7 @@ describe('Town Selection', () => {
                 userName,
                 townID: townID,
                 loginController: mockLoginController,
+                taPassword: noTaPassword,
               }),
             );
             await waitFor(() => expect(mockedTownController.connect).toBeCalled());
@@ -647,6 +656,7 @@ describe('Town Selection', () => {
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: true,
+                taPassword: noTaPassword,
               }),
             );
             await waitFor(() =>
