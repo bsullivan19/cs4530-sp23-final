@@ -100,6 +100,7 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
 
   public updateModel(officeHoursAreaModel: OfficeHoursAreaModel) {
     this.isActive = officeHoursAreaModel.officeHoursActive;
+    this.teachingAssistantsByID = officeHoursAreaModel.teachingAssistantsByID;
   }
 }
 

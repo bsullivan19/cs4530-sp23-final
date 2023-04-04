@@ -80,16 +80,18 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public add(player: Player) {
     super.add(player);
+    console.log('hello');
+    console.log(isTA(player));
     if (isTA(player)) {
       this._teachingAssistantsByID.push(player.id);
       this._emitAreaChanged();
     }
   }
 
+  // doesn't remove player from queue if he walks out of area
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
-    this._queue.forEach(q => q.removeStudent(player));
     if (isTA(player)) {
       this._emitAreaChanged();
     }
@@ -146,7 +148,7 @@ export default class OfficeHoursArea extends InteractableArea {
    */
   public nextQuestion(teachingAssistant: TA): Question | undefined {
     // TODO: update to use new question queue structure
-    const question = this._queue.pop();
+    const question = this._queue.shift();
     if (question) {
       teachingAssistant.currentQuestion = question;
     }
@@ -167,6 +169,7 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!question) {
       throw new Error('No questions available');
     }
+    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
     teachingAssistant.currentQuestion = question;
     teachingAssistant.officeHoursID = this.id;
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
@@ -231,6 +234,13 @@ export default class OfficeHoursArea extends InteractableArea {
       }
     }
     return undefined;
+  }
+
+  private _assignBreakoutRoom(taID: string, breakoutRoomID: string) {
+    if (this._openBreakoutRooms.get(breakoutRoomID)) {
+      throw new Error('Attempted to assign busy breakout room');
+    }
+    this._openBreakoutRooms.set(breakoutRoomID, taID);
   }
 
   protected _emitQueueChanged() {

@@ -598,6 +598,23 @@
                  "width":256,
                  "x":3552,
                  "y":96
+                }, 
+                {
+                 "height":320,
+                 "id":46,
+                 "name":"Breakout2",
+                 "properties":[
+                        {
+                         "name":"linkedOfficeHoursID",
+                         "type":"string",
+                         "value":"Office Hours"
+                        }],
+                 "rotation":0,
+                 "type":"BreakoutRoomArea",
+                 "visible":true,
+                 "width":256,
+                 "x":3872,
+                 "y":96
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -606,7 +623,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":46,
+ "nextobjectid":49,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.0",
