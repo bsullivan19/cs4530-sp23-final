@@ -95,6 +95,7 @@ export interface OfficeHoursQuestion {
   students: string[];
   groupQuestion: boolean;
   timeAsked?: number;
+  questionType: string;
 }
 
 export interface OfficeHoursQueue {

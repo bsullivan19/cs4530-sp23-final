@@ -106,6 +106,7 @@ const models: TsoaRoute.Models = {
             "students": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "groupQuestion": {"dataType":"boolean","required":true},
             "timeAsked": {"dataType":"double"},
+            "questionType": {"dataType":"string","required":true},
         },
         "additionalProperties": false,
     },
@@ -431,7 +432,7 @@ export function RegisterRoutes(app: express.Router) {
                     townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
                     officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
                     sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
-                    requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"groupQuestion":{"dataType":"boolean","required":true},"questionContent":{"dataType":"string","required":true}}},
+                    requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"questionType":{"dataType":"string","required":true},"groupQuestion":{"dataType":"boolean","required":true},"questionContent":{"dataType":"string","required":true}}},
             };
 
             // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
@@ -554,6 +555,34 @@ export function RegisterRoutes(app: express.Router) {
 
 
               const promise = controller.takeNextOfficeHoursQuestion.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/:questionId/takeQuestion',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestionWithquestionID)),
+
+            function TownsController_takeNextOfficeHoursQuestionWithquestionID(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    questionId: {"in":"path","name":"questionId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.takeNextOfficeHoursQuestionWithquestionID.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);
