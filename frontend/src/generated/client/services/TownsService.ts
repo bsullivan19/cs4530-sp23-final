@@ -449,4 +449,33 @@ export class TownsService {
         });
     }
 
+  /**
+   * @param townId
+   * @param officeHoursAreaId
+   * @param xSessionToken
+   * @returns TAModel Ok
+   * @throws ApiError
+   */
+  public takeNextOfficeHoursQuestionWithQuestionId(
+    townId: string,
+    officeHoursAreaId: string,
+    questionId: string | undefined,
+    xSessionToken: string,
+  ): CancelablePromise<TAModel> {
+    return this.httpRequest.request({
+      method: 'PATCH',
+      url: '/towns/{townID}/{officeHoursAreaId}/{questionId}/takeQuestion',
+      path: {
+        'townID': townId,
+        'officeHoursAreaId': officeHoursAreaId,
+        'questionId': questionId,
+      },
+      headers: {
+        'X-Session-Token': xSessionToken,
+      },
+      errors: {
+        400: `Invalid values specified`,
+      },
+    });
+  }
 }

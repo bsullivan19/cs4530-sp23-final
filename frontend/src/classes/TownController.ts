@@ -884,6 +884,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
+  public async takeNextOfficeHoursQuestionWithQuestionId(
+    officeHoursArea: OfficeHoursAreaController,
+    questionId: string | undefined,
+  ): Promise<TAModel> {
+    return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
+      this.townID,
+      officeHoursArea.id,
+      questionId,
+      this.sessionToken,
+    );
+  }
+
   /**
    * Determine which players are "nearby" -- that they should be included in our video call
    */

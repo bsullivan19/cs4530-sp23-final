@@ -50,7 +50,7 @@ export function QueueViewer({
   const townController = useTownController();
   const curPlayerId = townController.ourPlayer.id;
   const toast = useToast();
-  let queue = useQueue(controller);
+  const queue = useQueue(controller);
 
   townController.pause();
   useEffect(() => {
@@ -59,15 +59,13 @@ export function QueueViewer({
 
   useEffect(() => {
     let newQuestions = queue.map(x => x);
-    newQuestions = newQuestions.sort((x,y) => {
-      const p1 = x.questionType;
-      const p2 = y.questionType;
-      if (
-        (p1 === undefined && p2 === undefined) ||
-        (p1 !== undefined && p2 !== undefined && p1 === p2)
-      ) {
-        if(p2 !== undefined && p1 != undefined){
-          return p1.timeAsked - p2.timeAsked;
+    newQuestions = newQuestions.sort((x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
+      const p1: number | undefined = priorities.get(x.questionType);
+      const p2: number | undefined = priorities.get(y.questionType);
+      if (p1 == p2 || !isSorted) {
+        // timeAsked should always exist?
+        if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
+          return x.timeAsked - y.timeAsked;
         }
       }
       if (p1 === undefined) {
@@ -78,12 +76,10 @@ export function QueueViewer({
       }
       return p1 - p2;
     });
-    queue = newQuestions;
-  }, [isSorted, priorities, flag])
+    controller.questionQueue = newQuestions;
+  }, [isSorted, priorities, flag]);
 
   const addQuestion = useCallback(async () => {
-    console.log('before addQuestion');
-    console.log(questionType);
     if (controller.questionsAsked(curPlayerId) != 0) {
       toast({
         title: 'Cannot add more than 1 question to the queue',
@@ -136,7 +132,11 @@ export function QueueViewer({
 
   const nextQuestion = useCallback(async () => {
     try {
-      const taModel = await townController.takeNextOfficeHoursQuestion(controller);
+      const questionId = controller.questionQueue.shift()?.id;
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
+        controller,
+        questionId,
+      );
       toast({
         title: `Successfully took question ${taModel.question?.id}, you will be teleported shortly`,
         status: 'success',
@@ -262,8 +262,6 @@ export function QueueViewer({
             name='questionType'
             // value={questionType}
             onChange={e => {
-              console.log('in on change');
-              console.log(e.target.value);
               setQuestionType(e.target.value);
             }}
           />
