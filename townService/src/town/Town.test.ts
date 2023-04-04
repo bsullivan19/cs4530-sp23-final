@@ -22,6 +22,8 @@ import {
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import Town from './Town';
+import BreakoutRoomArea from './BreakoutRoomArea';
+import OfficeHoursArea from './OfficeHoursArea';
 
 const mockTwilioVideo = mockDeep<TwilioVideo>();
 jest.spyOn(TwilioVideo, 'getInstance').mockReturnValue(mockTwilioVideo);
@@ -441,6 +443,102 @@ const testingMaps: TestMapDict = {
             width: 326,
             x: 600,
             y: 1200,
+          },
+        ],
+        opacity: 1,
+        type: 'objectgroup',
+        visible: true,
+        x: 0,
+        y: 0,
+      },
+    ],
+  },
+  twoOhThreeBr: {
+    tiledversion: '1.9.0',
+    tileheight: 32,
+    tilesets: [],
+    tilewidth: 32,
+    type: 'map',
+    layers: [
+      {
+        id: 4,
+        name: 'Objects',
+        objects: [
+          {
+            type: 'OfficeHoursArea',
+            height: 237,
+            id: 39,
+            name: 'oh1',
+            rotation: 0,
+            visible: true,
+            width: 326,
+            x: 40,
+            y: 120,
+          },
+          {
+            type: 'OfficeHoursArea',
+            height: 266,
+            id: 43,
+            name: 'oh2',
+            rotation: 0,
+            visible: true,
+            width: 467,
+            x: 612,
+            y: 120,
+          },
+          {
+            type: 'BreakoutRoomArea',
+            height: 25,
+            id: 44,
+            name: 'br1',
+            rotation: 0,
+            visible: true,
+            width: 20,
+            x: 100,
+            y: 500,
+            properties: [
+              {
+                name: 'linkedOfficeHoursID',
+                type: 'string',
+                value: 'oh1',
+              },
+            ],
+          },
+          {
+            type: 'BreakoutRoomArea',
+            height: 25,
+            id: 45,
+            name: 'br2',
+            rotation: 0,
+            visible: true,
+            width: 20,
+            x: 200,
+            y: 500,
+            properties: [
+              {
+                name: 'linkedOfficeHoursID',
+                type: 'string',
+                value: 'oh1',
+              },
+            ],
+          },
+          {
+            type: 'BreakoutRoomArea',
+            height: 25,
+            id: 46,
+            name: 'br3',
+            rotation: 0,
+            visible: true,
+            width: 20,
+            x: 300,
+            y: 500,
+            properties: [
+              {
+                name: 'linkedOfficeHoursID',
+                type: 'string',
+                value: 'oh2',
+              },
+            ],
           },
         ],
         opacity: 1,
@@ -935,6 +1033,62 @@ describe('Town', () => {
       expect(posterSessionArea2.id).toEqual('Name2');
       expect(posterSessionArea2.boundingBox).toEqual({ x: 612, y: 120, height: 266, width: 467 });
       expect(town.interactables.length).toBe(2);
+    });
+    it('Creates a Office Hours area instance for each region on the map', async () => {
+      town.initializeFromMap(testingMaps.twoOhThreeBr);
+      const ohArea1 = town.getInteractable('oh1');
+      const ohArea2 = town.getInteractable('oh2');
+      expect(ohArea1.id).toEqual('oh1');
+      expect(ohArea1.boundingBox).toEqual({ x: 40, y: 120, height: 237, width: 326 });
+      expect(ohArea2.id).toEqual('oh2');
+      expect(ohArea2.boundingBox).toEqual({ x: 612, y: 120, height: 266, width: 467 });
+      expect(town.interactables.length).toBe(5);
+    });
+    it('Creates a breakout room area instance for each region on the map', async () => {
+      town.initializeFromMap(testingMaps.twoOhThreeBr);
+      const brArea1 = town.getInteractable('br1');
+      const brArea2 = town.getInteractable('br2');
+      const brArea3 = town.getInteractable('br3');
+      expect(brArea1.id).toEqual('br1');
+      expect(brArea1.boundingBox).toEqual({ x: 100, y: 500, height: 25, width: 20 });
+      expect(brArea2.id).toEqual('br2');
+      expect(brArea2.boundingBox).toEqual({ x: 200, y: 500, height: 25, width: 20 });
+      expect(brArea3.id).toEqual('br3');
+      expect(brArea3.boundingBox).toEqual({ x: 300, y: 500, height: 25, width: 20 });
+      expect(town.interactables.length).toBe(5);
+    });
+    describe('Link breakout room areas to office hours', () => {
+      it('Sets linked office hours area id correctly in breakout room', async () => {
+        town.initializeFromMap(testingMaps.twoOhThreeBr);
+        const brArea1 = town.getInteractable('br1') as BreakoutRoomArea;
+        const brArea2 = town.getInteractable('br2') as BreakoutRoomArea;
+        const brArea3 = town.getInteractable('br3') as BreakoutRoomArea;
+        if (!brArea1 || !brArea2 || !brArea3) {
+          fail('Breakout rooms not initialized as correct type');
+        }
+        expect(brArea1.id).toEqual('br1');
+        expect(brArea1.linkedOfficeHoursID).toEqual('oh1');
+        expect(brArea2.id).toEqual('br2');
+        expect(brArea2.linkedOfficeHoursID).toEqual('oh1');
+        expect(brArea3.id).toEqual('br3');
+        expect(brArea3.linkedOfficeHoursID).toEqual('oh2');
+      });
+      it('Links breakout room areas to correct Office hours areas in oh map', async () => {
+        town.initializeFromMap(testingMaps.twoOhThreeBr);
+        const ohArea1 = town.getInteractable('oh1') as OfficeHoursArea;
+        const ohArea2 = town.getInteractable('oh2') as OfficeHoursArea;
+        if (!ohArea1 || !ohArea2) {
+          fail('office hour areas not initialized as correct type');
+        }
+        expect(ohArea1.id).toEqual('oh1');
+        const oh1BrRooms = ohArea1.openBreakoutRooms;
+        expect(oh1BrRooms.size).toEqual(2);
+        expect(oh1BrRooms.has('br1')).toBeTruthy();
+        expect(oh1BrRooms.has('br2')).toBeTruthy();
+        const oh2BrRooms = ohArea2.openBreakoutRooms;
+        expect(oh2BrRooms.size).toEqual(1);
+        expect(oh2BrRooms.has('br3')).toBeTruthy();
+      });
     });
     describe('Updating interactable state in playerMovements', () => {
       beforeEach(async () => {
