@@ -169,6 +169,7 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!question) {
       throw new Error('No questions available');
     }
+    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
     teachingAssistant.currentQuestion = question;
     teachingAssistant.officeHoursID = this.id;
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
@@ -233,6 +234,13 @@ export default class OfficeHoursArea extends InteractableArea {
       }
     }
     return undefined;
+  }
+
+  private _assignBreakoutRoom(taID: string, breakoutRoomID: string) {
+    if (this._openBreakoutRooms.get(breakoutRoomID)) {
+      throw new Error('Attempted to assign busy breakout room');
+    }
+    this._openBreakoutRooms.set(breakoutRoomID, taID);
   }
 
   protected _emitQueueChanged() {
