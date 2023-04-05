@@ -12,6 +12,7 @@ import {
   OfficeHoursQueue,
   PlayerLocation,
   TAInfo,
+  Priority,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
@@ -87,27 +88,33 @@ export default class OfficeHoursArea extends InteractableArea {
       teachingAssistantsByID: this.teachingAssistantsByID,
       questionTypes: this.questionTypes,
       taInfos: this.taInfos.map(info => {
-        const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities};
+        const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
+          const y: Priority = {key: p.key, value: p.value};
+          return y;
+        })};
         return x;
       }),
     };
   }
 
   public updateModel(model: OfficeHoursModel) {
-    const queueCopy = this._queue;
-    this._queue = [];
+    this._questionTypes = model.questionTypes;
+    this._taInfos = model.taInfos;
   }
 
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
+      const info: TAInfo | undefined = this._taInfos.find((info) => info.taID === player.id);
+      if (!info) {
+        const x: TAInfo = {
+          taID: player.id,
+          isSorted: false,
+          priorities: [],
+        };
+        this._taInfos.push(x);
+      }
       this._teachingAssistantsByID.push(player.id);
-      const x: TAInfo = {
-        taID: player.id,
-        isSorted: false,
-        priorities: new Map<string, number>(),
-      };
-      this._taInfos.push(x);
       this._emitAreaChanged();
     }
   }
@@ -116,7 +123,7 @@ export default class OfficeHoursArea extends InteractableArea {
   public remove(player: Player) {
     super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
-    this._taInfos = this.taInfos.filter(info => info.taID !== player.id);
+    // this._taInfos = this.taInfos.filter(info => info.taID !== player.id);
     if (isTA(player)) {
       this._emitAreaChanged();
     }

@@ -111,10 +111,15 @@ export interface OfficeHoursArea {
   taInfos: TAInfo[];
 }
 
+export interface Priority {
+  key: string
+  value: number;
+}
+
 export interface TAInfo {
   taID: string;
   isSorted: boolean;
-  priorities: Map<string, number>;
+  priorities: Priority[];
 }
 
 export interface ServerToClientEvents {

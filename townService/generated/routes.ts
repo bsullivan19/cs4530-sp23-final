@@ -87,6 +87,25 @@ const models: TsoaRoute.Models = {
         "additionalProperties": false,
     },
     // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "Priority": {
+        "dataType": "refObject",
+        "properties": {
+            "key": {"dataType":"string","required":true},
+            "value": {"dataType":"double","required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+    "TAInfo": {
+        "dataType": "refObject",
+        "properties": {
+            "taID": {"dataType":"string","required":true},
+            "isSorted": {"dataType":"boolean","required":true},
+            "priorities": {"dataType":"array","array":{"dataType":"refObject","ref":"Priority"},"required":true},
+        },
+        "additionalProperties": false,
+    },
+    // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
     "OfficeHoursArea": {
         "dataType": "refObject",
         "properties": {
@@ -94,6 +113,7 @@ const models: TsoaRoute.Models = {
             "officeHoursActive": {"dataType":"boolean","required":true},
             "teachingAssistantsByID": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "questionTypes": {"dataType":"array","array":{"dataType":"string"},"required":true},
+            "taInfos": {"dataType":"array","array":{"dataType":"refObject","ref":"TAInfo"},"required":true},
         },
         "additionalProperties": false,
     },
@@ -564,9 +584,9 @@ export function RegisterRoutes(app: express.Router) {
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.patch('/towns/:townID/:officeHoursAreaId/:questionId/takeQuestion',
             ...(fetchMiddlewares<RequestHandler>(TownsController)),
-            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestionWithquestionID)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestionWithQuestionID)),
 
-            function TownsController_takeNextOfficeHoursQuestionWithquestionID(request: any, response: any, next: any) {
+            function TownsController_takeNextOfficeHoursQuestionWithQuestionID(request: any, response: any, next: any) {
             const args = {
                     townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
                     officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
@@ -583,7 +603,35 @@ export function RegisterRoutes(app: express.Router) {
                 const controller = new TownsController();
 
 
-              const promise = controller.takeNextOfficeHoursQuestionWithquestionID.apply(controller, validatedArgs as any);
+              const promise = controller.takeNextOfficeHoursQuestionWithQuestionID.apply(controller, validatedArgs as any);
+              promiseHandler(controller, promise, response, undefined, next);
+            } catch (err) {
+                return next(err);
+            }
+        });
+        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+        app.patch('/towns/:townID/:officeHoursAreaId/updateModel',
+            ...(fetchMiddlewares<RequestHandler>(TownsController)),
+            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.getUpdatedOfficeHoursModel)),
+
+            function TownsController_getUpdatedOfficeHoursModel(request: any, response: any, next: any) {
+            const args = {
+                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
+                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
+                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
+                    requestBody: {"in":"body","name":"requestBody","required":true,"ref":"OfficeHoursArea"},
+            };
+
+            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
+
+            let validatedArgs: any[] = [];
+            try {
+                validatedArgs = getValidatedArgs(args, request, response);
+
+                const controller = new TownsController();
+
+
+              const promise = controller.getUpdatedOfficeHoursModel.apply(controller, validatedArgs as any);
               promiseHandler(controller, promise, response, undefined, next);
             } catch (err) {
                 return next(err);

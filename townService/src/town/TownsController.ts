@@ -534,7 +534,7 @@ export class TownsController extends Controller {
 
   @Patch('{townID}/{officeHoursAreaId}/{questionId}/takeQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
-  public async takeNextOfficeHoursQuestionWithquestionID(
+  public async takeNextOfficeHoursQuestionWithQuestionID(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Path() questionId: string,
@@ -584,6 +584,32 @@ export class TownsController extends Controller {
       curPlayer.toModel(),
     );
     return curPlayer.toModel();
+  }
+
+  @Patch('{townID}/{officeHoursAreaId}/updateModel')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async getUpdatedOfficeHoursModel(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+    @Body() requestBody: OfficeHoursArea,
+  ): Promise<OfficeHoursArea> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    } else if (!isTA(curPlayer)) {
+      throw new InvalidParametersError('This player is not a TA');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    (<OfficeHoursAreaReal>officeHoursArea).updateModel(requestBody);
+    return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
   /**

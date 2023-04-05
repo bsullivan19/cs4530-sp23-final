@@ -130,6 +130,8 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
       this._queueModel = questionQueue;
       this.emit('officeHoursQueueChange', this._queueModel);
     }
+    // this._queueModel = questionQueue;
+    // this.emit('officeHoursQueueChange', this._queueModel);
   }
 
   public getPriorities(taID: string): Map<string, number> {
@@ -146,6 +148,7 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     if (x) {
       x.priorities = convertFromMap(p);
     }
+    this.emit('prioritiesChange', p);
   }
 
   public getIsSorted(taID: string): boolean {
@@ -162,6 +165,7 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     if (x) {
       x.isSorted = s;
     }
+    this.emit('isSortedChange', s);
   }
 
   public questionsAsked(studentID: string): number {

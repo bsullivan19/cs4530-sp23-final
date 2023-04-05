@@ -61,16 +61,33 @@ export function QueueViewer({
 
   townController.pause();
   useEffect(() => {
-    townController.getOfficeHoursQueue(controller);
+    // townController.getOfficeHoursQueue(controller);
   }, [townController, controller]);
 
+  function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {
+    const p1: number | undefined = priorities.get(x.questionType);
+    const p2: number | undefined = priorities.get(y.questionType);
+    if (p1 === p2 || !isSorted) {
+      // timeAsked should always exist?
+      if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
+        return x.timeAsked - y.timeAsked;
+      }
+    }
+    if (p1 === undefined) {
+      return 1;
+    }
+    if (p2 === undefined) {
+      return -1;
+    }
+    return p1 - p2;
+  }
   useEffect(() => {
     let newQuestions = queue.map(x => x);
     console.log('in sort');
     newQuestions = newQuestions.sort((x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
       const p1: number | undefined = priorities.get(x.questionType);
       const p2: number | undefined = priorities.get(y.questionType);
-      if (p1 == p2 || !isSorted) {
+      if (p1 === p2 || !isSorted) {
         // timeAsked should always exist?
         if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
           return x.timeAsked - y.timeAsked;
@@ -85,6 +102,7 @@ export function QueueViewer({
       return p1 - p2;
     });
     controller.questionQueue = newQuestions;
+    console.log(newQuestions);
     console.log(priorities);
   }, [isSorted, priorities, flag]);
 
@@ -94,7 +112,7 @@ export function QueueViewer({
         title: 'Cannot add more than 1 question to the queue',
         status: 'error',
       });
-    } else if (newQuestion) {
+    } else if (newQuestion && questionType) {
       try {
         await townController.addOfficeHoursQuestion(
           controller,
@@ -170,8 +188,6 @@ export function QueueViewer({
 
   const updateModel = useCallback(async () => {
     try {
-      console.log('update');
-      console.log(controller.getIsSorted(curPlayerId));
       const model = controller.officeHoursAreaModel();
       const updatedModel = await townController.updateOfficeHoursModel(model);
       // close();
@@ -229,8 +245,8 @@ export function QueueViewer({
         name='Should Sort'
         isChecked={isSorted}
         onChange={e => {
-          console.log(isSorted);
           controller.setIsSorted(curPlayerId, !isSorted);
+          setFlag(!flag);
           updateModel();
         }}
       />
@@ -297,20 +313,18 @@ export function QueueViewer({
             // value={newQuestion}
             onChange={e => setQuestion(e.target.value)}
           />
-          <FormLabel htmlFor='questionType'>Question Type jsdkaf</FormLabel>
-          <Input
-            id='questionType'
-            placeholder='Enter question type'
-            name='questionType'
-            // value={questionType}
+          <Select
+            placeholder='Select option'
             onChange={e => {
               setQuestionType(e.target.value);
-            }}
-          />
-          <Select placeholder='Select option'>
-            <option value='option1'>Option 1</option>
-            <option value='option2'>Option 2</option>
-            <option value='option3'>Option 3</option>
+            }}>
+            {questionTypes.map(eachQuestion => {
+              return (
+                <option value={eachQuestion} key={eachQuestion}>
+                  {eachQuestion}
+                </option>
+              );
+            })}
           </Select>
         </FormControl>
         <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
