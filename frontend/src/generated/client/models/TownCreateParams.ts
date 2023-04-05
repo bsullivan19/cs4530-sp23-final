@@ -12,8 +12,8 @@ export type TownCreateParams = {
     friendlyName: string;
     /**
      * Players will identify towns by either knowing the (randomly generated) town ID, or the town ID will be publicly
- * listed along wiht the friendly name of the town. This behavior can be controlled when creating the town by changing
- * this flag.
+     * listed along wiht the friendly name of the town. This behavior can be controlled when creating the town by changing
+     * this flag.
      */
     isPubliclyListed: boolean;
     /**
@@ -28,3 +28,4 @@ export type TownCreateParams = {
      */
     mapFile?: string;
 };
+

@@ -6,6 +6,7 @@ import {
   OfficeHoursQueue,
   OfficeHoursQuestion,
   TAInfo,
+  Priority,
 } from '../types/CoveyTownSocket';
 
 /**
@@ -36,6 +37,21 @@ export type OfficeHoursAreaEvents = {
 
   prioritiesChange: (priorities: Map<string, number>) => void;
 };
+
+export function convertToMap(p: Priority[]): Map<string, number> {
+  const mp = new Map<string, number>();
+  for (let i = 0; i < p.length; i++) mp.set(p[i].key, p[i].value);
+  return mp;
+}
+
+export function convertFromMap(mp: Map<string, number>) {
+  const p: Priority[] = [];
+  for (const [key, value] of mp) {
+    const x: Priority = { key: key, value: value };
+    p.push(x);
+  }
+  return p;
+}
 
 export default class OfficeHoursAreaController extends (EventEmitter as new () => TypedEventEmitter<OfficeHoursAreaEvents>) {
   private _model: OfficeHoursAreaModel;
@@ -120,7 +136,7 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
     let p: Map<string, number> = new Map<string, number>();
     if (x) {
-      p = x.priorities;
+      p = convertToMap(x.priorities);
     }
     return p;
   }
@@ -128,7 +144,7 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
   public setPriorities(taID: string, p: Map<string, number>) {
     const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
     if (x) {
-      x.priorities = p;
+      x.priorities = convertFromMap(p);
     }
   }
 
@@ -231,7 +247,7 @@ export function usePriorities(
   const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
   let p: Map<string, number> = new Map<string, number>();
   if (x) {
-    p = x.priorities;
+    p = convertToMap(x.priorities);
   }
   const [priorities, setPriorities] = useState(p);
   useEffect(() => {
