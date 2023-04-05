@@ -556,9 +556,10 @@ describe('Town', () => {
   let town: Town;
   let player: Player;
   let playerTestData: MockedPlayer;
+  const townTaPassword: string = nanoid();
 
   beforeEach(async () => {
-    town = new Town(nanoid(), false, nanoid(), townEmitter, 'very secure password');
+    town = new Town(nanoid(), false, nanoid(), townEmitter, townTaPassword);
     playerTestData = mockPlayer(town.townID);
     player = await town.addPlayer(
       playerTestData.userName,
@@ -623,7 +624,7 @@ describe('Town', () => {
         const newPlayerObj = await town.addPlayer(
           newPlayer.userName,
           newPlayer.socket,
-          'very secure password',
+          townTaPassword,
         );
 
         expect(mockTwilioVideo.getTokenForTown).toBeCalledTimes(1);
@@ -640,6 +641,22 @@ describe('Town', () => {
         expectedEvents.forEach(eachEvent =>
           expect(getEventListener(playerTestData.socket, eachEvent)).toBeDefined(),
         );
+      });
+      describe('TA password testing', () => {
+        it('Adds user as a TA when correct passowrd is given', async () => {
+          const newPlayer = mockPlayer(town.townID);
+          const newPlayerObj = await town.addPlayer(
+            newPlayer.userName,
+            newPlayer.socket,
+            townTaPassword,
+          );
+          expect(isTA(newPlayerObj)).toBe(true);
+        });
+        it('Creates player without TA permissions when incorrect passowrd is given', async () => {
+          const newPlayer = mockPlayer(town.townID);
+          const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket, nanoid());
+          expect(isTA(newPlayerObj)).toBe(false);
+        });
       });
     });
     describe('[T1] interactableUpdate callback', () => {
@@ -661,31 +678,6 @@ describe('Town', () => {
             occupantsByID: [],
           }),
         ).not.toThrowError();
-      });
-      describe('TA password testing', () => {
-        it('Adds user as a player when no passowrd is given', async () => {
-          const newPlayer = mockPlayer(town.townID);
-          const newPlayerObj = await town.addPlayer(
-            newPlayer.userName,
-            newPlayer.socket,
-            newPlayer.taPassword,
-          );
-          expect(isTA(newPlayerObj)).toBe(false);
-        });
-        it('Adds user as a TA when correct passowrd is given', async () => {
-          const newPlayer = mockPlayer(town.townID);
-          const newPlayerObj = await town.addPlayer(
-            newPlayer.userName,
-            newPlayer.socket,
-            'very secure password',
-          );
-          expect(isTA(newPlayerObj)).toBe(true);
-        });
-        it('Creates player without TA permissions when incorrect passowrd is given', async () => {
-          const newPlayer = mockPlayer(town.townID);
-          const newPlayerObj = await town.addPlayer(newPlayer.userName, newPlayer.socket, nanoid());
-          expect(isTA(newPlayerObj)).toBe(false);
-        });
       });
       describe('When called passing a valid viewing area', () => {
         let newArea: ViewingAreaModel;
@@ -979,6 +971,7 @@ describe('Town', () => {
       });
     });
   });
+  // TODO addOfficeHoursArea testing
 
   describe('disconnectAllPlayers', () => {
     beforeEach(() => {

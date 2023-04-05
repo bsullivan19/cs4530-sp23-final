@@ -176,10 +176,9 @@ export class MockedPlayer {
  * @param townID
  * @returns
  */
-export function mockPlayer(townID: string): MockedPlayer {
+export function mockPlayer(townID: string, taPassword: string = nanoid()): MockedPlayer {
   const socket = mockDeep<CoveyTownSocket>();
   const userName = nanoid();
-  const taPassword = nanoid();
   socket.handshake.auth = { userName, townID };
   const socketToRoomMock = mock<BroadcastOperator<ServerToClientEvents, SocketData>>();
   socket.to.mockImplementation((room: string | string[]) => {
