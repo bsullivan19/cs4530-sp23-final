@@ -162,18 +162,22 @@ export default class OfficeHoursArea extends InteractableArea {
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
    */
-  public takeQuestion(teachingAssistant: TA): Question {
+  public takeQuestion(teachingAssistant: TA): Question | undefined {
     const breakoutRoomAreaID = this._getOpenBreakoutRoom();
     if (!breakoutRoomAreaID) {
-      throw new Error('No open breakout rooms');
+      return undefined;
     }
     const question = this.nextQuestion(teachingAssistant);
     if (!question) {
-      throw new Error('No questions available');
+      return undefined;
     }
     teachingAssistant.currentQuestion = question;
     teachingAssistant.officeHoursID = this.id;
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
+    // Set this breakout room as taken.
+    // TODO: Still need to clear it when the question is finished.
+    this._openBreakoutRooms.set(breakoutRoomAreaID, teachingAssistant.id);
+
     return question;
   }
 

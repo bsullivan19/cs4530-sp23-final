@@ -6,6 +6,7 @@ import {
   // No special frontend functionallity needed.
   ConversationArea as BreakoutRoomAreaModel,
   TownEmitter,
+  XY,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 
@@ -15,6 +16,13 @@ export default class BreakoutRoomArea extends ConversationArea {
 
   public get linkedOfficeHoursID(): string {
     return this._linkedOfficeHoursID;
+  }
+
+  public get boundingBoxCenter(): XY {
+    return {
+      x: this.boundingBox.x + this.boundingBox.width / 2,
+      y: this.boundingBox.y + this.boundingBox.height / 2,
+    };
   }
 
   /**
@@ -56,6 +64,13 @@ export default class BreakoutRoomArea extends ConversationArea {
       occupantsByID: this.occupantsByID,
       topic: this.topic,
     };
+  }
+
+  public movePlayerToCenter(player: Player): Player {
+    player.location.x = this.boundingBoxCenter.x;
+    player.location.y = this.boundingBoxCenter.y;
+    player.location.interactableID = this.id;
+    return player;
   }
 
   /**

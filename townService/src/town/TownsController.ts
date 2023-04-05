@@ -499,7 +499,8 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer)) {
+    const question = (<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer);
+    if (!question) {
       throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
     }
     if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
@@ -508,11 +509,7 @@ export class TownsController extends Controller {
 
     /* Set TA's location to center of breakout room, used by players for teleporting */
     const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
-    const box = (<BreakoutRoomAreaReal>breakoutRoom).boundingBox;
-    const location: XY = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-    curPlayer.location.x = location.x;
-    curPlayer.location.y = location.y;
-    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+    (<BreakoutRoomAreaReal>breakoutRoom).movePlayerToCenter(curPlayer);
 
     // TODO: does addConvo area work for breakout rooms?
     const success = curTown.addConversationArea({
