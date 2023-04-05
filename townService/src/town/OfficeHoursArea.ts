@@ -121,12 +121,16 @@ export default class OfficeHoursArea extends InteractableArea {
 
   // doesn't remove player from queue if he walks out of area
   public remove(player: Player) {
-    super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
-    // this._taInfos = this.taInfos.filter(info => info.taID !== player.id);
+    this._taInfos = this._taInfos.filter((info) => info.taID !== player.id);
+    // This removes the question
+    // Not desriable if we want to implement original group questions
+    this._queue = this._queue.filter((q) => !q.studentsByID.includes(player.id));
+    super.remove(player);
     if (isTA(player)) {
       this._emitAreaChanged();
     }
+    this._emitQueueChanged();
   }
 
   public getQuestion(questionID: string): Question | undefined {

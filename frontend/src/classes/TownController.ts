@@ -539,6 +539,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         area => area.id === queueModel.officeHoursID,
       );
       if (ohAreaController) {
+        console.log('in front end');
+        console.log(queueModel.questionQueue);
         ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });

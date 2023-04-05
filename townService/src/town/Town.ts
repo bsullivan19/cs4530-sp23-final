@@ -599,9 +599,9 @@ export default class Town {
       .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
     // TODO: Delete console.log
-    breakoutRoomAreas.forEach(area =>
-      console.log(`Added Breakout Room id: ${area.id}, ohID: ${area.linkedOfficeHoursID}`),
-    );
+    // breakoutRoomAreas.forEach(area =>
+    //   console.log(`Added Breakout Room id: ${area.id}, ohID: ${area.linkedOfficeHoursID}`),
+    // );
 
     const officeHoursAreas = objectLayer.objects
       .filter(eachObject => eachObject.type === 'OfficeHoursArea')
@@ -618,9 +618,9 @@ export default class Town {
     });
 
     // TODO: Delete console.log
-    officeHoursAreas.forEach(area =>
-      console.log(`Added oh area id: ${area.id}, breakouts: ${area.openBreakoutRooms.size}`),
-    );
+    // officeHoursAreas.forEach(area =>
+    //   console.log(`Added oh area id: ${area.id}, breakouts: ${area.openBreakoutRooms.size}`),
+    // );
 
     this._interactables = this._interactables
       .concat(viewingAreas)

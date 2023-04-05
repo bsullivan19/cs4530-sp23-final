@@ -54,15 +54,11 @@ export function QueueViewer({
   const questionTypes = useQuestionTypes(controller);
   const priorities = usePriorities(controller, curPlayerId);
   const isSorted = useIsSorted(controller, curPlayerId);
-  // const [isSorted, setSorted] = useState<boolean>(false);
   const [questionType, setQuestionType] = useState('');
   const toast = useToast();
   const queue = useQueue(controller);
 
   townController.pause();
-  useEffect(() => {
-    // townController.getOfficeHoursQueue(controller);
-  }, [townController, controller]);
 
   function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {
     const p1: number | undefined = priorities.get(x.questionType);
@@ -81,30 +77,6 @@ export function QueueViewer({
     }
     return p1 - p2;
   }
-  useEffect(() => {
-    let newQuestions = queue.map(x => x);
-    console.log('in sort');
-    newQuestions = newQuestions.sort((x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
-      const p1: number | undefined = priorities.get(x.questionType);
-      const p2: number | undefined = priorities.get(y.questionType);
-      if (p1 === p2 || !isSorted) {
-        // timeAsked should always exist?
-        if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
-          return x.timeAsked - y.timeAsked;
-        }
-      }
-      if (p1 === undefined) {
-        return 1;
-      }
-      if (p2 === undefined) {
-        return -1;
-      }
-      return p1 - p2;
-    });
-    controller.questionQueue = newQuestions;
-    console.log(newQuestions);
-    console.log(priorities);
-  }, [isSorted, priorities, flag]);
 
   const addQuestion = useCallback(async () => {
     if (controller.questionsAsked(curPlayerId) != 0) {
@@ -159,7 +131,7 @@ export function QueueViewer({
 
   const nextQuestion = useCallback(async () => {
     try {
-      const questionId = controller.questionQueue.shift()?.id;
+      const questionId = controller.questionQueue.sort(cmp).shift()?.id;
       const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
         controller,
         questionId,
@@ -245,8 +217,8 @@ export function QueueViewer({
         name='Should Sort'
         isChecked={isSorted}
         onChange={e => {
+          console.log('sorted checkbox');
           controller.setIsSorted(curPlayerId, !isSorted);
-          setFlag(!flag);
           updateModel();
         }}
       />
@@ -257,20 +229,18 @@ export function QueueViewer({
               <Checkbox
                 type='checkbox'
                 name='Should use Question Type in Priorities'
-                isChecked={controller.getPriorities(curPlayerId).has(eachQuestionType)}
+                isChecked={priorities.has(eachQuestionType)}
                 value={eachQuestionType}
                 onChange={e => {
                   if (priorities.has(eachQuestionType)) {
                     priorities.delete(eachQuestionType);
                     const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, priorities);
-                    setFlag(!flag);
+                    controller.setPriorities(curPlayerId, copy);
                     updateModel();
                   } else {
                     priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
                     const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, priorities);
-                    setFlag(!flag);
+                    controller.setPriorities(curPlayerId, copy);
                     updateModel();
                   }
                 }}
@@ -285,8 +255,8 @@ export function QueueViewer({
                   if (priorities.has(eachQuestionType)) {
                     priorities.delete(eachQuestionType);
                     const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, priorities);
-                    setFlag(!flag);
+                    controller.setPriorities(curPlayerId, copy);
+                    updateModel();
                   }
                 }}>
                 Delete
@@ -357,7 +327,7 @@ export function QueueViewer({
         <ModalHeader>Office Hours, {controller.questionQueue.length} Questions Asked </ModalHeader>
         <ModalCloseButton />
         <List spacing={6}>
-          {queue.map(eachQuestion => (
+          {queue.sort(cmp).map(eachQuestion => (
             <QuestionView key={eachQuestion.id} question={eachQuestion} />
           ))}
         </List>
@@ -409,3 +379,16 @@ export default function OfficeHoursViewerWrapper(): JSX.Element {
   }
   return <></>;
 }
+// 1
+// each question that students ask has a property of group question
+// ta: poll manually x number of students with the same question
+// student can be part of a group to make his wait time less, but he might have to be part of a group
+// qustionType
+
+// 2
+// each student is able to create a group question
+// each student is able to join a group question
+// group questions will be in the same queue as indivdiual questions
+// priority of group quesitons is more than individual questions
+//    group size
+//    groupSize * time
