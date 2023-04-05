@@ -19,7 +19,6 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
 import OfficeHoursAreaController, {
-  useActive,
   useQueue,
   useTAsByID,
 } from '../../../classes/OfficeHoursAreaController';
