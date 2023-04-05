@@ -17,7 +17,6 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
   PosterSessionArea as PosterSessionAreaModel,
-  OfficeHoursArea as OfficeHoursAreaModel,
   OfficeHoursQuestion,
   OfficeHoursQueue,
 } from '../types/CoveyTownSocket';

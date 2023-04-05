@@ -340,7 +340,6 @@ export class TownsController extends Controller {
     @Header('X-Session-Token') sessionToken: string,
     @Body() requestBody: { questionContent: string; groupQuestion: boolean },
   ): Promise<OfficeHoursQuestion> {
-    console.log('addOfficeHoursQuestion called');
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');
@@ -396,7 +395,7 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!officeHoursArea.officeHoursActive) {
+    if (!officeHoursArea.isActive) {
       throw new InvalidParametersError('Cant join a question when no TAs online');
     }
     const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
@@ -437,7 +436,7 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!officeHoursArea.officeHoursActive) {
+    if (!officeHoursArea.isActive) {
       throw new InvalidParametersError('Cant join a question when no TAs online');
     }
     const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
@@ -470,8 +469,11 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    const officeHoursAreaReal =  (<OfficeHoursAreaReal>officeHoursArea);
-    officeHoursAreaReal.roomEmitter.emit('officeHoursQueueUpdate', officeHoursAreaReal.toQueueModel());
+    const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
+    officeHoursAreaReal.roomEmitter.emit(
+      'officeHoursQueueUpdate',
+      officeHoursAreaReal.toQueueModel(),
+    );
     // officeHoursArea
     return officeHoursAreaReal.toQueueModel();
   }
