@@ -40,6 +40,10 @@ export default class OfficeHoursArea extends InteractableArea {
     return this.teachingAssistantsByID.length > 0;
   }
 
+  public override get isActive(): boolean {
+    return true;
+  }
+
   public get roomEmitter() {
     return this._roomEmitter;
   }
