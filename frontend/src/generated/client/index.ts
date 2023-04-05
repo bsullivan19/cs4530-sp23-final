@@ -10,10 +10,14 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { ConversationArea } from './models/ConversationArea';
+export { Direction } from './models/Direction';
 export type { InvalidParametersError } from './models/InvalidParametersError';
 export type { OfficeHoursArea } from './models/OfficeHoursArea';
 export type { OfficeHoursQuestion } from './models/OfficeHoursQuestion';
+export type { OfficeHoursQueue } from './models/OfficeHoursQueue';
+export type { PlayerLocation } from './models/PlayerLocation';
 export type { PosterSessionArea } from './models/PosterSessionArea';
+export type { TAModel } from './models/TAModel';
 export type { Town } from './models/Town';
 export type { TownCreateParams } from './models/TownCreateParams';
 export type { TownCreateResponse } from './models/TownCreateResponse';

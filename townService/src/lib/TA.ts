@@ -55,8 +55,9 @@ export default class TA extends Player {
     return {
       id: this._id,
       location: this.location,
-      userName: this._userName,
+      userName: this.userName,
       question: this._currrentQuestion?.toModel(),
+      breakoutRoomID: this._breakoutRoomID,
     };
   }
 }

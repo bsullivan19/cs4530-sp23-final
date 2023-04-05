@@ -14,6 +14,7 @@ import {
   Tags,
 } from 'tsoa';
 
+import { nanoid } from 'nanoid';
 import { Town, TownCreateParams, TownCreateResponse } from '../api/Model';
 import InvalidParametersError from '../lib/InvalidParametersError';
 import CoveyTownsStore from '../lib/TownsStore';
@@ -25,13 +26,17 @@ import {
   PosterSessionArea,
   OfficeHoursArea,
   OfficeHoursQuestion,
+  OfficeHoursQueue,
+  TAModel,
+  XY,
 } from '../types/CoveyTownSocket';
 import PosterSessionAreaReal from './PosterSessionArea';
 import OfficeHoursAreaReal from './OfficeHoursArea';
+import BreakoutRoomAreaReal from './BreakoutRoomArea';
 import { isOfficeHoursArea, isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
-import { isTA } from '../lib/TA';
+import TA, { isTA } from '../lib/TA';
 import Question from '../lib/Question';
 
 /**
@@ -333,23 +338,34 @@ export class TownsController extends Controller {
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() requestBody: OfficeHoursQuestion,
-  ): Promise<void> {
+    @Body() requestBody: { questionContent: string; groupQuestion: boolean },
+  ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');
     }
-    if (!curTown.getPlayerBySessionToken(sessionToken)) {
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
       throw new InvalidParametersError('Invalid session ID');
     }
     const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!officeHoursArea.isActive) {
-      throw new InvalidParametersError('Cant add a question when no TAs online');
-    }
-    (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(requestBody);
+    // if (!officeHoursArea.officeHoursActive) {
+    //   throw new InvalidParametersError('Cant add a question when no TAs online');
+    // }
+    // TODO: Check how many questions this student has asked. Limit to 1 for now.
+    const newQuestion: OfficeHoursQuestion = {
+      id: nanoid(),
+      officeHoursID: officeHoursAreaId,
+      questionContent: requestBody.questionContent,
+      students: [curPlayer.id],
+      groupQuestion: requestBody.groupQuestion,
+      timeAsked: Date.now(),
+    };
+    (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(newQuestion);
+    return newQuestion;
   }
 
   /**
@@ -366,7 +382,7 @@ export class TownsController extends Controller {
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
     @Body() officeHoursQuestionId: string,
-  ): Promise<void> {
+  ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');
@@ -382,15 +398,137 @@ export class TownsController extends Controller {
     if (!officeHoursArea.isActive) {
       throw new InvalidParametersError('Cant join a question when no TAs online');
     }
-    const officeHoursQuestion = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
+    const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
       q => q.id === officeHoursQuestionId,
     );
-    if (!officeHoursQuestion || !officeHoursQuestion.isGroup) {
-      throw new InvalidParametersError(
-        'Can only join a question that exists with groupQuestion enable',
-      );
+    if (!question) {
+      throw new InvalidParametersError('Invalid office hours question ID');
     }
-    officeHoursQuestion.addStudent(player);
+    question.addStudent(player);
+    (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(question.toModel());
+    return question.toModel();
+  }
+
+  /**
+   * Joins an existing group question
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken
+   * @param requestBody
+   */
+  @Patch('{townID}/{officeHoursAreaId}/leaveQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async leaveOfficeHoursQuestion(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+    @Body() officeHoursQuestionId: string,
+  ): Promise<OfficeHoursQuestion> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const player = curTown.getPlayerBySessionToken(sessionToken);
+    if (!player) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    if (!officeHoursArea.isActive) {
+      throw new InvalidParametersError('Cant join a question when no TAs online');
+    }
+    const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
+      q => q.id === officeHoursQuestionId,
+    );
+    if (!question) {
+      throw new InvalidParametersError('Invalid office hours question ID');
+    }
+    question.removeStudent(player);
+    (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(question.toModel());
+    return question.toModel();
+  }
+
+  @Patch('{townID}/{officeHoursAreaId}/queue')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async getOfficeHoursQueue(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<OfficeHoursQueue> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const player = curTown.getPlayerBySessionToken(sessionToken);
+    if (!player) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
+    officeHoursAreaReal.roomEmitter.emit(
+      'officeHoursQueueUpdate',
+      officeHoursAreaReal.toQueueModel(),
+    );
+    // officeHoursArea
+    return officeHoursAreaReal.toQueueModel();
+  }
+
+  @Patch('{townID}/{officeHoursAreaId}/takeQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async takeNextOfficeHoursQuestion(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<TAModel> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    } else if (!isTA(curPlayer)) {
+      throw new InvalidParametersError('This player is not a TA');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer)) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+    if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+
+    /* Set TA's location to center of breakout room, used by players for teleporting */
+    const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
+    const box = (<BreakoutRoomAreaReal>breakoutRoom).boundingBox;
+    const location: XY = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    curPlayer.location.x = location.x;
+    curPlayer.location.y = location.y;
+    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+
+    // TODO: does addConvo area work for breakout rooms?
+    const success = curTown.addConversationArea({
+      id: curPlayer.breakoutRoomID,
+      topic: curPlayer.currentQuestion?.questionContent,
+      occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
+    });
+    if (!success) {
+      throw new Error('Could not update breakout room');
+    }
+
+    (<OfficeHoursAreaReal>officeHoursArea).roomEmitter.emit(
+      'officeHoursQuestionTaken',
+      curPlayer.toModel(),
+    );
+    return curPlayer.toModel();
   }
 
   /**

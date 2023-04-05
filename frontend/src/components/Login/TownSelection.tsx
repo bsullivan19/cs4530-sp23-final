@@ -24,7 +24,6 @@ import useLoginController from '../../hooks/useLoginController';
 import TownController from '../../classes/TownController';
 import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/useVideoContext';
 import { nanoid } from 'nanoid';
-// import { InvalidTAPasswordError } from 'spring-23-team-106/townService/src/lib/InvalidTAPasswordError.ts';
 
 export default function TownSelection(): JSX.Element {
   const [adminPwd, setAdminPwd] = useState<string>(nanoid());
@@ -78,23 +77,12 @@ export default function TownSelection(): JSX.Element {
           townID: coveyRoomID,
           loginController,
         });
-        // if (taPassword && taPassword.length > 0) {
-        //   newController.authPassword(taPassword);
-        // }
         await newController.connect();
         const videoToken = newController.providerVideoToken;
         assert(videoToken);
         await videoConnect(videoToken);
         setTownController(newController);
       } catch (err) {
-        /** TODO: Catch error if incorrect TA password entered
-        if (err instanceof InvalidTAPasswordError) {
-          toast({
-            title: 'Incorrect TA Password',
-            description: 'Unable to join town as a TA. Please check password.',
-            status: 'error',
-          });
-        } else */
         if (err instanceof Error) {
           toast({
             title: 'Unable to connect to Towns Service',
