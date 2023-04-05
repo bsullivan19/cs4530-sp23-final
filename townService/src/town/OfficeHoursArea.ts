@@ -36,6 +36,12 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._openBreakoutRooms;
   }
 
+  // TODO: should likely be removed. Added so breakout rooms can be reopened if take next
+  // question fails.
+  public set openBreakoutRooms(assignedBreakoutRooms: Map<string, string | undefined>) {
+    this._openBreakoutRooms = assignedBreakoutRooms;
+  }
+
   public get officeHoursActive(): boolean {
     return this.teachingAssistantsByID.length > 0;
   }

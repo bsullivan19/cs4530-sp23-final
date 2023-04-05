@@ -518,6 +518,12 @@ export class TownsController extends Controller {
       occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
     });
     if (!success) {
+      // Returns the question to the queue and free's the breakout room.
+      // TODO: Move this functionality out of TownsController!
+      (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(question.toModel());
+      (<OfficeHoursAreaReal>officeHoursArea).openBreakoutRooms = (<OfficeHoursAreaReal>(
+        officeHoursArea
+      )).openBreakoutRooms.set(curPlayer.breakoutRoomID, undefined);
       throw new Error('Could not update breakout room');
     }
 
