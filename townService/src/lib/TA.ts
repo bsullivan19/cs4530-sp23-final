@@ -9,7 +9,7 @@ import Question from './Question';
 
 // Returns true if player is a TA and false if not
 export function isTA(player: Player): player is TA {
-  return 'currentQuestion' in player;
+  return 'currentQuestions' in player;
 }
 
 export default class TA extends Player {
