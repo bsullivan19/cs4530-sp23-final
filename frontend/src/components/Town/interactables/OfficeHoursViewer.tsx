@@ -70,7 +70,8 @@ export function QueueViewer({
   const toast = useToast();
   const queue = useQueue(controller);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
-
+  console.log('isTA');
+  console.log(teachingAssistantsByID.includes(curPlayerId));
   townController.pause();
   useEffect(() => {
     setSelectedQuestions(
@@ -155,7 +156,9 @@ export function QueueViewer({
         questionId,
       );
       toast({
-        title: `Successfully took question ${taModel.question?.id}, you will be teleported shortly`,
+        title: `Successfully took question ${taModel.questions?.map(
+          (q: OfficeHoursQuestion) => q.id,
+        )}, you will be teleported shortly`,
         status: 'success',
       });
       close();
@@ -185,7 +188,9 @@ export function QueueViewer({
         selectedQuestions,
       );
       toast({
-        title: `Successfully took questions ${taModel.question?.id}, you will be teleported shortly`,
+        title: `Successfully took questions ${taModel.questions?.map(
+          (q: OfficeHoursQuestion) => q.id,
+        )}, you will be teleported shortly`,
         status: 'success',
       });
       close();
