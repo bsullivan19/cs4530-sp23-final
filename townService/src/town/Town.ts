@@ -334,6 +334,14 @@ export default class Town {
     if (player.location.interactableID) {
       this._removePlayerFromInteractable(player);
     }
+    // const currentArea = this.interactables.find(
+    //   area => player.location.interactableID === area.id,
+    // ) as BreakoutRoomArea;
+    // if (currentArea) {
+    //   const currentArea = this.interactables.find(
+    //     area => player.location.interactableID === area.id,
+    //   ) as BreakoutRoomArea;
+    // }
     this._players = this._players.filter(p => p.id !== player.id);
     this._broadcastEmitter.emit('playerDisconnect', player.toPlayerModel());
   }
