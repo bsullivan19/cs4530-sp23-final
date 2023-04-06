@@ -126,7 +126,7 @@ export default class OfficeHoursArea extends InteractableArea {
     // this._taInfos = this._taInfos.filter((info) => info.taID !== player.id);
     // This removes the question
     // Not desriable if we want to implement original group questions
-    this._queue = this._queue.filter((q) => !q.studentsByID.includes(player.id));
+    // this._queue = this._queue.filter((q) => !q.studentsByID.includes(player.id));
     super.remove(player);
     if (isTA(player)) {
       this._emitAreaChanged();
@@ -220,6 +220,31 @@ export default class OfficeHoursArea extends InteractableArea {
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
     return question;
   }
+
+  /**
+   * TA is assigned a question and breakout room if both are available, otherwise
+   * throws and error.
+   */
+  // public takeQuestions(teachingAssistant: TA, questionIDs: string[]): Question {
+  //   const breakoutRoomAreaID = this._getOpenBreakoutRoom();
+  //   if (!breakoutRoomAreaID) {
+  //     throw new Error('No open breakout rooms');
+  //   }
+  //   questionIds.forEach((question) => {
+  //
+  //   })
+  //   for(const question: questionID) {
+  //
+  //   }
+  //   const question = this.nextQuestion(teachingAssistant, questionID);
+  //   if (!question) {
+  //     throw new Error('No questions available');
+  //   }
+  //   teachingAssistant.currentQuestion = question;
+  //   teachingAssistant.officeHoursID = this.id;
+  //   teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
+  //   return question;
+  // }
 
   /**
    * Removes an existing question from the queue if the player is the a TA.

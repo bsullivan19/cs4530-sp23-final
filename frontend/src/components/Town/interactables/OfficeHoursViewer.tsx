@@ -17,6 +17,15 @@ import {
   Tag,
   Stack,
   Select,
+  OrderedList,
+  TableContainer,
+  TableCaption,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  Table,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -32,6 +41,11 @@ import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import { Component } from '../../../../../../../../../Applications/IntelliJ IDEA.app/Contents/plugins/javascript-impl/jsLanguageServicesImpl/external/react';
+
+const LIMIT = 150;
+function formatter(s: string): string {
+  return s.substring(0, LIMIT);
+}
 
 export function QueueViewer({
   controller,
@@ -57,8 +71,12 @@ export function QueueViewer({
   const [questionType, setQuestionType] = useState('');
   const toast = useToast();
   const queue = useQueue(controller);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
 
   townController.pause();
+  useEffect(() => {
+    setSelectedQuestions(selectedQuestions.filter(qid => queue.map((question) => question.id).includes(qid)));
+  }, [queue]);
 
   function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {
     const p1: number | undefined = priorities.get(x.questionType);
@@ -171,22 +189,110 @@ export function QueueViewer({
       });
     }
   }, [controller, townController, isSorted]);
+
+  function RowView({ question }: { question: OfficeHoursQuestion }) {
+    const allPlayers = townController.players;
+    const players = allPlayers.filter(p => question.students.includes(p.id));
+    const usernames = players.map(p => p.userName);
+    if (!teachingAssistantsByID.includes(curPlayerId)) {
+      return (
+        <Tr>
+          <Td>{usernames}</Td>
+          <Td>{question.questionType}</Td>
+          <Td>{question.timeAsked}</Td>
+          <Td>{question.questionContent}</Td>
+        </Tr>
+      );
+    } else {
+      return (
+        <Tr>
+          <Td>
+            <Checkbox
+              type='checkbox'
+              name='Select Question'
+              isChecked={selectedQuestions.includes(question.id)}
+              onChange={e => {
+                if (selectedQuestions.includes(question.id)) {
+                  setSelectedQuestions(selectedQuestions.filter(qid => qid !== question.id));
+                } else {
+                  setSelectedQuestions(selectedQuestions.concat(question.id));
+                }
+              }}
+            />
+          </Td>
+          <Td>{usernames}</Td>
+          <Td>{question.questionType}</Td>
+          <Td>{question.timeAsked}</Td>
+          <Td>{question.questionContent}</Td>
+        </Tr>
+      );
+    }
+  }
+  function QuesitonsViewer(x: any) {
+    return (
+      <TableContainer>
+        <TableCaption>Office Hours Queue</TableCaption>
+        <Table size='sm'>
+          <Thead>
+            <Tr>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
+              <Th>Username</Th>
+              <Th>Question Type</Th>
+              <Th>Time Asked</Th>
+              <Th>Question Description</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {queue.sort(cmp).map(eachQuestion => (
+              <RowView key={eachQuestion.id} question={eachQuestion} />
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    );
+  }
   function QuestionView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
     const usernames = players.map(p => p.userName);
-    return (
-      // TODO: number of quesiton
-      <ListItem>
-        <Tag>{usernames}</Tag>
-        <Tag>{question.questionContent}</Tag>
-        <Tag>{question.timeAsked}</Tag>
-        <Tag>{question.questionType}</Tag>
-      </ListItem>
-    );
+    if (!teachingAssistantsByID.includes(curPlayerId)) {
+      return (
+        // TODO: number of quesiton
+        <ListItem title={questionType}>
+          <Tag>{usernames}</Tag>
+          <Tag>{formatter(question.questionContent)}</Tag>
+          <Tag>{question.timeAsked}</Tag>
+          <Tag>{question.questionType}</Tag>
+        </ListItem>
+      );
+    } else {
+      return (
+        // TODO: number of quesiton
+        <ListItem>
+          <Tag>{usernames}</Tag>
+          <Tag>{formatter(question.questionContent)}</Tag>
+          <Tag>{question.timeAsked}</Tag>
+          <Tag>{question.questionType}</Tag>
+          <Checkbox
+            type='checkbox'
+            name='Selected Questions'
+            isChecked={selectedQuestions.includes(question.id)}
+            value={question.id}
+            onChange={e => {
+              if (selectedQuestions.includes(question.id)) {
+                setSelectedQuestions(selectedQuestions.filter(qid => qid !== question.id));
+              } else {
+                setSelectedQuestions(selectedQuestions.concat(question.id));
+              }
+            }}
+          />
+        </ListItem>
+      );
+    }
   }
   const taView = (
     <ModalBody pb={6}>
+      <QuesitonsViewer> </QuesitonsViewer>
       <Button colorScheme='red' mr={3} onClick={nextQuestion}>
         Take next question
       </Button>
@@ -217,7 +323,6 @@ export function QueueViewer({
         name='Should Sort'
         isChecked={isSorted}
         onChange={e => {
-          console.log('sorted checkbox');
           controller.setIsSorted(curPlayerId, !isSorted);
           updateModel();
         }}
@@ -274,8 +379,9 @@ export function QueueViewer({
         addQuestion();
       }}>
       <ModalBody pb={6}>
+        <QuesitonsViewer> </QuesitonsViewer>
         <FormControl>
-          <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
+          <FormLabel htmlFor='questionContent'>Question Content (max 75 Characters)</FormLabel>
           <Input
             id='questionContent'
             placeholder='Enter your question here'
@@ -317,6 +423,7 @@ export function QueueViewer({
   );
   return (
     <Modal
+      size={'6xl'}
       isOpen={isOpen}
       onClose={() => {
         close();
@@ -326,11 +433,11 @@ export function QueueViewer({
       <ModalContent>
         <ModalHeader>Office Hours, {controller.questionQueue.length} Questions Asked </ModalHeader>
         <ModalCloseButton />
-        <List spacing={6}>
-          {queue.sort(cmp).map(eachQuestion => (
-            <QuestionView key={eachQuestion.id} question={eachQuestion} />
-          ))}
-        </List>
+        {/*<OrderedList spacing={6}>*/}
+        {/*  {queue.sort(cmp).map(eachQuestion => (*/}
+        {/*    <QuestionView key={eachQuestion.id} question={eachQuestion} />*/}
+        {/*  ))}*/}
+        {/*</OrderedList>*/}
         <div>{teachingAssistantsByID.includes(curPlayerId) ? taView : studentView}</div>
       </ModalContent>
     </Modal>
