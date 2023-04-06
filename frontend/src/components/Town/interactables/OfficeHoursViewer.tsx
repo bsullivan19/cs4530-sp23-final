@@ -37,7 +37,6 @@ export function QueueViewer({
   close: () => void;
 }): JSX.Element {
   const teachingAssistantsByID = useTAsByID(controller);
-  const active = useActive(controller);
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
@@ -128,7 +127,7 @@ export function QueueViewer({
       <ListItem>
         <Tag>{usernames}</Tag>
         <Tag>{question.questionContent}</Tag>
-        <Tag>{question.timeAsked}</Tag>
+        <Tag>{question.timeAsked || 0}</Tag>
       </ListItem>
     );
   }

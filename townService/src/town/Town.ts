@@ -254,20 +254,8 @@ export default class Town {
 
     // Register an event listener for the client socket: if the client updates their
     // location, inform the CoveyTownController
-    // If the player enters an OfficeHoursArea, emits the queue data to them.
     socket.on('playerMovement', (movementData: PlayerLocation) => {
-      const prevInteractableID = newPlayer.location.interactableID;
       this._updatePlayerLocation(newPlayer, movementData);
-
-      if (prevInteractableID !== newPlayer.location.interactableID) {
-        // Emit the queue data if entering an OfficeHoursArea
-        const interatable = this._interactables.find(
-          area => area.id === newPlayer.location.interactableID,
-        );
-        if (interatable instanceof OfficeHoursArea) {
-          socket.emit('officeHoursQueueUpdate', interatable.toQueueModel());
-        }
-      }
     });
 
     // Set up a listener to process updates to interactables.
@@ -346,6 +334,14 @@ export default class Town {
     if (player.location.interactableID) {
       this._removePlayerFromInteractable(player);
     }
+    // const currentArea = this.interactables.find(
+    //   area => player.location.interactableID === area.id,
+    // ) as BreakoutRoomArea;
+    // if (currentArea) {
+    //   const currentArea = this.interactables.find(
+    //     area => player.location.interactableID === area.id,
+    //   ) as BreakoutRoomArea;
+    // }
     this._players = this._players.filter(p => p.id !== player.id);
     this._broadcastEmitter.emit('playerDisconnect', player.toPlayerModel());
   }
@@ -370,7 +366,7 @@ export default class Town {
         prevInteractable.remove(player);
       }
       const newInteractable = this._interactables.find(
-        eachArea => eachArea.contains(location),
+        eachArea => eachArea.isActive && eachArea.contains(location),
       );
       if (newInteractable) {
         newInteractable.add(player);
@@ -600,11 +596,6 @@ export default class Town {
       .filter(eachObject => eachObject.type === 'BreakoutRoomArea')
       .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
-    // TODO: Delete console.log
-    breakoutRoomAreas.forEach(area =>
-      console.log(`Added Breakout Room id: ${area.id}, ohID: ${area.linkedOfficeHoursID}`),
-    );
-
     const officeHoursAreas = objectLayer.objects
       .filter(eachObject => eachObject.type === 'OfficeHoursArea')
       .map(eachPSAreaObj => OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
@@ -618,11 +609,6 @@ export default class Town {
         officeHoursArea.addBreakoutRoom(breakoutRoomArea.id);
       }
     });
-
-    // TODO: Delete console.log
-    officeHoursAreas.forEach(area =>
-      console.log(`Added oh area id: ${area.id}, breakouts: ${area.openBreakoutRooms.size}`),
-    );
 
     this._interactables = this._interactables
       .concat(viewingAreas)

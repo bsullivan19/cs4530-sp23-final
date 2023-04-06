@@ -40,14 +40,22 @@ export default class OfficeHoursArea extends InteractableArea {
     return this.teachingAssistantsByID.length > 0;
   }
 
+  public override get isActive(): boolean {
+    return true;
+  }
+
   public get roomEmitter() {
     return this._roomEmitter;
   }
 
-  public constructor({ id }: OfficeHoursModel, coordinates: BoundingBox, townEmitter: TownEmitter) {
+  public constructor(
+    { id, teachingAssistantsByID }: OfficeHoursModel,
+    coordinates: BoundingBox,
+    townEmitter: TownEmitter,
+  ) {
     super(id, coordinates, townEmitter);
     this._roomEmitter = townEmitter.to(this.id);
-    this._teachingAssistantsByID = [];
+    this._teachingAssistantsByID = teachingAssistantsByID;
 
     // initialize breakout rooms map
     this._openBreakoutRooms = new Map<string, string | undefined>();
@@ -73,6 +81,7 @@ export default class OfficeHoursArea extends InteractableArea {
     };
   }
 
+  // TODO intended functionallity?
   public updateModel(model: OfficeHoursModel) {
     const queueCopy = this._queue;
     this._queue = [];
@@ -121,40 +130,6 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
-   * Stops an office hours breakout room for the TA. Resets all pertaining fields
-   * in office hours area and breakout room. Throws an error if there are no
-   * more breakout rooms.
-   */
-  public stopOfficeHours(ta: TA): PlayerLocation {
-    // Add breakout room back as being open
-    if (!ta.breakoutRoomID) {
-      throw new Error('TA does not have a breakout room');
-    }
-    if (this._openBreakoutRooms.get(ta.breakoutRoomID) !== ta.id) {
-      throw new Error('Breakout room and ta mismatch');
-    }
-    this._openBreakoutRooms.set(ta.breakoutRoomID, undefined);
-
-    ta.breakoutRoomID = undefined;
-    ta.currentQuestion = undefined;
-    ta.officeHoursID = undefined;
-    return this.areasCenter();
-  }
-
-  /**
-   * Assigns the next question in the queue to the ta and removes it
-   */
-  public nextQuestion(teachingAssistant: TA): Question | undefined {
-    // TODO: update to use new question queue structure
-    const question = this._queue.shift();
-    if (question) {
-      teachingAssistant.currentQuestion = question;
-    }
-    this._emitQueueChanged();
-    return question;
-  }
-
-  /**
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
    */
@@ -163,7 +138,7 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!breakoutRoomAreaID) {
       throw new Error('No open breakout rooms');
     }
-    const question = this.nextQuestion(teachingAssistant);
+    const question = this._nextQuestion(teachingAssistant);
     if (!question) {
       throw new Error('No questions available');
     }
@@ -174,6 +149,7 @@ export default class OfficeHoursArea extends InteractableArea {
     return question;
   }
 
+  // TODO unused, remove?
   /**
    * Removes an existing question from the queue if the player is the a TA.
    */
@@ -184,6 +160,7 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  // TODO unused, remove?
   /**
    * Removes the student from an existing question.
    * If the question has no students, the question is removed from the queue.
@@ -225,6 +202,19 @@ export default class OfficeHoursArea extends InteractableArea {
     );
   }
 
+  /**
+   * Assigns the next question in the queue to the ta and removes it
+   */
+  private _nextQuestion(teachingAssistant: TA): Question | undefined {
+    // TODO: update to use new question queue structure
+    const question = this._queue.shift();
+    if (question) {
+      teachingAssistant.currentQuestion = question;
+    }
+    this._emitQueueChanged();
+    return question;
+  }
+
   private _getOpenBreakoutRoom(): string | undefined {
     for (const [areaID, ta] of this._openBreakoutRooms) {
       if (!ta) {
@@ -242,6 +232,6 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   protected _emitQueueChanged() {
-    this._roomEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
+    this._townEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
   }
 }

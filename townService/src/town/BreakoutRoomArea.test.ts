@@ -80,12 +80,13 @@ describe('BreakoutRoomArea', () => {
         ),
       ).toThrowError();
     });
-    it('Creates a new conversation area using the provided boundingBox and id, with an empty occupants list', () => {
+    it('Creates a new conversation area using the provided boundingBox and id, with an empty occupants list, and correct office hours link', () => {
       const x = 30;
       const y = 20;
       const width = 10;
       const height = 20;
       const name = 'name';
+      const linkedOfficeHours = nanoid();
       const map: ITiledMapObject = {
         x,
         y,
@@ -97,7 +98,7 @@ describe('BreakoutRoomArea', () => {
       };
       map.properties = [
         {
-          value: 'office hours',
+          value: linkedOfficeHours,
           propertytype: nanoid(),
           type: 'string',
           name: 'linkedOfficeHoursID',
@@ -108,6 +109,7 @@ describe('BreakoutRoomArea', () => {
       expect(val.id).toEqual(name);
       expect(val.topic).toBeUndefined();
       expect(val.occupantsByID).toEqual([]);
+      expect(val.linkedOfficeHoursID).toEqual(linkedOfficeHours);
     });
   });
 });
