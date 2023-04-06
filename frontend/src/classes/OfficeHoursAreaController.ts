@@ -5,6 +5,8 @@ import {
   OfficeHoursArea as OfficeHoursAreaModel,
   OfficeHoursQueue,
   OfficeHoursQuestion,
+  TAInfo,
+  Priority,
 } from '../types/CoveyTownSocket';
 
 /**
@@ -28,7 +30,28 @@ export type OfficeHoursAreaEvents = {
    * Listeners are passed the new state of the queue.
    */
   officeHoursQueueChange: (questionQueue: OfficeHoursQuestion[]) => void;
+
+  questionTypesChange: (questionTypes: string[]) => void;
+
+  isSortedChange: (isSorted: boolean) => void;
+
+  prioritiesChange: (priorities: Map<string, number>) => void;
 };
+
+export function convertToMap(p: Priority[]): Map<string, number> {
+  const mp = new Map<string, number>();
+  for (let i = 0; i < p.length; i++) mp.set(p[i].key, p[i].value);
+  return mp;
+}
+
+export function convertFromMap(mp: Map<string, number>) {
+  const p: Priority[] = [];
+  for (const [key, value] of mp) {
+    const x: Priority = { key: key, value: value };
+    p.push(x);
+  }
+  return p;
+}
 
 export default class OfficeHoursAreaController extends (EventEmitter as new () => TypedEventEmitter<OfficeHoursAreaEvents>) {
   private _model: OfficeHoursAreaModel;
@@ -65,6 +88,25 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     }
   }
 
+  public get taInfos() {
+    return this._model.taInfos;
+  }
+
+  public set taInfos(taInfos: TAInfo[]) {
+    this._model.taInfos = taInfos;
+  }
+
+  public get questionTypes() {
+    return this._model.questionTypes;
+  }
+
+  public set questionTypes(questionTypes: string[]) {
+    if (this.questionTypes !== questionTypes) {
+      this._model.questionTypes = questionTypes;
+      this.emit('questionTypesChange', this.questionTypes);
+    }
+  }
+
   public get isActive() {
     return this._model.officeHoursActive;
   }
@@ -88,6 +130,42 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
       this._queueModel = questionQueue;
       this.emit('officeHoursQueueChange', this._queueModel);
     }
+    // this._queueModel = questionQueue;
+    // this.emit('officeHoursQueueChange', this._queueModel);
+  }
+
+  public getPriorities(taID: string): Map<string, number> {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    let p: Map<string, number> = new Map<string, number>();
+    if (x) {
+      p = convertToMap(x.priorities);
+    }
+    return p;
+  }
+
+  public setPriorities(taID: string, p: Map<string, number>) {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    if (x) {
+      x.priorities = convertFromMap(p);
+    }
+    this.emit('prioritiesChange', p);
+  }
+
+  public getIsSorted(taID: string): boolean {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    let s = false;
+    if (x) {
+      s = x.isSorted;
+    }
+    return s;
+  }
+
+  public setIsSorted(taID: string, s: boolean) {
+    const x: TAInfo | undefined = this.taInfos.find(info => taID === info.taID);
+    if (x) {
+      x.isSorted = s;
+    }
+    this.emit('isSortedChange', s);
   }
 
   public questionsAsked(studentID: string): number {
@@ -101,6 +179,8 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
   public updateModel(officeHoursAreaModel: OfficeHoursAreaModel) {
     this.isActive = officeHoursAreaModel.officeHoursActive;
     this.teachingAssistantsByID = officeHoursAreaModel.teachingAssistantsByID;
+    this.questionTypes = officeHoursAreaModel.questionTypes;
+    this.taInfos = officeHoursAreaModel.taInfos;
   }
 }
 
@@ -135,4 +215,50 @@ export function useTAsByID(controller: OfficeHoursAreaController): string[] {
     };
   }, [controller]);
   return teachingAssistantsByID;
+}
+
+export function useQuestionTypes(controller: OfficeHoursAreaController): string[] {
+  const [questionTypes, setQuestionTypes] = useState(controller.questionTypes);
+  useEffect(() => {
+    controller.addListener('questionTypesChange', setQuestionTypes);
+    return () => {
+      controller.removeListener('questionTypesChange', setQuestionTypes);
+    };
+  }, [controller]);
+  return questionTypes;
+}
+
+export function useIsSorted(controller: OfficeHoursAreaController, id: string): boolean {
+  const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
+  let s = false;
+  if (x) {
+    s = x.isSorted;
+  }
+  const [isSorted, setIsSorted] = useState(s);
+  useEffect(() => {
+    controller.addListener('isSortedChange', setIsSorted);
+    return () => {
+      controller.removeListener('isSortedChange', setIsSorted);
+    };
+  }, [controller]);
+  return isSorted;
+}
+
+export function usePriorities(
+  controller: OfficeHoursAreaController,
+  id: string,
+): Map<string, number> {
+  const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
+  let p: Map<string, number> = new Map<string, number>();
+  if (x) {
+    p = convertToMap(x.priorities);
+  }
+  const [priorities, setPriorities] = useState(p);
+  useEffect(() => {
+    controller.addListener('prioritiesChange', setPriorities);
+    return () => {
+      controller.removeListener('prioritiesChange', setPriorities);
+    };
+  }, [controller]);
+  return priorities;
 }

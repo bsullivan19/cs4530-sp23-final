@@ -39,8 +39,8 @@ export class TownsService {
      * @throws ApiError
      */
     public createTown(
-requestBody: TownCreateParams,
-): CancelablePromise<TownCreateResponse> {
+        requestBody: TownCreateParams,
+    ): CancelablePromise<TownCreateResponse> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/towns',
@@ -54,14 +54,14 @@ requestBody: TownCreateParams,
      * @param townId town to update
      * @param xCoveyTownPassword town update password, must match the password returned by createTown
      * @param requestBody The updated settings
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public updateTown(
-townId: string,
-xCoveyTownPassword: string,
-requestBody: TownSettingsUpdate,
-): CancelablePromise<void> {
+        townId: string,
+        xCoveyTownPassword: string,
+        requestBody: TownSettingsUpdate,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}',
@@ -83,13 +83,13 @@ requestBody: TownSettingsUpdate,
      * Deletes a town
      * @param townId ID of the town to delete
      * @param xCoveyTownPassword town update password, must match the password returned by createTown
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public deleteTown(
-townId: string,
-xCoveyTownPassword: string,
-): CancelablePromise<void> {
+        townId: string,
+        xCoveyTownPassword: string,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'DELETE',
             url: '/towns/{townID}',
@@ -110,14 +110,14 @@ xCoveyTownPassword: string,
      * @param townId ID of the town in which to create the new conversation area
      * @param xSessionToken session token of the player making the request, must match the session token returned when the player joined the town
      * @param requestBody The new conversation area to create
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public createConversationArea(
-townId: string,
-xSessionToken: string,
-requestBody: ConversationArea,
-): CancelablePromise<void> {
+        townId: string,
+        xSessionToken: string,
+        requestBody: ConversationArea,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/towns/{townID}/conversationArea',
@@ -139,16 +139,16 @@ requestBody: ConversationArea,
      * Creates a viewing area in a given town
      * @param townId ID of the town in which to create the new viewing area
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @param requestBody The new viewing area to create
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public createViewingArea(
-townId: string,
-xSessionToken: string,
-requestBody: ViewingArea,
-): CancelablePromise<void> {
+        townId: string,
+        xSessionToken: string,
+        requestBody: ViewingArea,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/towns/{townID}/viewingArea',
@@ -170,16 +170,16 @@ requestBody: ViewingArea,
      * Creates a poster session area in a given town
      * @param townId ID of the town in which to create the new poster session area
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @param requestBody The new poster session area to create
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public createPosterSessionArea(
-townId: string,
-xSessionToken: string,
-requestBody: PosterSessionArea,
-): CancelablePromise<void> {
+        townId: string,
+        xSessionToken: string,
+        requestBody: PosterSessionArea,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/towns/{townID}/posterSessionArea',
@@ -202,15 +202,15 @@ requestBody: PosterSessionArea,
      * @param townId ID of the town in which to get the poster session area image contents
      * @param posterSessionId interactable ID of the poster session
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @returns string Ok
      * @throws ApiError
      */
     public getPosterAreaImageContents(
-townId: string,
-posterSessionId: string,
-xSessionToken: string,
-): CancelablePromise<string> {
+        townId: string,
+        posterSessionId: string,
+        xSessionToken: string,
+    ): CancelablePromise<string> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{posterSessionId}/imageContents',
@@ -229,19 +229,19 @@ xSessionToken: string,
 
     /**
      * Increment the stars of a given poster session area in a given town, as long as there is
- * a poster image. Returns the new number of stars.
+     * a poster image. Returns the new number of stars.
      * @param townId ID of the town in which to get the poster session area image contents
      * @param posterSessionId interactable ID of the poster session
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @returns number Ok
      * @throws ApiError
      */
     public incrementPosterAreaStars(
-townId: string,
-posterSessionId: string,
-xSessionToken: string,
-): CancelablePromise<number> {
+        townId: string,
+        posterSessionId: string,
+        xSessionToken: string,
+    ): CancelablePromise<number> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{posterSessionId}/incStars',
@@ -262,16 +262,16 @@ xSessionToken: string,
      * Creates an Office Hours Area in a given town.
      * @param townId ID of the town in which to create the new poster session area
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @param requestBody The new office hours area to create
-     * @returns void 
+     * @returns void
      * @throws ApiError
      */
     public createOfficeHoursArea(
-townId: string,
-xSessionToken: string,
-requestBody: OfficeHoursArea,
-): CancelablePromise<void> {
+        townId: string,
+        xSessionToken: string,
+        requestBody: OfficeHoursArea,
+    ): CancelablePromise<void> {
         return this.httpRequest.request({
             method: 'POST',
             url: '/towns/{townID}/officeHoursArea',
@@ -294,20 +294,21 @@ requestBody: OfficeHoursArea,
      * @param townId ID of the town in which to add or update a question
      * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
      * @param xSessionToken session token of the player making the request, must
- * match the session token returned when the player joined the town
+     * match the session token returned when the player joined the town
      * @param requestBody The question to add or modify
      * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public addOfficeHoursQuestion(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-requestBody: {
-groupQuestion: boolean;
-questionContent: string;
-},
-): CancelablePromise<OfficeHoursQuestion> {
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+        requestBody: {
+            questionType: string;
+            groupQuestion: boolean;
+            questionContent: string;
+        },
+    ): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/addQuestion',
@@ -330,17 +331,17 @@ questionContent: string;
      * Joins an existing group question
      * @param townId ID of the town in which to join a question
      * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-     * @param xSessionToken 
-     * @param requestBody 
+     * @param xSessionToken
+     * @param requestBody
      * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public joinOfficeHoursQuestion(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-requestBody: string,
-): CancelablePromise<OfficeHoursQuestion> {
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+        requestBody: string,
+    ): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/joinQuestion',
@@ -363,17 +364,17 @@ requestBody: string,
      * Joins an existing group question
      * @param townId ID of the town in which to join a question
      * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-     * @param xSessionToken 
-     * @param requestBody 
+     * @param xSessionToken
+     * @param requestBody
      * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public leaveOfficeHoursQuestion(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-requestBody: string,
-): CancelablePromise<OfficeHoursQuestion> {
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+        requestBody: string,
+    ): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/leaveQuestion',
@@ -393,17 +394,17 @@ requestBody: string,
     }
 
     /**
-     * @param townId 
-     * @param officeHoursAreaId 
-     * @param xSessionToken 
+     * @param townId
+     * @param officeHoursAreaId
+     * @param xSessionToken
      * @returns OfficeHoursQueue Ok
      * @throws ApiError
      */
     public getOfficeHoursQueue(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-): CancelablePromise<OfficeHoursQueue> {
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+    ): CancelablePromise<OfficeHoursQueue> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/queue',
@@ -421,17 +422,17 @@ xSessionToken: string,
     }
 
     /**
-     * @param townId 
-     * @param officeHoursAreaId 
-     * @param xSessionToken 
+     * @param townId
+     * @param officeHoursAreaId
+     * @param xSessionToken
      * @returns TAModel Ok
      * @throws ApiError
      */
     public takeNextOfficeHoursQuestion(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-): CancelablePromise<TAModel> {
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+    ): CancelablePromise<TAModel> {
         return this.httpRequest.request({
             method: 'PATCH',
             url: '/towns/{townID}/{officeHoursAreaId}/takeQuestion',
@@ -442,6 +443,69 @@ xSessionToken: string,
             headers: {
                 'X-Session-Token': xSessionToken,
             },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId
+     * @param officeHoursAreaId
+     * @param questionId
+     * @param xSessionToken
+     * @returns TAModel Ok
+     * @throws ApiError
+     */
+    public takeNextOfficeHoursQuestionWithQuestionId(
+        townId: string,
+        officeHoursAreaId: string,
+        questionId: string,
+        xSessionToken: string,
+    ): CancelablePromise<TAModel> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/{questionId}/takeQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+                'questionId': questionId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId
+     * @param officeHoursAreaId
+     * @param xSessionToken
+     * @param requestBody
+     * @returns OfficeHoursArea Ok
+     * @throws ApiError
+     */
+    public getUpdatedOfficeHoursModel(
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+        requestBody: OfficeHoursArea,
+    ): CancelablePromise<OfficeHoursArea> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/updateModel',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Invalid values specified`,
             },

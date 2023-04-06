@@ -95,6 +95,7 @@ export interface OfficeHoursQuestion {
   students: string[];
   groupQuestion: boolean;
   timeAsked?: number;
+  questionType: string;
 }
 
 export interface OfficeHoursQueue {
@@ -106,6 +107,19 @@ export interface OfficeHoursArea {
   id: string;
   officeHoursActive: boolean; // TODO: Whether students can add questions to the queue.
   teachingAssistantsByID: string[];
+  questionTypes: string[];
+  taInfos: TAInfo[];
+}
+
+export interface Priority {
+  key: string
+  value: number;
+}
+
+export interface TAInfo {
+  taID: string;
+  isSorted: boolean;
+  priorities: Priority[];
 }
 
 export interface ServerToClientEvents {

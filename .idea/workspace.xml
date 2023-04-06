@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="da759420-f101-4516-9ccf-0b88ac5a5094" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="TypeScript File" />
+        <option value="TypeScript JSX File" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MarkdownSettingsMigration">
+    <option name="stateVersion" value="1" />
+  </component>
+  <component name="ProjectId" id="2NL6nX3G7fkc5bcPCdrK6fZpUaq" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/th035s/Documents/spring-23-team-106/townService/src/town&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs.jest.jest_package&quot;: &quot;/Users/th035s/Documents/spring-23-team-106/townService/node_modules/jest&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;prettierjs.PrettierConfiguration.Package&quot;: &quot;/Users/th035s/Documents/spring-23-team-106/node_modules/prettier&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.keymap&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Applications/IntelliJ IDEA.app/Contents/plugins/javascript-impl/jsLanguageServicesImpl/external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/townService/src/town" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/townService/src/town" />
+      <recent name="$PROJECT_DIR$/townService/src/town/OfficeHourQueue/ticket" />
+      <recent name="$PROJECT_DIR$/townService/src/town/OfficeHourQueue/Comparators" />
+      <recent name="$PROJECT_DIR$/townService/src/town/OfficeHourQueue" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Jest.TownsController integration tests (1)">
+    <configuration name="ConversationArea (1)" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/test.ts" />
+      <test-names>
+        <test-name value="ConversationArea" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="GroupTicket Test" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/ticket/GroupTicket.test.ts" />
+      <test-names>
+        <test-name value="GroupTicket Test" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="IndividualTicket Test" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/ticket/IndividualTicket.test.ts" />
+      <test-names>
+        <test-name value="IndividualTicket Test" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="QuestionTypes Test" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/QuestionTypes.test.ts" />
+      <test-names>
+        <test-name value="QuestionTypes Test" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="Ticket Test" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/ticket/Ticket.test.ts" />
+      <test-names>
+        <test-name value="Ticket Test" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="TicketTest (1)" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/town_tests/office_hours_queue/ticket/TicketTest.ts" />
+      <test-names>
+        <test-name value="TicketTest" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="TicketTest (2)" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/TicketTest.ts" />
+      <test-names>
+        <test-name value="TicketTest" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="TicketTest (4)" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/ticket/TicketTest.test.ts" />
+      <test-names>
+        <test-name value="TicketTest" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="TicketTest.ts" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="TEST_FILE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/ticket/TicketTest.ts" />
+      <method v="2" />
+    </configuration>
+    <configuration name="TownsController integration tests (1)" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/PosterSessionController.test.ts" />
+      <test-names>
+        <test-name value="TownsController integration tests" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="TownsController integration tests" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="" />
+      <envs />
+      <scope-kind value="TEST_FILE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/PosterSessionController.test.ts" />
+      <method v="2" />
+    </configuration>
+    <configuration name="WaitingQueue Test" type="JavaScriptTestRunnerJest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="SUITE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/WaitingQueue.test.ts" />
+      <test-names>
+        <test-name value="WaitingQueue Test" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="WaitingQueue Test.starts with empty queue" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="TEST" />
+      <test-file value="$PROJECT_DIR$/townService/src/town_tests/office_hours_queue/WaitingQueue.test.ts" />
+      <test-names>
+        <test-name value="WaitingQueue Test" />
+        <test-name value="starts with empty queue" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="test.ts" type="JavaScriptTestRunnerJest" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <node-options value="" />
+      <jest-package value="$PROJECT_DIR$/townService/node_modules/jest" />
+      <working-dir value="$PROJECT_DIR$/townService" />
+      <envs />
+      <scope-kind value="TEST_FILE" />
+      <test-file value="$PROJECT_DIR$/townService/src/town/test.ts" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="SwaggerCodegen">
+      <option name="activeConfigurationType" value="FILE" />
+      <option name="configurationPath" value="" />
+      <option name="customJreEnabled" value="false" />
+      <option name="customTemplatesPath" value="" />
+      <option name="enableDebugLogging" value="false" />
+      <option name="generateToPath" value="$PROJECT_DIR$/gen" />
+      <option name="generationParameters">
+        <list />
+      </option>
+      <option name="generatorPath" value="https://repo1.maven.org/maven2/org/openapitools/openapi-generator-cli/5.0.0/openapi-generator-cli-5.0.0.jar" />
+      <option name="jdkPath" value="" />
+      <option name="language" value="java" />
+      <option name="specificationPath" value="$PROJECT_DIR$/shared/generated/swagger.json" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Jest.TownsController integration tests (1)" />
+        <item itemvalue="Jest.TownsController integration tests" />
+        <item itemvalue="Jest.WaitingQueue Test" />
+        <item itemvalue="Jest.Ticket Test" />
+        <item itemvalue="Jest.GroupTicket Test" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="da759420-f101-4516-9ccf-0b88ac5a5094" name="Changes" comment="" />
+      <created>1679431182924</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1679431182924</updated>
+      <workItem from="1679431186638" duration="14015000" />
+      <workItem from="1679924856779" duration="47928000" />
+      <workItem from="1680395232704" duration="69411000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>
