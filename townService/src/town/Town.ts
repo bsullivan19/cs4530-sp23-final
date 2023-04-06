@@ -588,7 +588,6 @@ export default class Town {
       .filter(eachObject => eachObject.type === 'BreakoutRoomArea')
       .map(eachPSAreaObj => BreakoutRoomArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
 
-
     const officeHoursAreas = objectLayer.objects
       .filter(eachObject => eachObject.type === 'OfficeHoursArea')
       .map(eachPSAreaObj => OfficeHoursArea.fromMapObject(eachPSAreaObj, this._broadcastEmitter));
@@ -602,7 +601,6 @@ export default class Town {
         officeHoursArea.addBreakoutRoom(breakoutRoomArea.id);
       }
     });
-
 
     this._interactables = this._interactables
       .concat(viewingAreas)
