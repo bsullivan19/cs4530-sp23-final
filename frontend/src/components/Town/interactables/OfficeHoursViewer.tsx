@@ -30,7 +30,6 @@ import {
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
 import OfficeHoursAreaController, {
-  useActive,
   useQueue,
   useTAsByID,
   useQuestionTypes,
@@ -60,6 +59,7 @@ export function QueueViewer({
   const active = useActive(controller);
   const townController = useTownController();
   const curPlayerId = townController.ourPlayer.id;
+
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);

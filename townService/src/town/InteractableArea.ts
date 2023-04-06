@@ -34,7 +34,7 @@ export default abstract class InteractableArea {
     return this._occupants.map(eachPlayer => eachPlayer.id);
   }
 
-  public get officeHoursActive(): boolean {
+  public get isActive(): boolean {
     return this._occupants.length > 0;
   }
 
