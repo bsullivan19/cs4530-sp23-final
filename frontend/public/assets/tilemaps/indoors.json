@@ -285,7 +285,7 @@
          "name":"Above Player",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":150,
          "x":0,
          "y":0
@@ -341,7 +341,7 @@
          "name":"Very Above Player",
          "opacity":1,
          "type":"tilelayer",
-         "visible":false,
+         "visible":true,
          "width":150,
          "x":0,
          "y":0
@@ -600,33 +600,21 @@
                  "y":96
                 }, 
                 {
-                 "height":0,
+                 "height":320,
                  "id":46,
-                 "name":"Exit1",
-                 "point":true,
-                 "rotation":0,
-                 "type":"",
-                 "visible":true,
-                 "width":0,
-                 "x":3567,
-                 "y":88
-                }, 
-                {
-                 "height":64,
-                 "id":47,
-                 "name":"Door1",
+                 "name":"Breakout2",
                  "properties":[
                         {
-                         "name":"target",
-                         "type":"object",
-                         "value":1
+                         "name":"linkedOfficeHoursID",
+                         "type":"string",
+                         "value":"Office Hours"
                         }],
                  "rotation":0,
-                 "type":"Transporter",
+                 "type":"BreakoutRoomArea",
                  "visible":true,
-                 "width":32,
-                 "x":3552,
-                 "y":32
+                 "width":256,
+                 "x":3872,
+                 "y":96
                 }],
          "opacity":1,
          "type":"objectgroup",
@@ -635,7 +623,7 @@
          "y":0
         }],
  "nextlayerid":8,
- "nextobjectid":50,
+ "nextobjectid":49,
  "orientation":"orthogonal",
  "renderorder":"right-down",
  "tiledversion":"1.10.0",
