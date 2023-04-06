@@ -13,6 +13,7 @@ import { CancelablePromise, Town, TownsService } from '../../generated/client';
 import * as useLoginController from '../../hooks/useLoginController';
 import { mockTownController } from '../../TestUtils';
 import TownSelection from './TownSelection';
+import { tap } from 'lodash';
 
 const mockConnect = jest.fn(() => Promise.resolve());
 
@@ -246,7 +247,6 @@ describe('Town Selection', () => {
       rows = renderData.getAllByRole('row');
       for (let i = 1; i < rows.length; i += 1) {
         // off-by-one for the header row
-        // console.log(rows[i]);
         const existing = within(rows[i]).getByText(expectedTowns2[i - 1].friendlyName);
         expect(existing).toBeInTheDocument();
         for (let j = 0; j < expectedTowns2.length; j += 1) {
@@ -296,6 +296,7 @@ describe('Town Selection', () => {
     let expectedTowns: Town[];
     let newTownNameField: HTMLInputElement;
     let newTownIsPublicCheckbox: HTMLInputElement;
+    let newAdminPw: HTMLInputElement;
     let newTownButton: HTMLElement;
 
     beforeEach(async () => {
@@ -315,6 +316,9 @@ describe('Town Selection', () => {
       joinTownByIDButton = renderData.getByTestId('joinTownByIDButton');
       newTownIsPublicCheckbox = renderData.getByLabelText('Publicly Listed') as HTMLInputElement;
       newTownNameField = renderData.getByPlaceholderText('New Town Name') as HTMLInputElement;
+      newAdminPw = renderData.getByPlaceholderText(
+        'Admin Password (*optional)',
+      ) as HTMLInputElement;
       newTownButton = renderData.getByTestId('newTownButton');
     });
     describe('Joining existing towns', () => {
@@ -487,6 +491,7 @@ describe('Town Selection', () => {
         townID?: string;
         roomPassword?: string;
         errorMessage?: string;
+        taPassword?: string;
       }) => {
         fireEvent.change(userNameField, { target: { value: params.userName } });
         await waitFor(() => {
@@ -498,6 +503,7 @@ describe('Town Selection', () => {
           fireEvent.click(newTownIsPublicCheckbox);
           await waitFor(() => expect(newTownIsPublicCheckbox.checked).toBe(false));
         }
+        fireEvent.change(newAdminPw, { target: { value: params.taPassword } });
         mockTownsService.createTown.mockClear();
         if (params.townID && params.roomPassword) {
           mockTownsService.createTown.mockReturnValue(
@@ -545,22 +551,23 @@ describe('Town Selection', () => {
           });
         });
         describe('with valid values', () => {
-          const noTaPassword = '';
           it('calls createTown on the apiClient with the provided values (public town)', async () => {
             const townID = nanoid();
             const roomPassword = nanoid();
             const townName = nanoid();
+            const taPassword = nanoid();
             await createTownWithOptions({
               townName,
               userName: nanoid(),
               townID,
               roomPassword,
+              taPassword,
             });
             await waitFor(() =>
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: true,
-                taPassword: noTaPassword,
+                taPassword,
               }),
             );
           });
@@ -569,18 +576,20 @@ describe('Town Selection', () => {
             const townID = nanoid();
             const roomPassword = nanoid();
             const townName = nanoid();
+            const taPassword = nanoid();
             await createTownWithOptions({
               townName,
               userName: nanoid(),
               townID,
               roomPassword,
               togglePublicBox: true,
+              taPassword,
             });
             await waitFor(() =>
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: false,
-                taPassword: noTaPassword,
+                taPassword,
               }),
             );
           });
@@ -589,18 +598,21 @@ describe('Town Selection', () => {
             const townID = nanoid();
             const roomPassword = nanoid();
             const townName = nanoid();
+            const taPassword = nanoid();
+
             await createTownWithOptions({
               townName,
               userName: nanoid(),
               townID,
               roomPassword,
               togglePublicBox: true,
+              taPassword,
             });
             await waitFor(() =>
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: false,
-                taPassword: noTaPassword,
+                taPassword,
               }),
             );
             await waitFor(() =>
@@ -619,6 +631,7 @@ describe('Town Selection', () => {
             const roomPassword = nanoid();
             const userName = nanoid();
             const townName = nanoid();
+            const taPassword = nanoid();
 
             // Create town
             await createTownWithOptions({
@@ -627,6 +640,7 @@ describe('Town Selection', () => {
               townID,
               roomPassword,
               togglePublicBox: true,
+              taPassword,
             });
 
             // Check for call sequence
@@ -635,7 +649,7 @@ describe('Town Selection', () => {
                 userName,
                 townID: townID,
                 loginController: mockLoginController,
-                taPassword: noTaPassword,
+                taPassword: taPassword,
               }),
             );
             await waitFor(() => expect(mockedTownController.connect).toBeCalled());
@@ -647,16 +661,18 @@ describe('Town Selection', () => {
           it('displays an error toast "Unable to connect to Towns Service" if an error occurs in createTown', async () => {
             const errorMessage = `Oops#${nanoid()}`;
             const townName = nanoid();
+            const taPassword = nanoid();
             await createTownWithOptions({
               townName,
               userName: nanoid(),
               errorMessage,
+              taPassword,
             });
             await waitFor(() =>
               expect(mockTownsService.createTown).toBeCalledWith({
                 friendlyName: townName,
                 isPubliclyListed: true,
-                taPassword: noTaPassword,
+                taPassword,
               }),
             );
             await waitFor(() =>
