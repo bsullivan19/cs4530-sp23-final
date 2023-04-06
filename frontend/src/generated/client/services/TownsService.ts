@@ -485,6 +485,40 @@ export class TownsService {
      * @param officeHoursAreaId
      * @param xSessionToken
      * @param requestBody
+     * @returns TAModel Ok
+     * @throws ApiError
+     */
+    public takeNextOfficeHoursQuestionWithQuestionIDs(
+        townId: string,
+        officeHoursAreaId: string,
+        xSessionToken: string,
+        requestBody: {
+            questionIDs: Array<string>;
+        },
+    ): CancelablePromise<TAModel> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/takeQuestions',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId
+     * @param officeHoursAreaId
+     * @param xSessionToken
+     * @param requestBody
      * @returns OfficeHoursArea Ok
      * @throws ApiError
      */

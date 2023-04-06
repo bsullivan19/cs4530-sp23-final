@@ -56,10 +56,8 @@ export function QueueViewer({
   close: () => void;
 }): JSX.Element {
   const teachingAssistantsByID = useTAsByID(controller);
-  const active = useActive(controller);
   const townController = useTownController();
   const curPlayerId = townController.ourPlayer.id;
-
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
@@ -178,6 +176,36 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close]);
 
+  const nextSelectedQuestions = useCallback(async () => {
+    try {
+      console.log('next selected questions');
+      console.log(selectedQuestions);
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
+        controller,
+        selectedQuestions,
+      );
+      toast({
+        title: `Successfully took questions ${taModel.question?.id}, you will be teleported shortly`,
+        status: 'success',
+      });
+      close();
+    } catch (err) {
+      if (err instanceof Error) {
+        toast({
+          title: 'Unable to take next questions',
+          description: err.toString(),
+          status: 'error',
+        });
+      } else {
+        console.trace(err);
+        toast({
+          title: 'Unexpected Error',
+          status: 'error',
+        });
+      }
+    }
+  }, [controller, townController, toast, close, selectedQuestions]);
+
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
@@ -219,6 +247,8 @@ export function QueueViewer({
                 } else {
                   setSelectedQuestions(selectedQuestions.concat(question.id));
                 }
+                console.log('select');
+                console.log(selectedQuestions);
               }}
             />
           </Td>
@@ -295,8 +325,11 @@ export function QueueViewer({
   const taView = (
     <ModalBody pb={6}>
       <QuesitonsViewer> </QuesitonsViewer>
-      <Button colorScheme='red' mr={3} onClick={nextQuestion}>
+      <Button colorScheme='blue' mr={3} onClick={nextQuestion}>
         Take next question
+      </Button>
+      <Button colorScheme='red' mr={3} onClick={nextSelectedQuestions}>
+        Take selected question(s)
       </Button>
       <List></List>{' '}
       {/* <h1>line break cuz idk how to do better, this makes everything vertical</h1> */}
@@ -327,6 +360,8 @@ export function QueueViewer({
         onChange={e => {
           controller.setIsSorted(curPlayerId, !isSorted);
           updateModel();
+          console.log('siort');
+          console.log(selectedQuestions);
         }}
       />
       <ul>

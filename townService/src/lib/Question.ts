@@ -36,6 +36,10 @@ export default class Question {
     return this._questionContent;
   }
 
+  public get questionType() {
+    return this._questionContent;
+  }
+
   public get studentsByID(): string[] {
     return this._studentsByID;
   }

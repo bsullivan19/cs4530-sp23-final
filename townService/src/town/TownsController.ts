@@ -503,7 +503,7 @@ export class TownsController extends Controller {
     if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer)) {
       throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
     }
-    if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
+    if (!curPlayer.currentQuestions || !curPlayer.breakoutRoomID) {
       throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
     }
 
@@ -516,10 +516,19 @@ export class TownsController extends Controller {
     curPlayer.location.interactableID = curPlayer.breakoutRoomID;
 
     // TODO: does addConvo area work for breakout rooms?
+    const questions = curPlayer.currentQuestions;
+    let questionType = '';
+    let studentIDs: string[] = [];
+    if (questions) {
+      questionType = questions[0].questionType;
+      questions.forEach(q => {
+        studentIDs = studentIDs.concat(q.studentsByID);
+      });
+    }
     const success = curTown.addConversationArea({
       id: curPlayer.breakoutRoomID,
-      topic: curPlayer.currentQuestion?.questionContent,
-      occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
+      topic: questionType,
+      occupantsByID: studentIDs.concat(curPlayer.id),
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -557,7 +566,7 @@ export class TownsController extends Controller {
     if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer, questionId)) {
       throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
     }
-    if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
+    if (!curPlayer.currentQuestions || !curPlayer.breakoutRoomID) {
       throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
     }
 
@@ -570,10 +579,19 @@ export class TownsController extends Controller {
     curPlayer.location.interactableID = curPlayer.breakoutRoomID;
 
     // TODO: does addConvo area work for breakout rooms?
+    const questions = curPlayer.currentQuestions;
+    let questionType = '';
+    let studentIDs: string[] = [];
+    if (questions) {
+      questionType = questions[0].questionType;
+      questions.forEach(q => {
+        studentIDs = studentIDs.concat(q.studentsByID);
+      });
+    }
     const success = curTown.addConversationArea({
       id: curPlayer.breakoutRoomID,
-      topic: curPlayer.currentQuestion?.questionContent,
-      occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
+      topic: questionType,
+      occupantsByID: studentIDs.concat(curPlayer.id),
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -585,60 +603,69 @@ export class TownsController extends Controller {
     );
     return curPlayer.toModel();
   }
-  //
-  // @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
-  // @Response<InvalidParametersError>(400, 'Invalid values specified')
-  // public async takeNextOfficeHoursQuestionWithQuestionIDs(
-  //   @Path() townID: string,
-  //   @Path() officeHoursAreaId: string,
-  //   @Body() requestBody: string[],
-  //   @Header('X-Session-Token') sessionToken: string,
-  // ): Promise<TAModel> {
-  //   const curTown = this._townsStore.getTownByID(townID);
-  //   if (!curTown) {
-  //     throw new InvalidParametersError('Invalid town ID');
-  //   }
-  //   const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
-  //   if (!curPlayer) {
-  //     throw new InvalidParametersError('Invalid session ID');
-  //   } else if (!isTA(curPlayer)) {
-  //     throw new InvalidParametersError('This player is not a TA');
-  //   }
-  //   const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
-  //   if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
-  //     throw new InvalidParametersError('Invalid office hours area ID');
-  //   }
-  //   if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer, questionId)) {
-  //     throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
-  //   }
-  //   if (!curPlayer.currentQuestion || !curPlayer.breakoutRoomID) {
-  //     throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
-  //   }
-  //
-  //   /* Set TA's location to center of breakout room, used by players for teleporting */
-  //   const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
-  //   const box = (<BreakoutRoomAreaReal>breakoutRoom).boundingBox;
-  //   const location: XY = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-  //   curPlayer.location.x = location.x;
-  //   curPlayer.location.y = location.y;
-  //   curPlayer.location.interactableID = curPlayer.breakoutRoomID;
-  //
-  //   // TODO: does addConvo area work for breakout rooms?
-  //   const success = curTown.addConversationArea({
-  //     id: curPlayer.breakoutRoomID,
-  //     topic: curPlayer.currentQuestion?.questionContent,
-  //     occupantsByID: curPlayer.currentQuestion.studentsByID.concat(curPlayer.id),
-  //   });
-  //   if (!success) {
-  //     throw new Error('Could not update breakout room');
-  //   }
-  //
-  //   (<OfficeHoursAreaReal>officeHoursArea).roomEmitter.emit(
-  //     'officeHoursQuestionTaken',
-  //     curPlayer.toModel(),
-  //   );
-  //   return curPlayer.toModel();
-  // }
+
+  @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async takeNextOfficeHoursQuestionWithQuestionIDs(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Body() requestBody: { questionIDs: string[] },
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<TAModel> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    } else if (!isTA(curPlayer)) {
+      throw new InvalidParametersError('This player is not a TA');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs)) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+    if (!curPlayer.currentQuestions || !curPlayer.breakoutRoomID) {
+      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    }
+
+    /* Set TA's location to center of breakout room, used by players for teleporting */
+    const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
+    const box = (<BreakoutRoomAreaReal>breakoutRoom).boundingBox;
+    const location: XY = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+    curPlayer.location.x = location.x;
+    curPlayer.location.y = location.y;
+    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+
+    // TODO: does addConvo area work for breakout rooms?
+    const questions = curPlayer.currentQuestions;
+    let questionType = '';
+    let studentIDs: string[] = [];
+    if (questions) {
+      questionType = questions[0].questionType;
+      questions.forEach(q => {
+        studentIDs = studentIDs.concat(q.studentsByID);
+      });
+    }
+    const success = curTown.addConversationArea({
+      id: curPlayer.breakoutRoomID,
+      topic: questionType,
+      occupantsByID: studentIDs.concat(curPlayer.id),
+    });
+    if (!success) {
+      throw new Error('Could not update breakout room');
+    }
+
+    (<OfficeHoursAreaReal>officeHoursArea).roomEmitter.emit(
+      'officeHoursQuestionTaken',
+      curPlayer.toModel(),
+    );
+    return curPlayer.toModel();
+  }
 
   @Patch('{townID}/{officeHoursAreaId}/updateModel')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
