@@ -80,8 +80,6 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public add(player: Player) {
     super.add(player);
-    console.log('hello');
-    console.log(isTA(player));
     if (isTA(player)) {
       this._teachingAssistantsByID.push(player.id);
       this._emitAreaChanged();

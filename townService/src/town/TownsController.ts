@@ -340,7 +340,6 @@ export class TownsController extends Controller {
     @Header('X-Session-Token') sessionToken: string,
     @Body() requestBody: { questionContent: string; groupQuestion: boolean },
   ): Promise<OfficeHoursQuestion> {
-    console.log('addOfficeHoursQuestion called');
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');

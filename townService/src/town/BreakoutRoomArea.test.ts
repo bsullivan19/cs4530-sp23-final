@@ -1,5 +1,6 @@
 import { mock, mockClear } from 'jest-mock-extended';
 import { nanoid } from 'nanoid';
+import { ITiledMap, ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import Player from '../lib/Player';
 import { getLastEmittedEvent } from '../TestUtils';
 import { TownEmitter } from '../types/CoveyTownSocket';
@@ -15,7 +16,12 @@ describe('BreakoutRoomArea', () => {
 
   beforeEach(() => {
     mockClear(townEmitter);
-    testArea = new BreakoutRoomArea({ topic, id }, testAreaBox, townEmitter, '2');
+    testArea = new BreakoutRoomArea(
+      { topic, id, occupantsByID: [] },
+      testAreaBox,
+      townEmitter,
+      '2',
+    );
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
   });
@@ -80,10 +86,24 @@ describe('BreakoutRoomArea', () => {
       const width = 10;
       const height = 20;
       const name = 'name';
-      const val = BreakoutRoomArea.fromMapObject(
-        { x, y, width, height, name, id: 10, visible: true },
-        townEmitter,
-      );
+      const map: ITiledMapObject = {
+        x,
+        y,
+        width,
+        height,
+        name,
+        id: 10,
+        visible: true,
+      };
+      map.properties = [
+        {
+          value: 'office hours',
+          propertytype: nanoid(),
+          type: 'string',
+          name: 'linkedOfficeHoursID',
+        },
+      ];
+      const val = BreakoutRoomArea.fromMapObject(map, townEmitter);
       expect(val.boundingBox).toEqual({ x, y, width, height });
       expect(val.id).toEqual(name);
       expect(val.topic).toBeUndefined();
