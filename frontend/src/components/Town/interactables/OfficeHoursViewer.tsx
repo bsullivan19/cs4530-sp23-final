@@ -75,7 +75,9 @@ export function QueueViewer({
 
   townController.pause();
   useEffect(() => {
-    setSelectedQuestions(selectedQuestions.filter(qid => queue.map((question) => question.id).includes(qid)));
+    setSelectedQuestions(
+      selectedQuestions.filter(qid => queue.map(question => question.id).includes(qid)),
+    );
   }, [queue]);
 
   function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {

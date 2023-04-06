@@ -88,10 +88,14 @@ export default class OfficeHoursArea extends InteractableArea {
       teachingAssistantsByID: this.teachingAssistantsByID,
       questionTypes: this.questionTypes,
       taInfos: this.taInfos.map(info => {
-        const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
-          const y: Priority = {key: p.key, value: p.value};
-          return y;
-        })};
+        const x: TAInfo = {
+          taID: info.taID,
+          isSorted: info.isSorted,
+          priorities: info.priorities.map(p => {
+            const y: Priority = { key: p.key, value: p.value };
+            return y;
+          }),
+        };
         return x;
       }),
     };
@@ -105,7 +109,7 @@ export default class OfficeHoursArea extends InteractableArea {
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
-      const info: TAInfo | undefined = this._taInfos.find((info) => info.taID === player.id);
+      const info: TAInfo | undefined = this._taInfos.find(i => i.taID === player.id);
       if (!info) {
         const x: TAInfo = {
           taID: player.id,
