@@ -52,7 +52,6 @@ export function PosterImage({
   useEffect(() => {
     townController.getPosterSessionAreaImageContents(controller);
   }, [townController, controller]);
-  console.log(stars);
   // increment the stars on a poster
   // but only increment if the current player has not already starred the poster
   function incStars() {
