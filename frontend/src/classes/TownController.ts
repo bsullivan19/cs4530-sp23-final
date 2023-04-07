@@ -10,6 +10,8 @@ import PosterSesssionArea from '../components/Town/interactables/PosterSessionAr
 import { LoginController } from '../contexts/LoginControllerContext';
 import { TAModel, TownsService, TownsServiceClient } from '../generated/client';
 import useTownController from '../hooks/useTownController';
+// import OfficeHoursAreaReal from '../../../src/town/OfficeHoursArea.ts'
+// import OfficeHoursAreaReal from './town/OfficeArea'
 import {
   ChatMessage,
   CoveyTownSocket,
@@ -17,8 +19,11 @@ import {
   TownSettingsUpdate,
   ViewingArea as ViewingAreaModel,
   PosterSessionArea as PosterSessionAreaModel,
+  OfficeHoursArea,
   OfficeHoursQuestion,
   OfficeHoursQueue,
+  TAInfo,
+  Priority,
 } from '../types/CoveyTownSocket';
 import {
   isConversationArea,
@@ -530,11 +535,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * Updates the state of the office hours area question queue.
      */
     this._socket.on('officeHoursQueueUpdate', queueModel => {
-      console.log('isSpam');
       const ohAreaController = this._officeHoursAreas.find(
         area => area.id === queueModel.officeHoursID,
       );
       if (ohAreaController) {
+        console.log('in front end');
+        console.log(queueModel.questionQueue);
         ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });
@@ -815,12 +821,13 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     officeHoursArea: OfficeHoursAreaController,
     questionContent: string,
     groupQuestion: boolean,
+    questionType: string,
   ): Promise<OfficeHoursQuestion> {
     return this._townsService.addOfficeHoursQuestion(
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionContent, groupQuestion },
+      { questionContent, groupQuestion, questionType },
     );
   }
 
@@ -878,6 +885,69 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
+    );
+  }
+
+  public async takeNextOfficeHoursQuestionWithQuestionId(
+    officeHoursArea: OfficeHoursAreaController,
+    questionId: string | undefined,
+  ): Promise<TAModel> {
+    return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
+      this.townID,
+      officeHoursArea.id,
+      questionId || '',
+      this.sessionToken,
+    );
+  }
+
+  // public toModel(): OfficeHoursModel {
+  //   return {
+  //     id: this.id,
+  //     officeHoursActive: this.officeHoursActive,
+  //     teachingAssistantsByID: this.teachingAssistantsByID,
+  //     questionTypes: this.questionTypes,
+  //     taInfos: this.taInfos.map(info => {
+  //       const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
+  //           const y: Priority = {key: p.key, value: p.value};
+  //           return y;
+  //         })};
+  //       return x;
+  //     }),
+  //   };
+  // }
+  // public async updateOfficeHoursModel(
+  //   officeHoursArea: OfficeHoursAreaController,
+  //   model: OfficeHoursArea,
+  // ): Promise<OfficeHoursArea> {
+  //   return this._townsService.updateOfficeHoursModel(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     this.sessionToken,
+  //     {model: {
+  //       id: model.id,
+  //
+  //       }}
+  //     // { model: {
+  //     //     id: model.id,
+  //     //     officeHoursActive: model.officeHoursActive,
+  //     //     teachingAssistantsByID: model.teachingAssistantsByID,
+  //     //     questionTypes: model.questionTypes,
+  //     //     taInfos: model.taInfos.map(info => {
+  //     //       const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
+  //     //           const y: Priority = {key: p.key, value: p.value};
+  //     //           return y;
+  //     //         })};
+  //     //       return x;
+  //     //     }),
+  //     //   }},
+  //   );
+  // }
+  public async updateOfficeHoursModel(model: OfficeHoursArea): Promise<OfficeHoursArea> {
+    return this._townsService.getUpdatedOfficeHoursModel(
+      this.townID,
+      model.id,
+      this.sessionToken,
+      model,
     );
   }
 
