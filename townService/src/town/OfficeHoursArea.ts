@@ -108,6 +108,7 @@ export default class OfficeHoursArea extends InteractableArea {
   public updateModel(model: OfficeHoursModel) {
     this._questionTypes = model.questionTypes;
     this._taInfos = model.taInfos;
+    this._emitAreaChanged();
   }
 
   public add(player: Player) {
@@ -144,6 +145,16 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public getQuestion(questionID: string): Question | undefined {
     return this._queue.find(q => q.id === questionID);
+  }
+
+  public getQuestionForPlayer(playerID: string): Question | undefined {
+    let question: Question | undefined;
+    this._queue.forEach((q: Question) => {
+      if (q.studentsByID.includes(playerID)) {
+        question = q;
+      }
+    });
+    return question;
   }
 
   /**
@@ -264,6 +275,17 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
+   * Removes an existing question from the queue if the player is the a TA.
+   */
+  public removeQuestionForPlayer(player: Player) {
+    const question = this.getQuestionForPlayer(player.id);
+    if (question) {
+      this._queue = this._queue.filter(q => q.id !== question.id);
+      this._emitQueueChanged();
+    }
+  }
+
+  /**
    * Removes the student from an existing question.
    * If the question has no students, the question is removed from the queue.
    */
@@ -275,6 +297,10 @@ export default class OfficeHoursArea extends InteractableArea {
         this._queue = this._queue.filter(q => q.id !== questionID);
       }
     }
+  }
+
+  public removePlayerData(player: Player) {
+    this.removeQuestionForPlayer(player);
   }
 
   /**

@@ -503,6 +503,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         }
       } else if (isOfficeHoursArea(interactable)) {
         const relArea = this._officeHoursAreas.find(area => area.id == interactable.id);
+        console.log('in socket');
         if (relArea) {
           relArea.updateModel(interactable);
         }

@@ -88,7 +88,14 @@ export function QueueViewer({
     setSelectedQuestions(
       selectedQuestions.filter(qid => queue.map(question => question.id).includes(qid)),
     );
-  }, [queue]);
+    priorities.forEach((value: number, key: string) => {
+      if (!questionTypes.includes(key)) {
+        const copy = new Map<string, number>(priorities);
+        copy.delete(key);
+        controller.setPriorities(curPlayerId, copy);
+      }
+    });
+  }, [queue, questionTypes]);
 
   function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {
     const p1: number | undefined = priorities.get(x.questionType);
@@ -262,6 +269,8 @@ export function QueueViewer({
     try {
       const model = controller.officeHoursAreaModel();
       const updatedModel = await townController.updateOfficeHoursModel(model);
+      console.log('model');
+      console.log(updatedModel);
       // close();
     } catch (err) {
       toast({
