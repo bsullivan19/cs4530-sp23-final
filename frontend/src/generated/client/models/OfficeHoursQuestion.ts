@@ -11,4 +11,3 @@ export type OfficeHoursQuestion = {
     timeAsked?: number;
     questionType: string;
 };
-

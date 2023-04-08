@@ -555,33 +555,6 @@ export function RegisterRoutes(app: express.Router) {
             }
         });
         // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-        app.patch('/towns/:townID/:officeHoursAreaId/takeQuestion',
-            ...(fetchMiddlewares<RequestHandler>(TownsController)),
-            ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestion)),
-
-            function TownsController_takeNextOfficeHoursQuestion(request: any, response: any, next: any) {
-            const args = {
-                    townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
-                    officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
-                    sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
-            };
-
-            // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
-
-            let validatedArgs: any[] = [];
-            try {
-                validatedArgs = getValidatedArgs(args, request, response);
-
-                const controller = new TownsController();
-
-
-              const promise = controller.takeNextOfficeHoursQuestion.apply(controller, validatedArgs as any);
-              promiseHandler(controller, promise, response, undefined, next);
-            } catch (err) {
-                return next(err);
-            }
-        });
-        // WARNING: This file was auto-generated with tsoa. Please do not modify it. Re-run tsoa to re-generate this file: https://github.com/lukeautry/tsoa
         app.patch('/towns/:townID/:officeHoursAreaId/:questionId/takeQuestion',
             ...(fetchMiddlewares<RequestHandler>(TownsController)),
             ...(fetchMiddlewares<RequestHandler>(TownsController.prototype.takeNextOfficeHoursQuestionWithQuestionID)),
