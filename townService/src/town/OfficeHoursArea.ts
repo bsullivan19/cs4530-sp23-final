@@ -58,17 +58,21 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._roomEmitter;
   }
 
-  public constructor(
-    { id, teachingAssistantsByID }: OfficeHoursModel,
-    coordinates: BoundingBox,
-    townEmitter: TownEmitter,
-  ) {
+  // public constructor(
+  //   { id, teachingAssistantsByID }: OfficeHoursModel,
+  //   coordinates: BoundingBox,
+  //   townEmitter: TownEmitter,
+  // ) {
 
   public get questionTypes() {
     return this._questionTypes;
   }
 
-  public constructor({ id }: OfficeHoursModel, coordinates: BoundingBox, townEmitter: TownEmitter) {
+  public constructor(
+    { id, teachingAssistantsByID }: OfficeHoursModel,
+    coordinates: BoundingBox,
+    townEmitter: TownEmitter,
+  ) {
     super(id, coordinates, townEmitter);
     this._roomEmitter = townEmitter.to(this.id);
     this._teachingAssistantsByID = teachingAssistantsByID;
