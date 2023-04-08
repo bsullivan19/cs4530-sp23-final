@@ -49,6 +49,7 @@ const LIMIT = 4;
 function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
   const questionIDs: string[] = [];
   let questionType: string | undefined = undefined;
+  console.log(queue);
   queue.forEach((question: OfficeHoursQuestion) => {
     if (questionIDs.length < LIMIT && question.groupQuestion) {
       if (questionType === undefined) {
@@ -174,7 +175,7 @@ export function QueueViewer({
 
   const nextQuestion = useCallback(async () => {
     try {
-      const questionId = controller.questionQueue.sort(cmp).shift()?.id;
+      const questionId = controller.questionQueue.shift()?.id;
       const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
         controller,
         questionId,
