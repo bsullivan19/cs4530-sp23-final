@@ -26,6 +26,10 @@ import {
   Tbody,
   Td,
   Table,
+  Heading,
+  Box,
+  VStack,
+  StackDivider,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -343,44 +347,75 @@ export function QueueViewer({
       </TableContainer>
     );
   }
-  function QuestionView({ question }: { question: OfficeHoursQuestion }) {
-    const allPlayers = townController.players;
-    const players = allPlayers.filter(p => question.students.includes(p.id));
-    const usernames = players.map(p => p.userName);
-    if (!teachingAssistantsByID.includes(curPlayerId)) {
-      return (
-        // TODO: number of quesiton
-        <ListItem title={questionType}>
-          <Tag>{usernames}</Tag>
-          <Tag>{question.questionContent}</Tag>
-          <Tag>{question.timeAsked}</Tag>
-          <Tag>{question.questionType}</Tag>
-        </ListItem>
-      );
-    } else {
-      return (
-        // TODO: number of quesiton
-        <ListItem>
-          <Tag>{usernames}</Tag>
-          <Tag>{question.questionContent}</Tag>
-          <Tag>{question.timeAsked}</Tag>
-          <Tag>{question.questionType}</Tag>
+  function QuestionTypeViewer({ eachQuestionType }: { eachQuestionType: string }) {
+    return (
+      <Tr>
+        <Td>
           <Checkbox
             type='checkbox'
-            name='Selected Questions'
-            isChecked={selectedQuestions.includes(question.id)}
-            value={question.id}
+            name='Should use Question Type in Priorities'
+            isChecked={priorities.has(eachQuestionType)}
+            value={eachQuestionType}
             onChange={e => {
-              if (selectedQuestions.includes(question.id)) {
-                setSelectedQuestions(selectedQuestions.filter(qid => qid !== question.id));
+              if (priorities.has(eachQuestionType)) {
+                priorities.delete(eachQuestionType);
+                const copy = new Map(priorities);
+                controller.setPriorities(curPlayerId, copy);
+                updateModel();
               } else {
-                setSelectedQuestions(selectedQuestions.concat(question.id));
+                priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
+                const copy = new Map(priorities);
+                controller.setPriorities(curPlayerId, copy);
+                updateModel();
               }
             }}
           />
-        </ListItem>
-      );
-    }
+        </Td>
+        <Td>{eachQuestionType}</Td>
+        <Td>
+          {eachQuestionType !== 'Other' ? (
+            <Button
+              colorScheme='red'
+              onClick={() => {
+                const temp = questionTypes.filter(q => q !== eachQuestionType);
+                controller.questionTypes = temp;
+                updateModel();
+                if (priorities.has(eachQuestionType)) {
+                  priorities.delete(eachQuestionType);
+                  const copy = new Map(priorities);
+                  controller.setPriorities(curPlayerId, copy);
+                  updateModel();
+                }
+              }}>
+              Delete
+            </Button>
+          ) : (
+            <div>Default</div>
+          )}
+        </Td>
+      </Tr>
+    );
+  }
+  function QuestionTypesViewer(x: any) {
+    return (
+      <TableContainer>
+        <Table size='sm' maxWidth='100px'>
+          <TableCaption>Question Types</TableCaption>
+          <Thead>
+            <Tr>
+              <Th>Select Question Type</Th>
+              <Th>Question Type</Th>
+              <Th></Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {questionTypes.map(eachQuestionType => (
+              <QuestionTypeViewer key={eachQuestionType} eachQuestionType={eachQuestionType} />
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    );
   }
   const taView = (
     <ModalBody pb={6}>
@@ -394,10 +429,13 @@ export function QueueViewer({
       <Button colorScheme='red' mr={3} onClick={nextSelectedQuestions}>
         Take selected question(s)
       </Button>
-      <List></List>{' '}
-      {/* <h1>line break cuz idk how to do better, this makes everything vertical</h1> */}
+      {/*this adds space lines*/}
+      <VStack spacing={5} align='left'>
+        <List></List>
+        <FormLabel>Add Question Type</FormLabel>
+      </VStack>
       <Input
-        placeholder='Add question type'
+        placeholder='question type'
         required
         onChange={e => {
           setQuestionType(e.target.value);
@@ -413,8 +451,10 @@ export function QueueViewer({
         }}>
         Add Question Type
       </Button>
-      <div></div>
-      <label>Sort by question type?</label>
+      <VStack spacing={5} align='left'>
+        <List></List>
+        <FormLabel>Sort By Question Type?</FormLabel>
+      </VStack>
       <Checkbox
         type='checkbox'
         name='Should Sort'
@@ -424,92 +464,7 @@ export function QueueViewer({
           updateModel();
         }}
       />
-      <List>
-        {questionTypes.map(eachQuestionType => {
-          return (
-            <ListItem key={eachQuestionType}>
-              <Checkbox
-                type='checkbox'
-                name='Should use Question Type in Priorities'
-                isChecked={priorities.has(eachQuestionType)}
-                value={eachQuestionType}
-                onChange={e => {
-                  if (priorities.has(eachQuestionType)) {
-                    priorities.delete(eachQuestionType);
-                    const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, copy);
-                    updateModel();
-                  } else {
-                    priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
-                    const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, copy);
-                    updateModel();
-                  }
-                }}
-              />
-              {eachQuestionType}
-              <Button
-                colorScheme='red'
-                onClick={() => {
-                  const temp = questionTypes.filter(q => q !== eachQuestionType);
-                  controller.questionTypes = temp;
-                  updateModel();
-                  if (priorities.has(eachQuestionType)) {
-                    priorities.delete(eachQuestionType);
-                    const copy = new Map(priorities);
-                    controller.setPriorities(curPlayerId, copy);
-                    updateModel();
-                  }
-                }}>
-                Delete
-              </Button>
-            </ListItem>
-          );
-        })}
-      </List>
-      {/*<ul>*/}
-      {/*  {questionTypes.map(eachQuestionType => {*/}
-      {/*    return (*/}
-      {/*      <li key={eachQuestionType}>*/}
-      {/*        <Checkbox*/}
-      {/*          type='checkbox'*/}
-      {/*          name='Should use Question Type in Priorities'*/}
-      {/*          isChecked={priorities.has(eachQuestionType)}*/}
-      {/*          value={eachQuestionType}*/}
-      {/*          onChange={e => {*/}
-      {/*            if (priorities.has(eachQuestionType)) {*/}
-      {/*              priorities.delete(eachQuestionType);*/}
-      {/*              const copy = new Map(priorities);*/}
-      {/*              controller.setPriorities(curPlayerId, copy);*/}
-      {/*              updateModel();*/}
-      {/*            } else {*/}
-      {/*              priorities.set(eachQuestionType, 1); // Maybe assign different priorities later*/}
-      {/*              const copy = new Map(priorities);*/}
-      {/*              controller.setPriorities(curPlayerId, copy);*/}
-      {/*              updateModel();*/}
-      {/*            }*/}
-      {/*          }}*/}
-      {/*        />*/}
-      {/*        {eachQuestionType}*/}
-      {/*        <Button*/}
-      {/*          colorScheme='red'*/}
-      {/*          onClick={() => {*/}
-      {/*            const temp = questionTypes.filter(q => q !== eachQuestionType);*/}
-      {/*            controller.questionTypes = temp;*/}
-      {/*            updateModel();*/}
-      {/*            if (priorities.has(eachQuestionType)) {*/}
-      {/*              priorities.delete(eachQuestionType);*/}
-      {/*              const copy = new Map(priorities);*/}
-      {/*              controller.setPriorities(curPlayerId, copy);*/}
-      {/*              updateModel();*/}
-      {/*            }*/}
-      {/*          }}>*/}
-      {/*          Delete*/}
-      {/*        </Button>*/}
-      {/*      </li>*/}
-      {/*    );*/}
-      {/*  })}*/}
-      {/*</ul>*/}
+      <QuestionTypesViewer></QuestionTypesViewer>
       <ModalFooter>
         <Button onClick={close}>Cancel</Button>
       </ModalFooter>
@@ -524,7 +479,7 @@ export function QueueViewer({
       <ModalBody pb={6}>
         <QuesitonsViewer> </QuesitonsViewer>
         <FormControl>
-          <FormLabel htmlFor='questionContent'>Question Content (max 75 Characters)</FormLabel>
+          <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
           <Input
             id='questionContent'
             placeholder='Enter your question here'
@@ -533,7 +488,7 @@ export function QueueViewer({
             onChange={e => setQuestion(e.target.value)}
           />
           <Select
-            placeholder='Select option'
+            placeholder='Select Question Type'
             onChange={e => {
               setQuestionType(e.target.value);
             }}>
@@ -546,7 +501,7 @@ export function QueueViewer({
             })}
           </Select>
         </FormControl>
-        <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
+        <FormLabel htmlFor='groupQuestion'>Part of Group Question?</FormLabel>
         <Checkbox
           type='checkbox'
           id='groupQuestion'
