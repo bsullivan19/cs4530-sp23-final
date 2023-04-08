@@ -882,15 +882,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
-  public async takeNextOfficeHoursQuestion(
-    officeHoursArea: OfficeHoursAreaController,
-  ): Promise<TAModel> {
-    return this._townsService.takeNextOfficeHoursQuestion(
-      this.townID,
-      officeHoursArea.id,
-      this.sessionToken,
-    );
-  }
+  // public async takeNextOfficeHoursQuestion(
+  //   officeHoursArea: OfficeHoursAreaController,
+  // ): Promise<TAModel> {
+  //   return this._townsService.takeNextOfficeHoursQuestion(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     this.sessionToken,
+  //   );
+  // }
 
   public async takeNextOfficeHoursQuestionWithQuestionId(
     officeHoursArea: OfficeHoursAreaController,

@@ -321,6 +321,12 @@ export default class OfficeHoursArea extends InteractableArea {
 
   public removePlayerData(player: Player) {
     this.removeQuestionForPlayer(player);
+    this._taInfos = this._taInfos.filter(taInfo => taInfo.taID !== player.id);
+    this._openBreakoutRooms.forEach((taID, breakoutID) => {
+      if (taID === player.id) {
+        this._openBreakoutRooms.set(breakoutID, undefined);
+      }
+    });
   }
 
   /**
