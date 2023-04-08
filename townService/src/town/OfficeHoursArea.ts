@@ -58,14 +58,24 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._roomEmitter;
   }
 
+  // public constructor(
+  //   { id, teachingAssistantsByID }: OfficeHoursModel,
+  //   coordinates: BoundingBox,
+  //   townEmitter: TownEmitter,
+  // ) {
+
   public get questionTypes() {
     return this._questionTypes;
   }
 
-  public constructor({ id }: OfficeHoursModel, coordinates: BoundingBox, townEmitter: TownEmitter) {
+  public constructor(
+    { id, teachingAssistantsByID }: OfficeHoursModel,
+    coordinates: BoundingBox,
+    townEmitter: TownEmitter,
+  ) {
     super(id, coordinates, townEmitter);
     this._roomEmitter = townEmitter.to(this.id);
-    this._teachingAssistantsByID = [];
+    this._teachingAssistantsByID = teachingAssistantsByID;
 
     // initialize breakout rooms map
     this._openBreakoutRooms = new Map<string, string | undefined>();
@@ -105,6 +115,7 @@ export default class OfficeHoursArea extends InteractableArea {
     };
   }
 
+  // TODO intended functionallity?
   public updateModel(model: OfficeHoursModel) {
     this._questionTypes = model.questionTypes;
     this._taInfos = model.taInfos;
@@ -233,15 +244,20 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!breakoutRoomAreaID) {
       throw new Error('No open breakout rooms');
     }
+
     const question = this.nextQuestion(teachingAssistant, questionID);
+
     if (!question) {
       throw new Error('No questions available');
     }
+    teachingAssistant.currentQuestions = [question];
+    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
     teachingAssistant.officeHoursID = this.id;
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
     return question;
   }
 
+  // TODO unused, remove?
   /**
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
@@ -257,10 +273,12 @@ export default class OfficeHoursArea extends InteractableArea {
       if (!question) {
         throw new Error('No questions available');
       }
-      teachingAssistant.officeHoursID = this.id;
-      teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
       ret.push(question);
     });
+    teachingAssistant.currentQuestions = ret;
+    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
+    teachingAssistant.officeHoursID = this.id;
+    teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
     return ret.length > 0 ? ret : undefined;
   }
 
@@ -274,6 +292,7 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  // TODO unused, remove?
   /**
    * Removes an existing question from the queue if the player is the a TA.
    */
@@ -335,6 +354,19 @@ export default class OfficeHoursArea extends InteractableArea {
     );
   }
 
+  // /**
+  //  * Assigns the next question in the queue to the ta and removes it
+  //  */
+  // private _nextQuestion(teachingAssistant: TA): Question | undefined {
+  //   // TODO: update to use new question queue structure
+  //   const question = this._queue.shift();
+  //   if (question) {
+  //     teachingAssistant.currentQuestion = question;
+  //   }
+  //   this._emitQueueChanged();
+  //   return question;
+  // }
+
   private _getOpenBreakoutRoom(): string | undefined {
     for (const [areaID, ta] of this._openBreakoutRooms) {
       if (!ta) {
@@ -344,7 +376,14 @@ export default class OfficeHoursArea extends InteractableArea {
     return undefined;
   }
 
+  private _assignBreakoutRoom(taID: string, breakoutRoomID: string) {
+    if (this._openBreakoutRooms.get(breakoutRoomID)) {
+      throw new Error('Attempted to assign busy breakout room');
+    }
+    this._openBreakoutRooms.set(breakoutRoomID, taID);
+  }
+
   protected _emitQueueChanged() {
-    this._roomEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
+    this._townEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
   }
 }

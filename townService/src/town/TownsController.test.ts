@@ -14,6 +14,7 @@ import {
   MockedPlayer,
 } from '../TestUtils';
 import { TownsController } from './TownsController';
+import { isTA } from '../lib/TA';
 
 type TestTownData = {
   friendlyName: string;
@@ -36,12 +37,12 @@ function expectTownListMatches(towns: Town[], town: TestTownData) {
 const broadcastEmitter = jest.fn();
 describe('TownsController integration tests', () => {
   let controller: TownsController;
-  const townTaPassword: string = nanoid();
 
   const createdTownEmitters: Map<string, DeepMockProxy<TownEmitter>> = new Map();
   async function createTownForTesting(
     friendlyNameToUse?: string,
     isPublic = false,
+    townTaPassword: string = nanoid(),
   ): Promise<TestTownData> {
     const friendlyName =
       friendlyNameToUse !== undefined
@@ -95,6 +96,17 @@ describe('TownsController integration tests', () => {
     it('Prohibits a blank friendlyName', async () => {
       await expect(createTownForTesting('')).rejects.toThrowError();
     });
+    // TODO get spy working. may not be worth it.
+    // it('creates town with correct TA password', async () => {
+    //   const taPW = nanoid();
+    //   const town = await createTownForTesting(undefined, undefined, taPW);
+    //   const player = mockPlayer(town.townID, taPW);
+    //   controller.joinTown(player.socket);
+    //   const towns = await controller.listTowns();
+    //   jest.spyOn(Town, 'addPlayer');
+    //   const createdTown: Town | undefined = towns.find(currTown => town.townID === currTown.townID);
+    //   isTA(player);
+    // });
   });
 
   describe('listTowns', () => {

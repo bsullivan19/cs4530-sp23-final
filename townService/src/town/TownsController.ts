@@ -68,9 +68,6 @@ export class TownsController extends Controller {
    */
   @Example<TownCreateResponse>({ townID: 'stringID', townUpdatePassword: 'secretPassword' })
   @Post()
-  // TODO Update to optionally accept ta password, so that if the request does not contain
-  // a tapassword, nothing will be passed to create town. Not sure how request works in this scenario
-  // but create town sets password to nanoid if no value given.
   public async createTown(@Body() request: TownCreateParams): Promise<TownCreateResponse> {
     const { townID, townUpdatePassword } = await this._townsStore.createTown(
       request.friendlyName,

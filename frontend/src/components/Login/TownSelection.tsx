@@ -26,7 +26,7 @@ import useVideoContext from '../VideoCall/VideoFrontend/hooks/useVideoContext/us
 import { nanoid } from 'nanoid';
 
 export default function TownSelection(): JSX.Element {
-  const [adminPwd, setAdminPwd] = useState<string>(nanoid());
+  const [adminPwd, setAdminPwd] = useState<string>('');
   const [taPassword, setTaPassword] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
   const [newTownName, setNewTownName] = useState<string>('');
@@ -118,11 +118,20 @@ export default function TownSelection(): JSX.Element {
       });
       return;
     }
+    // TODO: Fix so that prof joins town as TA with no specified password. Just using
+    // setTaPassword does not work I think because the text box resets it back to blank
+    // before joining.
+    let newPassword: string;
+    if (taPassword === '') {
+      newPassword = nanoid();
+    } else {
+      newPassword = taPassword;
+    }
     try {
       const newTownInfo = await townsService.createTown({
         friendlyName: newTownName,
         isPubliclyListed: newTownIsPublic,
-        taPassword,
+        taPassword: newPassword,
       });
       let privateMessage = <></>;
       if (!newTownIsPublic) {
@@ -142,6 +151,8 @@ export default function TownSelection(): JSX.Element {
             Town ID: {newTownInfo.townID}
             <br />
             Town Editing Password: {newTownInfo.townUpdatePassword}
+            <br />
+            TA Password: {newPassword}
           </>
         ),
         status: 'success',
