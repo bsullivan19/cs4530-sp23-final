@@ -80,7 +80,7 @@ export default class OfficeHoursArea extends InteractableArea {
     // initialize breakout rooms map
     this._openBreakoutRooms = new Map<string, string | undefined>();
     this._queue = [];
-    this._questionTypes = ['any'];
+    this._questionTypes = ['Other'];
     this._taInfos = [];
   }
 
@@ -353,7 +353,7 @@ export default class OfficeHoursArea extends InteractableArea {
         id: mapObject.name,
         officeHoursActive: false,
         teachingAssistantsByID: [],
-        questionTypes: ['any'],
+        questionTypes: ['Other'],
         taInfos: [],
       },
       box,
