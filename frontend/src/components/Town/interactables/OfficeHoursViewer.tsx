@@ -97,23 +97,26 @@ export function QueueViewer({
     });
   }, [queue, questionTypes]);
 
-  function cmp(x: OfficeHoursQuestion, y: OfficeHoursQuestion) {
-    const p1: number | undefined = priorities.get(x.questionType);
-    const p2: number | undefined = priorities.get(y.questionType);
-    if (p1 === p2 || !isSorted) {
-      // timeAsked should always exist?
-      if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
-        return x.timeAsked - y.timeAsked;
+  const cmp = useCallback(
+    (x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
+      const p1: number | undefined = priorities.get(x.questionType);
+      const p2: number | undefined = priorities.get(y.questionType);
+      if (p1 === p2 || !isSorted) {
+        // timeAsked should always exist?
+        if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
+          return x.timeAsked - y.timeAsked;
+        }
       }
-    }
-    if (p1 === undefined) {
-      return 1;
-    }
-    if (p2 === undefined) {
-      return -1;
-    }
-    return p1 - p2;
-  }
+      if (p1 === undefined) {
+        return 1;
+      }
+      if (p2 === undefined) {
+        return -1;
+      }
+      return p1 - p2;
+    },
+    [priorities, isSorted],
+  );
 
   const addQuestion = useCallback(async () => {
     if (controller.questionsAsked(curPlayerId) != 0) {
@@ -195,7 +198,7 @@ export function QueueViewer({
         });
       }
     }
-  }, [controller, townController, toast, close]);
+  }, [controller, townController, toast, close, cmp]);
 
   const nextSelectedQuestions = useCallback(async () => {
     try {
