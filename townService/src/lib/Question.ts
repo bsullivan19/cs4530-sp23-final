@@ -16,6 +16,7 @@ export default class Question {
   private readonly _questionContent: string;
 
   /* The current set of players in this question. */
+  // this is actually always 1. TODO change this to non array
   private _studentsByID: string[] = [];
 
   /* Is this question a group question */
@@ -33,6 +34,10 @@ export default class Question {
   }
 
   public get questionContent() {
+    return this._questionContent;
+  }
+
+  public get questionType() {
     return this._questionContent;
   }
 

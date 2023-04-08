@@ -11,4 +11,3 @@ export type OfficeHoursArea = {
     questionTypes: Array<string>;
     taInfos: Array<TAInfo>;
 };
-

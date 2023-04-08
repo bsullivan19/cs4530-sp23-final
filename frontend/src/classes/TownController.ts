@@ -514,16 +514,22 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * our player to the breakout room if they are in the question.
      */
     this._socket.on('officeHoursQuestionTaken', taModel => {
-      const question = taModel.question;
-      if (question) {
-        const ohArea = this._officeHoursAreas.find(
-          area => area.id === taModel.question?.officeHoursID,
-        );
-        if (ohArea) {
-          ohArea.questionQueue = ohArea.questionQueue.filter(q => q.id !== taModel.question?.id);
+      const questions = taModel.questions;
+      if (questions) {
+        const oid = questions ? questions[0].officeHoursID : '';
+        const ohArea = this._officeHoursAreas.find(area => area.id === oid);
+        if (ohArea && oid) {
+          ohArea.questionQueue = ohArea.questionQueue.filter(
+            eachQuestion => !questions.map(q => q.id).includes(eachQuestion.id),
+          );
         }
-
-        if (question.students.includes(this.ourPlayer.id)) {
+        let studentIDs: string[] = [];
+        if (questions) {
+          questions.forEach(q => {
+            studentIDs = studentIDs.concat(q.students);
+          });
+        }
+        if (studentIDs.includes(this.ourPlayer.id)) {
           this.ourPlayer.teleportSprite(taModel.location);
         } else if (taModel.id === this.ourPlayer.id) {
           this.ourPlayer.teleportSprite(taModel.location);
@@ -539,8 +545,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         area => area.id === queueModel.officeHoursID,
       );
       if (ohAreaController) {
-        console.log('in front end');
-        console.log(queueModel.questionQueue);
         ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });
@@ -878,15 +882,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
-  public async takeNextOfficeHoursQuestion(
-    officeHoursArea: OfficeHoursAreaController,
-  ): Promise<TAModel> {
-    return this._townsService.takeNextOfficeHoursQuestion(
-      this.townID,
-      officeHoursArea.id,
-      this.sessionToken,
-    );
-  }
+  // public async takeNextOfficeHoursQuestion(
+  //   officeHoursArea: OfficeHoursAreaController,
+  // ): Promise<TAModel> {
+  //   return this._townsService.takeNextOfficeHoursQuestion(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     this.sessionToken,
+  //   );
+  // }
 
   public async takeNextOfficeHoursQuestionWithQuestionId(
     officeHoursArea: OfficeHoursAreaController,
@@ -897,6 +901,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       officeHoursArea.id,
       questionId || '',
       this.sessionToken,
+    );
+  }
+
+  public async takeNextOfficeHoursQuestionWithQuestionIDs(
+    officeHoursArea: OfficeHoursAreaController,
+    questionIDs: string[],
+  ): Promise<TAModel> {
+    return this._townsService.takeNextOfficeHoursQuestionWithQuestionIDs(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+      { questionIDs: questionIDs },
     );
   }
 
