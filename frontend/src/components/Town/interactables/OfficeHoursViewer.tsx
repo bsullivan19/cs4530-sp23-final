@@ -49,7 +49,6 @@ const LIMIT = 4;
 function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
   const questionIDs: string[] = [];
   let questionType: string | undefined = undefined;
-  console.log(queue);
   queue.forEach((question: OfficeHoursQuestion) => {
     if (questionIDs.length < LIMIT && question.groupQuestion) {
       if (questionType === undefined) {
