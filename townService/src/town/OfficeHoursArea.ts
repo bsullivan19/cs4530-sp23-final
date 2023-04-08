@@ -135,8 +135,9 @@ export default class OfficeHoursArea extends InteractableArea {
         this._taInfos.push(x);
       }
       this._teachingAssistantsByID.push(player.id);
-      this._emitAreaChanged();
     }
+    this._emitAreaChanged();
+    this._emitQueueChanged();
   }
 
   // doesn't remove player from queue if he walks out of area
