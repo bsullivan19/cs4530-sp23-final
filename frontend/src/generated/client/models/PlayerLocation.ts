@@ -11,4 +11,3 @@ export type PlayerLocation = {
     moving: boolean;
     interactableID?: string;
 };
-

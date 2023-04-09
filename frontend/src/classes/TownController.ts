@@ -30,12 +30,14 @@ import {
   isViewingArea,
   isPosterSessionArea,
   isOfficeHoursArea,
+  isBreakoutRoomArea,
 } from '../types/TypeUtils';
 import ConversationAreaController from './ConversationAreaController';
 import PlayerController from './PlayerController';
 import ViewingAreaController from './ViewingAreaController';
 import PosterSessionAreaController from './PosterSessionAreaController';
 import OfficeHoursAreaController from './OfficeHoursAreaController';
+import BreakoutRoomAreaController from './BreakoutRoomAreaController';
 
 const CALCULATE_NEARBY_PLAYERS_DELAY = 300;
 
@@ -91,6 +93,8 @@ export type TownEvents = {
    * the town controller's record of poster session areas.
    */
   posterSessionAreasChanged: (newPosterSessionAreas: PosterSessionAreaController[]) => void;
+
+  breakoutRoomAreasChanged: (newBreakoutRoomAreas: BreakoutRoomAreaController[]) => void;
   /**
    * An event that indicates that a new chat message has been received, which is the parameter passed to the listener
    */
@@ -221,7 +225,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   private _officeHoursAreas: OfficeHoursAreaController[] = [];
 
-  private _breakoutRoomAreas: ConversationAreaController[] = [];
+  private _breakoutRoomAreas: BreakoutRoomAreaController[] = [];
 
   public constructor({ userName, taPassword, townID, loginController }: ConnectionProperties) {
     super();
@@ -360,6 +364,15 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._officeHoursAreas;
   }
 
+  public get breakoutRoomAreas() {
+    return this._breakoutRoomAreas;
+  }
+
+  public set breakoutRoomAreas(newBreakoutRoomAreas: BreakoutRoomAreaController[]) {
+    this._breakoutRoomAreas = newBreakoutRoomAreas;
+    this.emit('breakoutRoomAreasChanged', newBreakoutRoomAreas);
+  }
+
   /**
    * Begin interacting with an interactable object. Emits an event to all listeners.
    * @param interactedObj
@@ -480,7 +493,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      * events (@see ViewingAreaController and @see ConversationAreaController and @see PosterSessionAreaController)
      */
     this._socket.on('interactableUpdate', interactable => {
-      if (isConversationArea(interactable)) {
+      if (isBreakoutRoomArea(interactable)) {
+        const relArea = this.breakoutRoomAreas.find(area => area.id === interactable.id);
+        if (relArea) {
+          relArea.updateFrom(interactable, this._playersByIDs);
+        }
+      } else if (isConversationArea(interactable)) {
         const relArea = this.conversationAreas.find(area => area.id == interactable.id);
         if (relArea) {
           const startsEmpty = relArea.isEmpty();
@@ -918,6 +936,14 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
+  public async closeBreakoutRoomArea(breakoutRoomArea: BreakoutRoomAreaController): Promise<void> {
+    return this._townsService.closeBreakoutRoomArea(
+      this.townID,
+      breakoutRoomArea.id,
+      this.sessionToken,
+    );
+  }
+
   // public toModel(): OfficeHoursModel {
   //   return {
   //     id: this.id,
@@ -1127,6 +1153,17 @@ export function useOfficeHoursAreaController(officeHoursAreaID: string): OfficeH
   const ret = townController.officeHoursAreas.find(area => area.id === officeHoursAreaID);
   if (!ret) {
     throw new Error(`Unable to locate office hours area id ${officeHoursAreaID}`);
+  }
+  return ret;
+}
+
+export function useBreakoutRoomAreaController(
+  breakoutRoomAreaID: string,
+): BreakoutRoomAreaController {
+  const townController = useTownController();
+  const ret = townController.breakoutRoomAreas.find(area => area.id === breakoutRoomAreaID);
+  if (!ret) {
+    throw new Error(`Unable to locate breakout room area id ${breakoutRoomAreaID}`);
   }
   return ret;
 }

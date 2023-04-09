@@ -18,6 +18,7 @@ import {
   OfficeHoursArea as OfficeHoursAreaModel,
   OfficeHoursQuestion,
   TAModel,
+  BreakoutRoomArea as BreakoutRoomAreaModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import InteractableArea from './InteractableArea';
@@ -27,6 +28,7 @@ import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import TA from '../lib/TA';
 import OfficeHoursArea from './OfficeHoursArea';
 import BreakoutRoomArea from './BreakoutRoomArea';
+import Question from '../lib/Question';
 
 /**
  * The Town class implements the logic for each town: managing the various events that
@@ -413,6 +415,28 @@ export default class Town {
       return false;
     }
     area.topic = conversationArea.topic;
+    area.addPlayersWithinBounds(this._players);
+    this._broadcastEmitter.emit('interactableUpdate', area.toModel());
+    return true;
+  }
+
+  public addBreakoutRoomArea(breakoutRoomArea: BreakoutRoomAreaModel): boolean {
+    const area = this._interactables.find(
+      eachArea => eachArea.id === breakoutRoomArea.id,
+    ) as BreakoutRoomArea;
+    if (
+      !area ||
+      !breakoutRoomArea.topic ||
+      !breakoutRoomArea.teachingAssistantID ||
+      area.teachingAssistantID
+    ) {
+      return false;
+    }
+    area.topic = breakoutRoomArea.topic;
+    area._teachingAssistant = this._players.find(
+      p => p.id === breakoutRoomArea.teachingAssistantID,
+    );
+    area._students = this._players.filter(p => breakoutRoomArea.studentsByID.includes(p.id));
     area.addPlayersWithinBounds(this._players);
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;

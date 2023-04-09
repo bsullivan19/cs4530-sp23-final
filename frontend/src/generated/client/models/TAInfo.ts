@@ -9,4 +9,3 @@ export type TAInfo = {
     isSorted: boolean;
     priorities: Array<Priority>;
 };
-

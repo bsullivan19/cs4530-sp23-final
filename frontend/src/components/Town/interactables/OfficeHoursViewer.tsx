@@ -39,7 +39,6 @@ import OfficeHoursAreaController, {
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
-import { Component } from '../../../../../../../../../Applications/IntelliJ IDEA.app/Contents/plugins/javascript-impl/jsLanguageServicesImpl/external/react';
 
 // Finds the next possible group to take grouped by the earliest guys question type
 const LIMIT = 4;

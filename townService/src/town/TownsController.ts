@@ -33,7 +33,7 @@ import {
 import PosterSessionAreaReal from './PosterSessionArea';
 import OfficeHoursAreaReal from './OfficeHoursArea';
 import BreakoutRoomAreaReal from './BreakoutRoomArea';
-import { isOfficeHoursArea, isPosterSessionArea } from '../TestUtils';
+import { isBreakoutRoomArea, isOfficeHoursArea, isPosterSessionArea } from '../TestUtils';
 import Player from '../lib/Player';
 import InvalidTAPasswordError from '../lib/InvalidTAPasswordError';
 import TA, { isTA } from '../lib/TA';
@@ -691,6 +691,43 @@ export class TownsController extends Controller {
     }
     (<OfficeHoursAreaReal>officeHoursArea).updateModel(requestBody);
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
+  }
+
+  @Patch('{townID}/{breakoutRoomAreaId}/finishQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async closeBreakoutRoomArea(
+    @Path() townID: string,
+    @Path() breakoutRoomAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<void> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    } else if (!isTA(curPlayer)) {
+      throw new InvalidParametersError('This player is not a TA');
+    }
+    const breakoutRoomArea = curTown.getInteractable(breakoutRoomAreaId);
+    if (!breakoutRoomArea || !isBreakoutRoomArea(breakoutRoomArea)) {
+      throw new InvalidParametersError('Invalid breakout room area ID');
+    }
+
+    const officeHoursID = (<BreakoutRoomAreaReal>breakoutRoomArea).linkedOfficeHoursID;
+    const officeHoursArea = curTown.getInteractable(officeHoursID);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new Error('Could not find associated Office Hours Area');
+    }
+
+    /* Moves the TA back to the office hours area, used by students for teleporting */
+    const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
+
+    officeHoursAreaReal.roomEmitter.emit('officeHoursQuestionTaken', curPlayer.toModel());
+
+    // TODO: move this out of REST api!!!!
+    officeHoursAreaReal.stopOfficeHours(curPlayer);
   }
 
   /**

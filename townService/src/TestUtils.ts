@@ -26,6 +26,7 @@ import {
   OfficeHoursArea,
   OfficeHoursQuestion,
 } from './types/CoveyTownSocket';
+import BreakoutRoomArea from './town/BreakoutRoomArea';
 
 /**
  * Create a new conversation area using some random defaults
@@ -211,8 +212,12 @@ export function isPosterSessionArea(interactable: Interactable): interactable is
   return 'stars' in interactable;
 }
 
+export function isBreakoutRoomArea(interactable: Interactable): interactable is BreakoutRoomArea {
+  return 'linkedOfficeHoursID' in interactable;
+}
+
 export function isConversationArea(interactable: Interactable): interactable is ConversationArea {
-  return 'topic' in interactable;
+  return 'topic' in interactable && !isBreakoutRoomArea(interactable);
 }
 
 export function isOfficeHoursArea(interactable: Interactable): interactable is OfficeHoursArea {
