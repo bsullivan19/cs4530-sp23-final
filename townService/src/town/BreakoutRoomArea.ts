@@ -4,17 +4,52 @@ import {
   BoundingBox,
   // Use conversation area representation as a breakot room model.
   // No special frontend functionallity needed.
-  ConversationArea as BreakoutRoomAreaModel,
+  BreakoutRoomArea as BreakoutRoomAreaModel,
   TownEmitter,
 } from '../types/CoveyTownSocket';
-import ConversationArea from './ConversationArea';
+import { isTA } from '../lib/TA';
+import InteractableArea from './InteractableArea';
+import Question from '../lib/Question';
 
-export default class BreakoutRoomArea extends ConversationArea {
+export default class BreakoutRoomArea extends InteractableArea {
+  public _topic: string | undefined;
+
+  public _teachingAssistant: Player | undefined;
+
+  public _students: Player[] = [];
+
   // TODO add office hours area id link
   private readonly _linkedOfficeHoursID: string;
 
+  public override get isActive(): boolean {
+    return this._teachingAssistant !== undefined;
+  }
+
+  public get topic() {
+    return this._topic;
+  }
+
+  public set topic(newTopic: string | undefined) {
+    if (this.topic !== newTopic) {
+      this._topic = newTopic;
+      this._emitAreaChanged();
+    }
+  }
+
+  public get teachingAssistant() {
+    return this._teachingAssistant;
+  }
+
+  public set teachingAssistant(p: Player | undefined) {
+    this._teachingAssistant = p;
+  }
+
   public get linkedOfficeHoursID(): string {
     return this._linkedOfficeHoursID;
+  }
+
+  public get studentsByID() {
+    return this._students.map(s => s.id);
   }
 
   /**
@@ -25,13 +60,13 @@ export default class BreakoutRoomArea extends ConversationArea {
    * @param townEmitter a broadcast emitter that can be used to emit updates to players
    */
   public constructor(
-    areaModel: BreakoutRoomAreaModel,
+    { id, officeHoursAreaID, topic }: BreakoutRoomAreaModel,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
-    linkedOfficeHoursID: string,
   ) {
-    super(areaModel, coordinates, townEmitter);
-    this._linkedOfficeHoursID = linkedOfficeHoursID;
+    super(id, coordinates, townEmitter);
+    this._linkedOfficeHoursID = officeHoursAreaID;
+    this._topic = topic;
   }
 
   /**
@@ -44,7 +79,14 @@ export default class BreakoutRoomArea extends ConversationArea {
    */
   public remove(player: Player) {
     super.remove(player);
+    this._students = this._students.filter(s => s.id !== player.id);
+    if (player.id === this.teachingAssistant?.id) {
+      this._teachingAssistant = undefined;
+      this._emitAreaChanged();
+    }
   }
+
+
 
   /**
    * Convert this BreakoutRoomArea instance to a simple BreakoutRoomAreaModel suitable for
@@ -53,8 +95,10 @@ export default class BreakoutRoomArea extends ConversationArea {
   public toModel(): BreakoutRoomAreaModel {
     return {
       id: this.id,
-      occupantsByID: this.occupantsByID,
       topic: this.topic,
+      teachingAssistantID: this.teachingAssistant?.id,
+      studentsByID: this.studentsByID,
+      officeHoursAreaID: this._linkedOfficeHoursID,
     };
   }
 
@@ -84,10 +128,9 @@ export default class BreakoutRoomArea extends ConversationArea {
       throw new Error('no linkedOfficeHoursID value');
     }
     return new BreakoutRoomArea(
-      { id: name, occupantsByID: [] },
+      { id: name, officeHoursAreaID: officeHoursIDVal, studentsByID: [] },
       rect,
       broadcastEmitter,
-      officeHoursIDVal,
     );
   }
 }
