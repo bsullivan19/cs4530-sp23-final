@@ -13,11 +13,7 @@ import {
   Input,
   Checkbox,
   List,
-  ListItem,
-  Tag,
-  Stack,
   Select,
-  OrderedList,
   TableContainer,
   TableCaption,
   Thead,
@@ -26,10 +22,7 @@ import {
   Tbody,
   Td,
   Table,
-  Heading,
-  Box,
   VStack,
-  StackDivider,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -43,6 +36,7 @@ import OfficeHoursAreaController, {
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
+import _ from 'lodash';
 
 // Finds the next possible group to take grouped by the earliest guys question type
 const LIMIT = 4;
@@ -78,7 +72,7 @@ export function QueueViewer({
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
 
-  const [flag, setFlag] = useState(false);
+  // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
   const priorities = usePriorities(controller, curPlayerId);
   const isSorted = useIsSorted(controller, curPlayerId);
@@ -88,9 +82,15 @@ export function QueueViewer({
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   townController.pause();
   useEffect(() => {
-    setSelectedQuestions(
-      selectedQuestions.filter(qid => queue.map(question => question.id).includes(qid)),
+    const filteredQuestions = selectedQuestions.filter(qid =>
+      queue.map(question => question.id).includes(qid),
     );
+    if (
+      filteredQuestions.length !== selectedQuestions.length ||
+      _.xor(filteredQuestions, selectedQuestions).length > 0
+    ) {
+      setSelectedQuestions(filteredQuestions);
+    }
     priorities.forEach((value: number, key: string) => {
       if (!questionTypes.includes(key)) {
         const copy = new Map<string, number>(priorities);
@@ -98,7 +98,7 @@ export function QueueViewer({
         controller.setPriorities(curPlayerId, copy);
       }
     });
-  }, [queue, questionTypes]);
+  }, [queue, questionTypes, priorities, controller, curPlayerId, selectedQuestions]);
 
   const cmp = useCallback(
     (x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
@@ -160,7 +160,6 @@ export function QueueViewer({
     }
   }, [
     questionType,
-    setQuestionType,
     controller,
     curPlayerId,
     newQuestion,
@@ -201,7 +200,7 @@ export function QueueViewer({
         });
       }
     }
-  }, [controller, townController, toast, close, cmp]);
+  }, [controller, townController, toast, close]);
 
   const nextSelectedQuestions = useCallback(async () => {
     try {
@@ -269,12 +268,12 @@ export function QueueViewer({
         });
       }
     }
-  }, [controller, townController, toast, close, selectedQuestions]);
+  }, [queue, townController, controller, toast, close]);
 
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
-      const updatedModel = await townController.updateOfficeHoursModel(model);
+      await townController.updateOfficeHoursModel(model);
     } catch (err) {
       toast({
         title: 'Unable to take next question',
@@ -282,7 +281,7 @@ export function QueueViewer({
         status: 'error',
       });
     }
-  }, [controller, townController, isSorted]);
+  }, [controller, townController, toast]);
 
   const kickQuestion = useCallback(
     async (question: OfficeHoursQuestion) => {
@@ -296,7 +295,7 @@ export function QueueViewer({
         });
       }
     },
-    [controller, townController],
+    [controller, toast, townController],
   );
 
   function RowView({ question }: { question: OfficeHoursQuestion }) {
@@ -320,7 +319,7 @@ export function QueueViewer({
               type='checkbox'
               name='Select Question'
               isChecked={selectedQuestions.includes(question.id)}
-              onChange={e => {
+              onChange={() => {
                 if (selectedQuestions.includes(question.id)) {
                   setSelectedQuestions(selectedQuestions.filter(qid => qid !== question.id));
                 } else {
@@ -347,7 +346,7 @@ export function QueueViewer({
       );
     }
   }
-  function QuesitonsViewer(x: any) {
+  function QuestionsViewer() {
     return (
       <TableContainer>
         <Table size='sm'>
@@ -381,7 +380,7 @@ export function QueueViewer({
             name='Should use Question Type in Priorities'
             isChecked={priorities.has(eachQuestionType)}
             value={eachQuestionType}
-            onChange={e => {
+            onChange={() => {
               if (priorities.has(eachQuestionType)) {
                 priorities.delete(eachQuestionType);
                 const copy = new Map(priorities);
@@ -421,7 +420,7 @@ export function QueueViewer({
       </Tr>
     );
   }
-  function QuestionTypesViewer(x: any) {
+  function QuestionTypesViewer() {
     return (
       <TableContainer>
         <Table size='sm' maxWidth='100px'>
@@ -444,7 +443,7 @@ export function QueueViewer({
   }
   const taView = (
     <ModalBody pb={6}>
-      <QuesitonsViewer> </QuesitonsViewer>
+      <>{QuestionsViewer()}</>
       <Button colorScheme='blue' mr={3} onClick={nextQuestion}>
         Take next question
       </Button>
@@ -484,7 +483,7 @@ export function QueueViewer({
         type='checkbox'
         name='Should Sort'
         isChecked={isSorted}
-        onChange={e => {
+        onChange={() => {
           controller.setIsSorted(curPlayerId, !isSorted);
           updateModel();
         }}
@@ -502,7 +501,7 @@ export function QueueViewer({
         addQuestion();
       }}>
       <ModalBody pb={6}>
-        <QuesitonsViewer> </QuesitonsViewer>
+        {QuestionsViewer()}
         <FormControl>
           <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
           <Input

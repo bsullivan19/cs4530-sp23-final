@@ -13,7 +13,6 @@ import { CancelablePromise, Town, TownsService } from '../../generated/client';
 import * as useLoginController from '../../hooks/useLoginController';
 import { mockTownController } from '../../TestUtils';
 import TownSelection from './TownSelection';
-import { tap } from 'lodash';
 
 const mockConnect = jest.fn(() => Promise.resolve());
 
