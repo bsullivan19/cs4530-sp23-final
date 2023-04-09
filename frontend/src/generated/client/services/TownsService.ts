@@ -518,4 +518,32 @@ requestBody: OfficeHoursArea,
         });
     }
 
+    /**
+     * @param townId 
+     * @param breakoutRoomAreaId 
+     * @param xSessionToken 
+     * @returns void 
+     * @throws ApiError
+     */
+    public closeBreakoutRoomArea(
+townId: string,
+breakoutRoomAreaId: string,
+xSessionToken: string,
+): CancelablePromise<void> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{breakoutRoomAreaId}/finishQuestion',
+            path: {
+                'townID': townId,
+                'breakoutRoomAreaId': breakoutRoomAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
 }

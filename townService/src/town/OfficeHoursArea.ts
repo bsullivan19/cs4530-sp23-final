@@ -206,8 +206,17 @@ export default class OfficeHoursArea extends InteractableArea {
     this._openBreakoutRooms.set(ta.breakoutRoomID, undefined);
 
     ta.breakoutRoomID = undefined;
-    ta.currentQuestions = undefined;
     ta.officeHoursID = undefined;
+
+    // Move this TA back to the office hours area
+    ta.location = this.areasCenter();
+    ta.location.interactableID = this.id;
+
+    // TODO: change the name of this event cause its used for teleporting people out now
+    this.roomEmitter.emit('officeHoursQuestionTaken', ta.toModel());
+
+    ta.currentQuestions = undefined;
+
     return this.areasCenter();
   }
 
