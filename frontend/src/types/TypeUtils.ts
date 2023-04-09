@@ -1,4 +1,5 @@
 import {
+  BreakoutRoomArea,
   ConversationArea,
   Interactable,
   OfficeHoursArea,
@@ -32,4 +33,8 @@ export function isPosterSessionArea(interactable: Interactable): interactable is
  */
 export function isOfficeHoursArea(interactable: Interactable): interactable is OfficeHoursArea {
   return 'officeHoursActive' in interactable;
+}
+
+export function isBreakoutRoomArea(interactable: Interactable): interactable is BreakoutRoomArea {
+  return 'studentsByID' in interactable;
 }

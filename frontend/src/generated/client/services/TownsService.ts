@@ -518,4 +518,63 @@ requestBody: OfficeHoursArea,
         });
     }
 
+    /**
+     * @param townId 
+     * @param breakoutRoomAreaId 
+     * @param xSessionToken 
+     * @returns void 
+     * @throws ApiError
+     */
+    public closeBreakoutRoomArea(
+townId: string,
+breakoutRoomAreaId: string,
+xSessionToken: string,
+): CancelablePromise<void> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{breakoutRoomAreaId}/finishQuestion',
+            path: {
+                'townID': townId,
+                'breakoutRoomAreaId': breakoutRoomAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param questionId 
+     * @param xSessionToken 
+     * @returns OfficeHoursArea Ok
+     * @throws ApiError
+     */
+    public removeOfficeHoursQuestion(
+townId: string,
+officeHoursAreaId: string,
+questionId: string,
+xSessionToken: string,
+): CancelablePromise<OfficeHoursArea> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/{questionID}/removeQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+                'questionID': questionId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
 }

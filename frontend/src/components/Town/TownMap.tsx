@@ -7,6 +7,7 @@ import NewConversationModal from './interactables/NewCoversationModal';
 import TownGameScene from './TownGameScene';
 import PosterViewerWrapper from './interactables/PosterViewer';
 import OfficeHoursViewerWrapper from './interactables/OfficeHoursViewer';
+import BreakoutRoomViewerWrapper from './interactables/BreakoutRoomModal';
 
 export default function TownMap(): JSX.Element {
   const coveyTownController = useTownController();
@@ -52,6 +53,7 @@ export default function TownMap(): JSX.Element {
       <NewConversationModal />
       <PosterViewerWrapper />
       <OfficeHoursViewerWrapper />
+      <BreakoutRoomViewerWrapper />
       <div id='map-container' />
       <div id='social-container'>
         <SocialSidebar />
