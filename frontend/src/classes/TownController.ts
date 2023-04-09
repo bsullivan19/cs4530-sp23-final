@@ -22,8 +22,6 @@ import {
   OfficeHoursArea,
   OfficeHoursQuestion,
   OfficeHoursQueue,
-  TAInfo,
-  Priority,
 } from '../types/CoveyTownSocket';
 import {
   isConversationArea,
