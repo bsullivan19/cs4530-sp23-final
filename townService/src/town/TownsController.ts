@@ -517,11 +517,6 @@ export class TownsController extends Controller {
         studentIDs = studentIDs.concat(q.studentsByID);
       });
     }
-    // const success = curTown.addConversationArea({
-    //   id: curPlayer.breakoutRoomID,
-    //   topic: questionType,
-    //   occupantsByID: studentIDs.concat(curPlayer.id),
-    // });
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
       topic: questionType,
@@ -586,11 +581,6 @@ export class TownsController extends Controller {
         studentIDs = studentIDs.concat(q.studentsByID);
       });
     }
-    // const success = curTown.addConversationArea({
-    //   id: curPlayer.breakoutRoomID,
-    //   topic: questionType,
-    //   occupantsByID: studentIDs.concat(curPlayer.id),
-    // });
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
       topic: questionType,
