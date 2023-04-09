@@ -30,12 +30,20 @@ describe('TA', () => {
     let questionSample: Question;
     let taModelNoQ: TAModel;
     beforeEach(() => {
-      questionSample = new Question(nanoid(), nanoid(), [newPlayer.id], nanoid(), false);
+      questionSample = new Question(
+        nanoid(),
+        nanoid(),
+        [newPlayer.id],
+        nanoid(),
+        false,
+        nanoid(),
+        0,
+      );
       taModel = {
         id: newTA.id,
         location: newTA.location,
         userName: taUsername,
-        question: questionSample.toModel(),
+        questions: [questionSample.toModel()],
       };
       taModelNoQ = {
         id: newTA.id,
@@ -47,7 +55,7 @@ describe('TA', () => {
       expect(newTA.toModel()).toEqual(taModelNoQ);
     });
     it('toModel for a ta with a question', () => {
-      newTA.currentQuestion = questionSample;
+      newTA.currentQuestions = [questionSample];
       expect(newTA.toModel()).toEqual(taModel);
     });
   });
