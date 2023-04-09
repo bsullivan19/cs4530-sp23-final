@@ -374,16 +374,14 @@ export class TownsController extends Controller {
    * @param sessionToken
    * @param requestBody
    */
-  @Patch('{townID}/{officeHoursAreaId}/joinQuestion')
+  @Patch('{townID}/{officeHoursAreaId}/{questionID}/joinQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async joinOfficeHoursQuestion(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
+    @Path() questionID: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() officeHoursQuestionId: string,
   ): Promise<OfficeHoursQuestion> {
-    console.log('joining');
-    console.log('qid:'.concat(officeHoursQuestionId));
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
       throw new InvalidParametersError('Invalid town ID');
@@ -400,16 +398,13 @@ export class TownsController extends Controller {
       throw new InvalidParametersError('Cant join a question when no TAs online');
     }
     const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
-      q => q.id === officeHoursQuestionId,
+      q => q.id === questionID,
     );
     if (!question) {
       throw new InvalidParametersError('Invalid office hours question ID');
     }
-    console.log('adding');
     question.addStudent(player);
-    console.log('added');
     (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(question.toModel());
-    console.log('joined');
     return question.toModel();
   }
 

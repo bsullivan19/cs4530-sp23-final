@@ -305,11 +305,11 @@ export function QueueViewer({
   const joinQuestion = useCallback(
     async (questionId: string) => {
       try {
-        toast({
-          title: 'qid'.concat(questionId),
-          description: 'error',
-          status: 'error',
-        });
+        // toast({
+        //   title: 'qid'.concat(questionId),
+        //   description: 'error',
+        //   status: 'error',
+        // });
         const question = await townController.joinOfficeHoursQuestion(controller, questionId);
       } catch (err) {
         toast({
@@ -325,15 +325,10 @@ export function QueueViewer({
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
-    const usernames = players.map(p => p.userName);
+    const usernames = players.map(p => p.userName.concat(' '));
     if (!teachingAssistantsByID.includes(curPlayerId)) {
       return (
         <Tr>
-          <Td>{usernames}</Td>
-          <Td>{question.questionType}</Td>
-          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
-          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
-          <Td>{question.questionContent}</Td>
           <Td>
             <Button
               colorScheme='green'
@@ -355,6 +350,11 @@ export function QueueViewer({
               join
             </Button>
           </Td>
+          <Td>{usernames}</Td>
+          <Td>{question.questionType}</Td>
+          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
+          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
+          <Td>{question.questionContent}</Td>
         </Tr>
       );
     } else {
@@ -390,13 +390,13 @@ export function QueueViewer({
           <TableCaption>Office Hours Queue</TableCaption>
           <Thead>
             <Tr>
+              {!teachingAssistantsByID.includes(curPlayerId) ? <Th>Join</Th> : null}
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
-              <Th>Username</Th>
+              <Th>Usernames</Th>
               <Th>Question Type</Th>
               <Th>Group</Th>
               <Th>Time Waiting (min)</Th>
               <Th>Question Description</Th>
-              {!teachingAssistantsByID.includes(curPlayerId) ? <Th>Join</Th> : null}
             </Tr>
           </Thead>
           <Tbody>

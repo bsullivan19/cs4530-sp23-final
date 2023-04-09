@@ -845,8 +845,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._townsService.joinOfficeHoursQuestion(
       this.townID,
       officeHoursArea.id,
-      this.sessionToken,
       questionID,
+      this.sessionToken,
     );
   }
 
