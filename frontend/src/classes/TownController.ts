@@ -963,48 +963,18 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
-  // public toModel(): OfficeHoursModel {
-  //   return {
-  //     id: this.id,
-  //     officeHoursActive: this.officeHoursActive,
-  //     teachingAssistantsByID: this.teachingAssistantsByID,
-  //     questionTypes: this.questionTypes,
-  //     taInfos: this.taInfos.map(info => {
-  //       const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
-  //           const y: Priority = {key: p.key, value: p.value};
-  //           return y;
-  //         })};
-  //       return x;
-  //     }),
-  //   };
-  // }
-  // public async updateOfficeHoursModel(
-  //   officeHoursArea: OfficeHoursAreaController,
-  //   model: OfficeHoursArea,
-  // ): Promise<OfficeHoursArea> {
-  //   return this._townsService.updateOfficeHoursModel(
-  //     this.townID,
-  //     officeHoursArea.id,
-  //     this.sessionToken,
-  //     {model: {
-  //       id: model.id,
-  //
-  //       }}
-  //     // { model: {
-  //     //     id: model.id,
-  //     //     officeHoursActive: model.officeHoursActive,
-  //     //     teachingAssistantsByID: model.teachingAssistantsByID,
-  //     //     questionTypes: model.questionTypes,
-  //     //     taInfos: model.taInfos.map(info => {
-  //     //       const x: TAInfo = {taID: info.taID, isSorted: info.isSorted, priorities: info.priorities.map(p => {
-  //     //           const y: Priority = {key: p.key, value: p.value};
-  //     //           return y;
-  //     //         })};
-  //     //       return x;
-  //     //     }),
-  //     //   }},
-  //   );
-  // }
+  public async removeOfficeHoursQuestion(
+    officeHoursArea: OfficeHoursAreaController,
+    questionID: string,
+  ): Promise<OfficeHoursArea> {
+    return this._townsService.removeOfficeHoursQuestion(
+      this.townID,
+      officeHoursArea.id,
+      questionID,
+      this.sessionToken,
+    );
+  }
+
   public async updateOfficeHoursModel(model: OfficeHoursArea): Promise<OfficeHoursArea> {
     return this._townsService.getUpdatedOfficeHoursModel(
       this.townID,

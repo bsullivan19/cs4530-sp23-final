@@ -546,4 +546,35 @@ xSessionToken: string,
         });
     }
 
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param questionId 
+     * @param xSessionToken 
+     * @returns OfficeHoursArea Ok
+     * @throws ApiError
+     */
+    public removeOfficeHoursQuestion(
+townId: string,
+officeHoursAreaId: string,
+questionId: string,
+xSessionToken: string,
+): CancelablePromise<OfficeHoursArea> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/{questionID}/removeQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+                'questionID': questionId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
 }
