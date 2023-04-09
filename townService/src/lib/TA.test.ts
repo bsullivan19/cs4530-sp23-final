@@ -30,7 +30,15 @@ describe('TA', () => {
     let questionSample: Question;
     let taModelNoQ: TAModel;
     beforeEach(() => {
-      questionSample = new Question(nanoid(), nanoid(), [newPlayer.id], nanoid(), false);
+      questionSample = new Question(
+        nanoid(),
+        nanoid(),
+        [newPlayer.id],
+        nanoid(),
+        false,
+        nanoid(),
+        10,
+      );
       taModel = {
         id: newTA.id,
         location: newTA.location,

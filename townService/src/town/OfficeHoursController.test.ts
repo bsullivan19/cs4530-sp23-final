@@ -10,7 +10,6 @@ import TownsStore from '../lib/TownsStore';
 import { getLastEmittedEvent, mockPlayer, MockedPlayer, isOfficeHoursArea } from '../TestUtils';
 import { TownsController } from './TownsController';
 import OfficeHoursArea from './OfficeHoursArea';
-import { request } from 'http';
 import Question from '../lib/Question';
 
 type TestTownData = {
