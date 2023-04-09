@@ -127,35 +127,49 @@ export function QueueViewer({
         title: 'Cannot add more than 1 question to the queue',
         status: 'error',
       });
-    } else if (newQuestion && questionType) {
-      try {
-        await townController.addOfficeHoursQuestion(
-          controller,
-          newQuestion,
-          groupQuestion,
-          questionType,
-        );
+      return;
+    }
+    if (!newQuestion) {
+      toast({
+        title: 'Question must contain content',
+        status: 'error',
+      });
+      return;
+    }
+    if (!questionType) {
+      toast({
+        title: 'Question must have a type',
+        status: 'error',
+      });
+      return;
+    }
+    try {
+      await townController.addOfficeHoursQuestion(
+        controller,
+        newQuestion,
+        groupQuestion,
+        questionType,
+      );
+      toast({
+        title: 'Question Created!',
+        status: 'success',
+      });
+      setQuestion('');
+      setGroupQuestion(false);
+      close();
+    } catch (err) {
+      if (err instanceof Error) {
         toast({
-          title: 'Question Created!',
-          status: 'success',
+          title: 'Unable to create question',
+          description: err.toString(),
+          status: 'error',
         });
-        setQuestion('');
-        setGroupQuestion(false);
-        close();
-      } catch (err) {
-        if (err instanceof Error) {
-          toast({
-            title: 'Unable to create question',
-            description: err.toString(),
-            status: 'error',
-          });
-        } else {
-          console.trace(err);
-          toast({
-            title: 'Unexpected Error',
-            status: 'error',
-          });
-        }
+      } else {
+        console.trace(err);
+        toast({
+          title: 'Unexpected Error',
+          status: 'error',
+        });
       }
     }
   }, [
@@ -175,9 +189,13 @@ export function QueueViewer({
   const nextQuestion = useCallback(async () => {
     try {
       const questionId = controller.questionQueue.shift()?.id;
-      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
+      if (!questionId) {
+        throw new Error('No next question');
+      }
+      const questionList: string[] = [questionId];
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
         controller,
-        questionId,
+        questionList,
       );
       toast({
         title: `Successfully took question ${taModel.questions?.map(
@@ -284,6 +302,26 @@ export function QueueViewer({
     }
   }, [controller, townController, isSorted]);
 
+  const joinQuestion = useCallback(
+    async (questionId: string) => {
+      try {
+        toast({
+          title: 'qid'.concat(questionId),
+          description: 'error',
+          status: 'error',
+        });
+        const question = await townController.joinOfficeHoursQuestion(controller, questionId);
+      } catch (err) {
+        toast({
+          title: 'Unable to join question',
+          description: 'error',
+          status: 'error',
+        });
+      }
+    },
+    [townController, controller, toast],
+  );
+
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
@@ -293,8 +331,30 @@ export function QueueViewer({
         <Tr>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
-          <Td>{question.timeAsked}</Td>
+          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
+          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>{question.questionContent}</Td>
+          <Td>
+            <Button
+              colorScheme='green'
+              onClick={() => {
+                // toast({
+                //   title: 'join',
+                //   description: 'error',
+                //   status: 'error',
+                // });
+                if (question.groupQuestion) {
+                  joinQuestion(question.id);
+                } else {
+                  toast({
+                    title: 'Can only join group questions',
+                    status: 'error',
+                  });
+                }
+              }}>
+              join
+            </Button>
+          </Td>
         </Tr>
       );
     } else {
@@ -317,7 +377,7 @@ export function QueueViewer({
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
           <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
-          <Td>{question.timeAsked}</Td>
+          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>{question.questionContent}</Td>
         </Tr>
       );
@@ -333,9 +393,10 @@ export function QueueViewer({
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
               <Th>Username</Th>
               <Th>Question Type</Th>
-              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Group</Th> : null}
-              <Th>Time Asked</Th>
+              <Th>Group</Th>
+              <Th>Time Waiting (min)</Th>
               <Th>Question Description</Th>
+              {!teachingAssistantsByID.includes(curPlayerId) ? <Th>Join</Th> : null}
             </Tr>
           </Thead>
           <Tbody>

@@ -122,6 +122,8 @@ export default class OfficeHoursArea extends InteractableArea {
     this._emitAreaChanged();
   }
 
+  // public joinQuestion()
+
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
@@ -236,29 +238,28 @@ export default class OfficeHoursArea extends InteractableArea {
     return question;
   }
 
-  /**
-   * TA is assigned a question and breakout room if both are available, otherwise
-   * throws and error.
-   */
-  public takeQuestion(teachingAssistant: TA, questionID: string | undefined = undefined): Question {
-    const breakoutRoomAreaID = this._getOpenBreakoutRoom();
-    if (!breakoutRoomAreaID) {
-      throw new Error('No open breakout rooms');
-    }
+  // /**
+  //  * TA is assigned a question and breakout room if both are available, otherwise
+  //  * throws and error.
+  //  */
+  // public takeQuestion(teachingAssistant: TA, questionID: string | undefined = undefined): Question {
+  //   const breakoutRoomAreaID = this._getOpenBreakoutRoom();
+  //   if (!breakoutRoomAreaID) {
+  //     throw new Error('No open breakout rooms');
+  //   }
 
-    const question = this.nextQuestion(teachingAssistant, questionID);
+  //   const question = this.nextQuestion(teachingAssistant, questionID);
 
-    if (!question) {
-      throw new Error('No questions available');
-    }
-    teachingAssistant.currentQuestions = [question];
-    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
-    teachingAssistant.officeHoursID = this.id;
-    teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
-    return question;
-  }
+  //   if (!question) {
+  //     throw new Error('No questions available');
+  //   }
+  //   teachingAssistant.currentQuestions = [question];
+  //   this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
+  //   teachingAssistant.officeHoursID = this.id;
+  //   teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
+  //   return question;
+  // }
 
-  // TODO unused, remove?
   /**
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
