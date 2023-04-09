@@ -16,10 +16,14 @@ export default class Question {
   private readonly _questionContent: string;
 
   /* The current set of players in this question. */
+  // this is actually always 1. TODO change this to non array
   private _studentsByID: string[] = [];
 
   /* Is this question a group question */
   private _groupQuestion: boolean;
+
+  /* Is this question a group question */
+  private _questionType: string;
 
   public get id() {
     return this._id;
@@ -30,6 +34,10 @@ export default class Question {
   }
 
   public get questionContent() {
+    return this._questionContent;
+  }
+
+  public get questionType() {
     return this._questionContent;
   }
 
@@ -57,6 +65,7 @@ export default class Question {
     studentsByID: string[],
     questionContent: string,
     groupQuestion: boolean,
+    questionType: string,
     timeAsked?: number,
   ) {
     if (!groupQuestion && studentsByID.length > 1) {
@@ -68,6 +77,7 @@ export default class Question {
     this._studentsByID = studentsByID;
     this._groupQuestion = groupQuestion;
     this._timeAsked = timeAsked || Date.now();
+    this._questionType = questionType;
   }
 
   /**
@@ -104,6 +114,7 @@ export default class Question {
       questionContent: this.questionContent,
       groupQuestion: this.isGroup,
       timeAsked: this.timeAsked,
+      questionType: this._questionType,
     };
   }
 
@@ -120,6 +131,7 @@ export default class Question {
     }
     this._studentsByID = model.students;
     this._groupQuestion = model.groupQuestion;
+    this._questionType = model.questionType;
   }
 
   public static fromQuestionModel(model: OfficeHoursQuestion): Question {
@@ -129,6 +141,7 @@ export default class Question {
       model.students,
       model.questionContent,
       model.groupQuestion,
+      model.questionType,
       model.timeAsked,
     );
     return question;

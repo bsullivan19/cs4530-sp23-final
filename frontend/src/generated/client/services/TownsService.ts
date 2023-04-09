@@ -304,6 +304,7 @@ townId: string,
 officeHoursAreaId: string,
 xSessionToken: string,
 requestBody: {
+questionType: string;
 groupQuestion: boolean;
 questionContent: string;
 },
@@ -423,18 +424,53 @@ xSessionToken: string,
     /**
      * @param townId 
      * @param officeHoursAreaId 
+     * @param questionId 
      * @param xSessionToken 
      * @returns TAModel Ok
      * @throws ApiError
      */
-    public takeNextOfficeHoursQuestion(
+    public takeNextOfficeHoursQuestionWithQuestionId(
 townId: string,
 officeHoursAreaId: string,
+questionId: string,
 xSessionToken: string,
 ): CancelablePromise<TAModel> {
         return this.httpRequest.request({
             method: 'PATCH',
-            url: '/towns/{townID}/{officeHoursAreaId}/takeQuestion',
+            url: '/towns/{townID}/{officeHoursAreaId}/{questionId}/takeQuestion',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+                'questionId': questionId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param xSessionToken 
+     * @param requestBody 
+     * @returns TAModel Ok
+     * @throws ApiError
+     */
+    public takeNextOfficeHoursQuestionWithQuestionIDs(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+requestBody: {
+questionIDs: Array<string>;
+},
+): CancelablePromise<TAModel> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/takeQuestions',
             path: {
                 'townID': townId,
                 'officeHoursAreaId': officeHoursAreaId,
@@ -442,6 +478,40 @@ xSessionToken: string,
             headers: {
                 'X-Session-Token': xSessionToken,
             },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Invalid values specified`,
+            },
+        });
+    }
+
+    /**
+     * @param townId 
+     * @param officeHoursAreaId 
+     * @param xSessionToken 
+     * @param requestBody 
+     * @returns OfficeHoursArea Ok
+     * @throws ApiError
+     */
+    public getUpdatedOfficeHoursModel(
+townId: string,
+officeHoursAreaId: string,
+xSessionToken: string,
+requestBody: OfficeHoursArea,
+): CancelablePromise<OfficeHoursArea> {
+        return this.httpRequest.request({
+            method: 'PATCH',
+            url: '/towns/{townID}/{officeHoursAreaId}/updateModel',
+            path: {
+                'townID': townId,
+                'officeHoursAreaId': officeHoursAreaId,
+            },
+            headers: {
+                'X-Session-Token': xSessionToken,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
             errors: {
                 400: `Invalid values specified`,
             },

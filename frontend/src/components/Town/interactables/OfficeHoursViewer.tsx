@@ -15,17 +15,52 @@ import {
   List,
   ListItem,
   Tag,
+  Stack,
+  Select,
+  OrderedList,
+  TableContainer,
+  TableCaption,
+  Thead,
+  Tr,
+  Th,
+  Tbody,
+  Td,
+  Table,
+  Heading,
+  Box,
+  VStack,
+  StackDivider,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
 import OfficeHoursAreaController, {
-  useActive,
   useQueue,
   useTAsByID,
+  useQuestionTypes,
+  usePriorities,
+  useIsSorted,
 } from '../../../classes/OfficeHoursAreaController';
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
+
+// Finds the next possible group to take grouped by the earliest guys question type
+const LIMIT = 4;
+function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
+  const questionIDs: string[] = [];
+  let questionType: string | undefined = undefined;
+  queue.forEach((question: OfficeHoursQuestion) => {
+    if (questionIDs.length < LIMIT && question.groupQuestion) {
+      if (questionType === undefined) {
+        questionType = question.questionType;
+      }
+      if (questionType === question.questionType) {
+        questionIDs.push(question.id);
+      }
+    }
+  });
+  return questionIDs.length > 0 ? questionIDs : undefined;
+}
 
 export function QueueViewer({
   controller,
@@ -37,18 +72,54 @@ export function QueueViewer({
   close: () => void;
 }): JSX.Element {
   const teachingAssistantsByID = useTAsByID(controller);
+  const townController = useTownController();
+  const curPlayerId = townController.ourPlayer.id;
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
 
-  const townController = useTownController();
-  const curPlayerId = townController.ourPlayer.id;
+  const [flag, setFlag] = useState(false);
+  const questionTypes = useQuestionTypes(controller);
+  const priorities = usePriorities(controller, curPlayerId);
+  const isSorted = useIsSorted(controller, curPlayerId);
+  const [questionType, setQuestionType] = useState('');
   const toast = useToast();
   const queue = useQueue(controller);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   townController.pause();
   useEffect(() => {
-    townController.getOfficeHoursQueue(controller);
-  }, [townController, controller]);
+    setSelectedQuestions(
+      selectedQuestions.filter(qid => queue.map(question => question.id).includes(qid)),
+    );
+    priorities.forEach((value: number, key: string) => {
+      if (!questionTypes.includes(key)) {
+        const copy = new Map<string, number>(priorities);
+        copy.delete(key);
+        controller.setPriorities(curPlayerId, copy);
+      }
+    });
+  }, [queue, questionTypes]);
+
+  const cmp = useCallback(
+    (x: OfficeHoursQuestion, y: OfficeHoursQuestion) => {
+      const p1: number | undefined = priorities.get(x.questionType);
+      const p2: number | undefined = priorities.get(y.questionType);
+      if (p1 === p2 || !isSorted) {
+        // timeAsked should always exist?
+        if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
+          return x.timeAsked - y.timeAsked;
+        }
+      }
+      if (p1 === undefined) {
+        return 1;
+      }
+      if (p2 === undefined) {
+        return -1;
+      }
+      return p1 - p2;
+    },
+    [priorities, isSorted],
+  );
 
   const addQuestion = useCallback(async () => {
     if (controller.questionsAsked(curPlayerId) != 0) {
@@ -56,9 +127,14 @@ export function QueueViewer({
         title: 'Cannot add more than 1 question to the queue',
         status: 'error',
       });
-    } else if (newQuestion) {
+    } else if (newQuestion && questionType) {
       try {
-        await townController.addOfficeHoursQuestion(controller, newQuestion, groupQuestion);
+        await townController.addOfficeHoursQuestion(
+          controller,
+          newQuestion,
+          groupQuestion,
+          questionType,
+        );
         toast({
           title: 'Question Created!',
           status: 'success',
@@ -83,6 +159,8 @@ export function QueueViewer({
       }
     }
   }, [
+    questionType,
+    setQuestionType,
     controller,
     curPlayerId,
     newQuestion,
@@ -96,9 +174,15 @@ export function QueueViewer({
 
   const nextQuestion = useCallback(async () => {
     try {
-      const taModel = await townController.takeNextOfficeHoursQuestion(controller);
+      const questionId = controller.questionQueue.shift()?.id;
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
+        controller,
+        questionId,
+      );
       toast({
-        title: `Successfully took question ${taModel.question?.id}, you will be teleported shortly`,
+        title: `Successfully took question ${taModel.questions?.map(
+          (q: OfficeHoursQuestion) => q.id,
+        )}, you will be teleported shortly`,
         status: 'success',
       });
       close();
@@ -117,27 +201,274 @@ export function QueueViewer({
         });
       }
     }
-  }, [controller, townController, toast, close]);
-  function QuestionView({ question }: { question: OfficeHoursQuestion }) {
+  }, [controller, townController, toast, close, cmp]);
+
+  const nextSelectedQuestions = useCallback(async () => {
+    try {
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
+        controller,
+        selectedQuestions,
+      );
+      toast({
+        title: `Successfully took questions ${taModel.questions?.map(
+          (q: OfficeHoursQuestion) => q.id,
+        )}, you will be teleported shortly`,
+        status: 'success',
+      });
+      close();
+    } catch (err) {
+      if (err instanceof Error) {
+        toast({
+          title: 'Unable to take next questions',
+          description: err.toString(),
+          status: 'error',
+        });
+      } else {
+        console.trace(err);
+        toast({
+          title: 'Unexpected Error',
+          status: 'error',
+        });
+      }
+    }
+  }, [controller, townController, toast, close, selectedQuestions]);
+
+  const takeQuestionsAsGroup = useCallback(async () => {
+    try {
+      const questionsAsGroup = getGroup(queue);
+      if (questionsAsGroup) {
+        const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
+          controller,
+          questionsAsGroup,
+        );
+        toast({
+          title: `Successfully took questions ${taModel.questions?.map(
+            (q: OfficeHoursQuestion) => q.id,
+          )}, you will be teleported shortly`,
+          status: 'success',
+        });
+        close();
+      } else {
+        toast({
+          title: `No questions to take that are group`,
+          status: 'success',
+        });
+      }
+    } catch (err) {
+      if (err instanceof Error) {
+        toast({
+          title: 'Unable to take next questions',
+          description: err.toString(),
+          status: 'error',
+        });
+      } else {
+        console.trace(err);
+        toast({
+          title: 'Unexpected Error',
+          status: 'error',
+        });
+      }
+    }
+  }, [controller, townController, toast, close, selectedQuestions]);
+
+  const updateModel = useCallback(async () => {
+    try {
+      const model = controller.officeHoursAreaModel();
+      const updatedModel = await townController.updateOfficeHoursModel(model);
+    } catch (err) {
+      toast({
+        title: 'Unable to take next question',
+        description: 'error',
+        status: 'error',
+      });
+    }
+  }, [controller, townController, isSorted]);
+
+  function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
     const usernames = players.map(p => p.userName);
+    if (!teachingAssistantsByID.includes(curPlayerId)) {
+      return (
+        <Tr>
+          <Td>{usernames}</Td>
+          <Td>{question.questionType}</Td>
+          <Td>{question.timeAsked}</Td>
+          <Td>{question.questionContent}</Td>
+        </Tr>
+      );
+    } else {
+      return (
+        <Tr>
+          <Td>
+            <Checkbox
+              type='checkbox'
+              name='Select Question'
+              isChecked={selectedQuestions.includes(question.id)}
+              onChange={e => {
+                if (selectedQuestions.includes(question.id)) {
+                  setSelectedQuestions(selectedQuestions.filter(qid => qid !== question.id));
+                } else {
+                  setSelectedQuestions(selectedQuestions.concat(question.id));
+                }
+              }}
+            />
+          </Td>
+          <Td>{usernames}</Td>
+          <Td>{question.questionType}</Td>
+          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
+          <Td>{question.timeAsked}</Td>
+          <Td>{question.questionContent}</Td>
+        </Tr>
+      );
+    }
+  }
+  function QuesitonsViewer(x: any) {
     return (
-      // TODO: number of quesiton, playerName
-      <ListItem>
-        <Tag>{usernames}</Tag>
-        <Tag>{question.questionContent}</Tag>
-        <Tag>{question.timeAsked || 0}</Tag>
-      </ListItem>
+      <TableContainer>
+        <Table size='sm'>
+          <TableCaption>Office Hours Queue</TableCaption>
+          <Thead>
+            <Tr>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
+              <Th>Username</Th>
+              <Th>Question Type</Th>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Group</Th> : null}
+              <Th>Time Asked</Th>
+              <Th>Question Description</Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {queue.sort(cmp).map(eachQuestion => (
+              <RowView key={eachQuestion.id} question={eachQuestion} />
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
+    );
+  }
+  function QuestionTypeViewer({ eachQuestionType }: { eachQuestionType: string }) {
+    return (
+      <Tr>
+        <Td>
+          <Checkbox
+            type='checkbox'
+            name='Should use Question Type in Priorities'
+            isChecked={priorities.has(eachQuestionType)}
+            value={eachQuestionType}
+            onChange={e => {
+              if (priorities.has(eachQuestionType)) {
+                priorities.delete(eachQuestionType);
+                const copy = new Map(priorities);
+                controller.setPriorities(curPlayerId, copy);
+                updateModel();
+              } else {
+                priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
+                const copy = new Map(priorities);
+                controller.setPriorities(curPlayerId, copy);
+                updateModel();
+              }
+            }}
+          />
+        </Td>
+        <Td>{eachQuestionType}</Td>
+        <Td>
+          {eachQuestionType !== 'Other' ? (
+            <Button
+              colorScheme='red'
+              onClick={() => {
+                const temp = questionTypes.filter(q => q !== eachQuestionType);
+                controller.questionTypes = temp;
+                updateModel();
+                if (priorities.has(eachQuestionType)) {
+                  priorities.delete(eachQuestionType);
+                  const copy = new Map(priorities);
+                  controller.setPriorities(curPlayerId, copy);
+                  updateModel();
+                }
+              }}>
+              Delete
+            </Button>
+          ) : (
+            <div>Default</div>
+          )}
+        </Td>
+      </Tr>
+    );
+  }
+  function QuestionTypesViewer(x: any) {
+    return (
+      <TableContainer>
+        <Table size='sm' maxWidth='100px'>
+          <TableCaption>Question Types</TableCaption>
+          <Thead>
+            <Tr>
+              <Th>Select Question Type</Th>
+              <Th>Question Type</Th>
+              <Th></Th>
+            </Tr>
+          </Thead>
+          <Tbody>
+            {questionTypes.map(eachQuestionType => (
+              <QuestionTypeViewer key={eachQuestionType} eachQuestionType={eachQuestionType} />
+            ))}
+          </Tbody>
+        </Table>
+      </TableContainer>
     );
   }
   const taView = (
-    <ModalFooter>
-      <Button colorScheme='red' mr={3} onClick={nextQuestion}>
-        Take next question (TAs only)
+    <ModalBody pb={6}>
+      <QuesitonsViewer> </QuesitonsViewer>
+      <Button colorScheme='blue' mr={3} onClick={nextQuestion}>
+        Take next question
       </Button>
-      <Button onClick={close}>Cancel</Button>
-    </ModalFooter>
+      <Button colorScheme='purple' mr={3} onClick={takeQuestionsAsGroup}>
+        Take questions as group (max 4)
+      </Button>
+      <Button colorScheme='red' mr={3} onClick={nextSelectedQuestions}>
+        Take selected question(s)
+      </Button>
+      {/*this adds space lines*/}
+      <VStack spacing={5} align='left'>
+        <List></List>
+        <FormLabel>Add Question Type</FormLabel>
+      </VStack>
+      <Input
+        placeholder='question type'
+        required
+        onChange={e => {
+          setQuestionType(e.target.value);
+        }}></Input>
+      <Button
+        colorScheme='green'
+        onClick={() => {
+          if (!questionTypes.includes(questionType) && questionType.length > 0) {
+            const temp = questionTypes.concat(questionType);
+            controller.questionTypes = temp;
+            updateModel();
+          }
+        }}>
+        Add Question Type
+      </Button>
+      <VStack spacing={5} align='left'>
+        <List></List>
+        <FormLabel>Sort By Question Type?</FormLabel>
+      </VStack>
+      <Checkbox
+        type='checkbox'
+        name='Should Sort'
+        isChecked={isSorted}
+        onChange={e => {
+          controller.setIsSorted(curPlayerId, !isSorted);
+          updateModel();
+        }}
+      />
+      <QuestionTypesViewer></QuestionTypesViewer>
+      <ModalFooter>
+        <Button onClick={close}>Cancel</Button>
+      </ModalFooter>
+    </ModalBody>
   );
   const studentView = (
     <form
@@ -146,17 +477,31 @@ export function QueueViewer({
         addQuestion();
       }}>
       <ModalBody pb={6}>
+        <QuesitonsViewer> </QuesitonsViewer>
         <FormControl>
           <FormLabel htmlFor='questionContent'>Question Content</FormLabel>
           <Input
             id='questionContent'
             placeholder='Enter your question here'
             name='questionContent'
-            value={newQuestion}
+            // value={newQuestion}
             onChange={e => setQuestion(e.target.value)}
           />
+          <Select
+            placeholder='Select Question Type'
+            onChange={e => {
+              setQuestionType(e.target.value);
+            }}>
+            {questionTypes.map(eachQuestion => {
+              return (
+                <option value={eachQuestion} key={eachQuestion}>
+                  {eachQuestion}
+                </option>
+              );
+            })}
+          </Select>
         </FormControl>
-        <FormLabel htmlFor='groupQuestion'>Group Question?</FormLabel>
+        <FormLabel htmlFor='groupQuestion'>Part of Group Question?</FormLabel>
         <Checkbox
           type='checkbox'
           id='groupQuestion'
@@ -176,6 +521,7 @@ export function QueueViewer({
   );
   return (
     <Modal
+      size={'6xl'}
       isOpen={isOpen}
       onClose={() => {
         close();
@@ -185,11 +531,6 @@ export function QueueViewer({
       <ModalContent>
         <ModalHeader>Office Hours, {controller.questionQueue.length} Questions Asked </ModalHeader>
         <ModalCloseButton />
-        <List spacing={6}>
-          {queue.map(eachQuestion => (
-            <QuestionView key={eachQuestion.id} question={eachQuestion} />
-          ))}
-        </List>
         <div>{teachingAssistantsByID.includes(curPlayerId) ? taView : studentView}</div>
       </ModalContent>
     </Modal>
@@ -238,3 +579,16 @@ export default function OfficeHoursViewerWrapper(): JSX.Element {
   }
   return <></>;
 }
+// 1
+// each question that students ask has a property of group question
+// ta: poll manually x number of students with the same question
+// student can be part of a group to make his wait time less, but he might have to be part of a group
+// qustionType
+
+// 2
+// each student is able to create a group question
+// each student is able to join a group question
+// group questions will be in the same queue as indivdiual questions
+// priority of group quesitons is more than individual questions
+//    group size
+//    groupSize * time

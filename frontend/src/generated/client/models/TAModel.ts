@@ -10,5 +10,5 @@ export type TAModel = {
     userName: string;
     location: PlayerLocation;
     breakoutRoomID?: string;
-    question?: OfficeHoursQuestion;
+    questions?: Array<OfficeHoursQuestion>;
 };

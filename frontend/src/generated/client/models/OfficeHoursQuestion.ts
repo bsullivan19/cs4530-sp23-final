@@ -9,4 +9,5 @@ export type OfficeHoursQuestion = {
     students: Array<string>;
     groupQuestion: boolean;
     timeAsked?: number;
+    questionType: string;
 };

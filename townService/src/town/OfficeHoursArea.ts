@@ -11,6 +11,8 @@ import {
   Interactable,
   OfficeHoursQueue,
   PlayerLocation,
+  TAInfo,
+  Priority,
 } from '../types/CoveyTownSocket';
 import InteractableArea from './InteractableArea';
 
@@ -23,6 +25,14 @@ export default class OfficeHoursArea extends InteractableArea {
   private _openBreakoutRooms: Map<string, string | undefined>;
 
   private _roomEmitter: TownEmitter;
+
+  private _questionTypes: string[];
+
+  private _taInfos: TAInfo[];
+
+  public get taInfos() {
+    return this._taInfos;
+  }
 
   public get questionQueue() {
     return this._queue;
@@ -48,6 +58,16 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._roomEmitter;
   }
 
+  // public constructor(
+  //   { id, teachingAssistantsByID }: OfficeHoursModel,
+  //   coordinates: BoundingBox,
+  //   townEmitter: TownEmitter,
+  // ) {
+
+  public get questionTypes() {
+    return this._questionTypes;
+  }
+
   public constructor(
     { id, teachingAssistantsByID }: OfficeHoursModel,
     coordinates: BoundingBox,
@@ -60,6 +80,8 @@ export default class OfficeHoursArea extends InteractableArea {
     // initialize breakout rooms map
     this._openBreakoutRooms = new Map<string, string | undefined>();
     this._queue = [];
+    this._questionTypes = ['Other'];
+    this._taInfos = [];
   }
 
   public addBreakoutRoom(breakoutRoomAreaID: string) {
@@ -78,34 +100,73 @@ export default class OfficeHoursArea extends InteractableArea {
       id: this.id,
       officeHoursActive: this.officeHoursActive,
       teachingAssistantsByID: this.teachingAssistantsByID,
+      questionTypes: this.questionTypes,
+      taInfos: this.taInfos.map(info => {
+        const x: TAInfo = {
+          taID: info.taID,
+          isSorted: info.isSorted,
+          priorities: info.priorities.map(p => {
+            const y: Priority = { key: p.key, value: p.value };
+            return y;
+          }),
+        };
+        return x;
+      }),
     };
   }
 
   // TODO intended functionallity?
   public updateModel(model: OfficeHoursModel) {
-    const queueCopy = this._queue;
-    this._queue = [];
+    this._questionTypes = model.questionTypes;
+    this._taInfos = model.taInfos;
+    this._emitAreaChanged();
   }
 
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
+      const info: TAInfo | undefined = this._taInfos.find(i => i.taID === player.id);
+      if (!info) {
+        const x: TAInfo = {
+          taID: player.id,
+          isSorted: false,
+          priorities: [],
+        };
+        this._taInfos.push(x);
+      }
       this._teachingAssistantsByID.push(player.id);
-      this._emitAreaChanged();
     }
+    this._emitAreaChanged();
+    this._emitQueueChanged();
   }
 
   // doesn't remove player from queue if he walks out of area
   public remove(player: Player) {
-    super.remove(player);
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
+    // Don't want to filter ta infos, it should always be there
+    // this._taInfos = this._taInfos.filter((info) => info.taID !== player.id);
+    // This removes the question
+    // Not desriable if we want to implement original group questions
+    // this._queue = this._queue.filter((q) => !q.studentsByID.includes(player.id));
+    super.remove(player);
     if (isTA(player)) {
       this._emitAreaChanged();
     }
+    this._emitQueueChanged();
   }
 
   public getQuestion(questionID: string): Question | undefined {
     return this._queue.find(q => q.id === questionID);
+  }
+
+  public getQuestionForPlayer(playerID: string): Question | undefined {
+    let question: Question | undefined;
+    this._queue.forEach((q: Question) => {
+      if (q.studentsByID.includes(playerID)) {
+        question = q;
+      }
+    });
+    return question;
   }
 
   /**
@@ -130,20 +191,68 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
+   * Stops an office hours breakout room for the TA. Resets all pertaining fields
+   * in office hours area and breakout room. Throws an error if there are no
+   * more breakout rooms.
+   */
+  public stopOfficeHours(ta: TA): PlayerLocation {
+    // Add breakout room back as being open
+    if (!ta.breakoutRoomID) {
+      throw new Error('TA does not have a breakout room');
+    }
+    if (this._openBreakoutRooms.get(ta.breakoutRoomID) !== ta.id) {
+      throw new Error('Breakout room and ta mismatch');
+    }
+    this._openBreakoutRooms.set(ta.breakoutRoomID, undefined);
+
+    ta.breakoutRoomID = undefined;
+    ta.currentQuestions = undefined;
+    ta.officeHoursID = undefined;
+    return this.areasCenter();
+  }
+
+  /**
+   * Assigns the next question in the queue to the ta and removes it
+   */
+  public nextQuestion(
+    teachingAssistant: TA,
+    questionID: string | undefined = undefined,
+  ): Question | undefined {
+    // TODO: update to use new question queue structure
+    let question;
+    if (questionID) {
+      question = this.getQuestion(questionID);
+      this.removeQuestion(teachingAssistant, questionID);
+    } else {
+      question = this._queue.shift();
+    }
+    if (question) {
+      if (!teachingAssistant.currentQuestions) {
+        teachingAssistant.currentQuestions = [];
+      }
+      teachingAssistant.currentQuestions.push(question);
+    }
+    this._emitQueueChanged();
+    return question;
+  }
+
+  /**
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
    */
-  public takeQuestion(teachingAssistant: TA): Question {
+  public takeQuestion(teachingAssistant: TA, questionID: string | undefined = undefined): Question {
     const breakoutRoomAreaID = this._getOpenBreakoutRoom();
     if (!breakoutRoomAreaID) {
       throw new Error('No open breakout rooms');
     }
-    const question = this._nextQuestion(teachingAssistant);
+
+    const question = this.nextQuestion(teachingAssistant, questionID);
+
     if (!question) {
       throw new Error('No questions available');
     }
+    teachingAssistant.currentQuestions = [question];
     this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
-    teachingAssistant.currentQuestion = question;
     teachingAssistant.officeHoursID = this.id;
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
     return question;
@@ -151,16 +260,51 @@ export default class OfficeHoursArea extends InteractableArea {
 
   // TODO unused, remove?
   /**
+   * TA is assigned a question and breakout room if both are available, otherwise
+   * throws and error.
+   */
+  public takeQuestions(teachingAssistant: TA, questionIDs: string[]): Question[] | undefined {
+    const breakoutRoomAreaID = this._getOpenBreakoutRoom();
+    if (!breakoutRoomAreaID) {
+      throw new Error('No open breakout rooms');
+    }
+    const ret: Question[] = [];
+    questionIDs.forEach(questionID => {
+      const question = this.nextQuestion(teachingAssistant, questionID);
+      if (!question) {
+        throw new Error('No questions available');
+      }
+      ret.push(question);
+    });
+    teachingAssistant.currentQuestions = ret;
+    this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
+    teachingAssistant.officeHoursID = this.id;
+    teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
+    return ret.length > 0 ? ret : undefined;
+  }
+
+  /**
    * Removes an existing question from the queue if the player is the a TA.
    */
   public removeQuestion(teachingAssistant: Player, questionID: string) {
     const question = this.getQuestion(questionID);
     if (question && isTA(teachingAssistant)) {
-      this._queue.filter(q => q.id !== questionID);
+      this._queue = this._queue.filter(q => q.id !== questionID);
     }
   }
 
   // TODO unused, remove?
+  /**
+   * Removes an existing question from the queue if the player is the a TA.
+   */
+  public removeQuestionForPlayer(player: Player) {
+    const question = this.getQuestionForPlayer(player.id);
+    if (question) {
+      this._queue = this._queue.filter(q => q.id !== question.id);
+      this._emitQueueChanged();
+    }
+  }
+
   /**
    * Removes the student from an existing question.
    * If the question has no students, the question is removed from the queue.
@@ -173,6 +317,16 @@ export default class OfficeHoursArea extends InteractableArea {
         this._queue = this._queue.filter(q => q.id !== questionID);
       }
     }
+  }
+
+  public removePlayerData(player: Player) {
+    this.removeQuestionForPlayer(player);
+    this._taInfos = this._taInfos.filter(taInfo => taInfo.taID !== player.id);
+    this._openBreakoutRooms.forEach((taID, breakoutID) => {
+      if (taID === player.id) {
+        this._openBreakoutRooms.set(breakoutID, undefined);
+      }
+    });
   }
 
   /**
@@ -194,26 +348,31 @@ export default class OfficeHoursArea extends InteractableArea {
       width: mapObject.width,
       height: mapObject.height,
     };
-    // return new OfficeHoursArea()
     return new OfficeHoursArea(
-      { id: mapObject.name, officeHoursActive: false, teachingAssistantsByID: [] },
+      {
+        id: mapObject.name,
+        officeHoursActive: false,
+        teachingAssistantsByID: [],
+        questionTypes: ['Other'],
+        taInfos: [],
+      },
       box,
       townEmitter,
     );
   }
 
-  /**
-   * Assigns the next question in the queue to the ta and removes it
-   */
-  private _nextQuestion(teachingAssistant: TA): Question | undefined {
-    // TODO: update to use new question queue structure
-    const question = this._queue.shift();
-    if (question) {
-      teachingAssistant.currentQuestion = question;
-    }
-    this._emitQueueChanged();
-    return question;
-  }
+  // /**
+  //  * Assigns the next question in the queue to the ta and removes it
+  //  */
+  // private _nextQuestion(teachingAssistant: TA): Question | undefined {
+  //   // TODO: update to use new question queue structure
+  //   const question = this._queue.shift();
+  //   if (question) {
+  //     teachingAssistant.currentQuestion = question;
+  //   }
+  //   this._emitQueueChanged();
+  //   return question;
+  // }
 
   private _getOpenBreakoutRoom(): string | undefined {
     for (const [areaID, ta] of this._openBreakoutRooms) {

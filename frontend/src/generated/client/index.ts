@@ -17,6 +17,8 @@ export type { OfficeHoursQuestion } from './models/OfficeHoursQuestion';
 export type { OfficeHoursQueue } from './models/OfficeHoursQueue';
 export type { PlayerLocation } from './models/PlayerLocation';
 export type { PosterSessionArea } from './models/PosterSessionArea';
+export type { Priority } from './models/Priority';
+export type { TAInfo } from './models/TAInfo';
 export type { TAModel } from './models/TAModel';
 export type { Town } from './models/Town';
 export type { TownCreateParams } from './models/TownCreateParams';

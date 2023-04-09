@@ -238,6 +238,11 @@ export default class Town {
     // clean up our listener adapter, and then let the CoveyTownController know that the
     // player's session is disconnected
     socket.on('disconnect', () => {
+      this._interactables.forEach(interactable => {
+        if (isOfficeHoursArea(interactable)) {
+          (interactable as OfficeHoursArea).removePlayerData(newPlayer);
+        }
+      });
       this._removePlayer(newPlayer);
       this._connectedSockets.delete(socket);
     });
@@ -365,9 +370,9 @@ export default class Town {
         // Remove from old area
         prevInteractable.remove(player);
       }
-      const newInteractable = this._interactables.find(
-        eachArea => eachArea.isActive && eachArea.contains(location),
-      );
+
+      const newInteractable = this._interactables.find(eachArea => eachArea.contains(location));
+
       if (newInteractable) {
         newInteractable.add(player);
       }
