@@ -520,7 +520,7 @@ export class TownsController extends Controller {
     const success = curTown.addConversationArea({
       id: curPlayer.breakoutRoomID,
       topic: questionType,
-      occupantsByID: studentIDs.concat(curPlayer.id),
+      occupantsByID: [], // studentIDs.concat(curPlayer.id),
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -582,7 +582,7 @@ export class TownsController extends Controller {
     const success = curTown.addConversationArea({
       id: curPlayer.breakoutRoomID,
       topic: questionType,
-      occupantsByID: studentIDs.concat(curPlayer.id),
+      occupantsByID: [], // studentIDs.concat(curPlayer.id),
     });
     if (!success) {
       throw new Error('Could not update breakout room');

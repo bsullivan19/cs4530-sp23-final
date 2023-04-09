@@ -28,6 +28,8 @@ describe('OfficeHoursArea', () => {
         id,
         officeHoursActive: false,
         teachingAssistantsByID: [],
+        questionTypes: [],
+        taInfos: [],
       },
       testAreaBox,
       townEmitter,
@@ -45,6 +47,8 @@ describe('OfficeHoursArea', () => {
       id,
       officeHoursActive: true,
       teachingAssistantsByID: [newPlayer.id],
+      questionTypes: ['Other'],
+      taInfos: [{ isSorted: false, priorities: [], taID: newPlayer.id }],
     } as OfficeHoursModel);
   });
   // test('[OMG2 updateModel] updateModel sets stars, title, and imageContents', () => {
@@ -76,6 +80,8 @@ describe('OfficeHoursArea', () => {
         id,
         officeHoursActive: true,
         teachingAssistantsByID: [newPlayer.id],
+        questionTypes: ['Other'],
+        taInfos: [{ isSorted: false, priorities: [], taID: newPlayer.id }],
       } as OfficeHoursModel);
     });
     it('Does not add the player to the TA list if not a TA', () => {
@@ -97,6 +103,11 @@ describe('OfficeHoursArea', () => {
         id,
         officeHoursActive: true,
         teachingAssistantsByID: [extraPlayer.id],
+        questionTypes: ['Other'],
+        taInfos: [
+          { isSorted: false, priorities: [], taID: newPlayer.id },
+          { isSorted: false, priorities: [], taID: extraPlayer.id },
+        ],
       } as OfficeHoursModel);
     });
     it("Clears the player's interactableID and emits an update for their location", () => {
@@ -114,6 +125,7 @@ describe('OfficeHoursArea', () => {
         students: [newPlayer.id],
         groupQuestion: true,
         timeAsked: 42,
+        questionType: nanoid(),
       };
 
       testArea.addUpdateQuestion(q1);
@@ -137,6 +149,7 @@ describe('OfficeHoursArea', () => {
         questionContent: nanoid(),
         students: [newPlayer.id],
         groupQuestion: true,
+        questionType: nanoid(),
       };
       const q2: OfficeHoursQuestion = {
         id: nanoid(),
@@ -145,6 +158,7 @@ describe('OfficeHoursArea', () => {
         students: [newPlayer.id],
         groupQuestion: true,
         timeAsked: 23,
+        questionType: nanoid(),
       };
       const q3: OfficeHoursQuestion = {
         id: nanoid(),
@@ -152,6 +166,7 @@ describe('OfficeHoursArea', () => {
         questionContent: nanoid(),
         students: [newPlayer.id],
         groupQuestion: true,
+        questionType: nanoid(),
       };
       testArea.addUpdateQuestion(q1);
       testArea.addUpdateQuestion(q2);
@@ -162,7 +177,15 @@ describe('OfficeHoursArea', () => {
   });
   describe('addUpdateQuestion', () => {
     it('Throws an error if the question has the wrong office hours id', () => {
-      const question: Question = new Question(nanoid(), nanoid(), [newStudent.id], nanoid(), false);
+      const question: Question = new Question(
+        nanoid(),
+        nanoid(),
+        [newStudent.id],
+        nanoid(),
+        false,
+        nanoid(),
+        10,
+      );
       expect(() => testArea.addUpdateQuestion(question.toModel())).toThrowError();
     });
     it('Adds the question if it does not exist in the queue', () => {
@@ -172,6 +195,8 @@ describe('OfficeHoursArea', () => {
         [newStudent.id],
         nanoid(),
         false,
+        nanoid(),
+        10,
       );
       expect(testArea.getQuestion(question.id)).toBeUndefined();
       testArea.addUpdateQuestion(question.toModel());
@@ -185,7 +210,15 @@ describe('OfficeHoursArea', () => {
       beforeEach(() => {
         questionID = nanoid();
         content = nanoid();
-        question = new Question(questionID, testArea.id, [newStudent.id], content, false);
+        question = new Question(
+          questionID,
+          testArea.id,
+          [newStudent.id],
+          content,
+          false,
+          nanoid(),
+          10,
+        );
         p2 = new Player(nanoid(), townEmitter);
         testArea.addUpdateQuestion(question.toModel());
       });
@@ -197,6 +230,7 @@ describe('OfficeHoursArea', () => {
           [p2.id],
           content,
           false,
+          nanoid(),
           question.timeAsked,
         );
         testArea.addUpdateQuestion(updatedQuestion.toModel());
@@ -204,7 +238,15 @@ describe('OfficeHoursArea', () => {
       });
       it('Removes the question if no students', () => {
         expect(testArea.getQuestion(question.id)).toEqual(question);
-        const updatedQuestion: Question = new Question(questionID, testArea.id, [], content, false);
+        const updatedQuestion: Question = new Question(
+          questionID,
+          testArea.id,
+          [],
+          content,
+          false,
+          nanoid(),
+          10,
+        );
         testArea.addUpdateQuestion(updatedQuestion.toModel());
         expect(testArea.getQuestion(question.id)).toBeUndefined();
       });
@@ -215,7 +257,7 @@ describe('OfficeHoursArea', () => {
     let br1: string;
     let ta1: TA;
     beforeEach(() => {
-      q1 = new Question(nanoid(), testArea.id, [newStudent.id], nanoid(), false);
+      q1 = new Question(nanoid(), testArea.id, [newStudent.id], nanoid(), false, nanoid(), 10);
       br1 = nanoid();
       ta1 = new TA(nanoid(), townEmitter);
     });
@@ -234,7 +276,7 @@ describe('OfficeHoursArea', () => {
       });
       it('Properly assigns the TA to a question and breakout room', () => {
         testArea.takeQuestion(ta1);
-        expect(ta1.currentQuestion).toEqual(q1);
+        expect(ta1.currentQuestions).toEqual([q1]);
         expect(ta1.officeHoursID).toEqual(testArea.id);
         expect(ta1.officeHoursID).toEqual(q1.officeHoursID);
         expect(ta1.breakoutRoomID).toEqual(br1);

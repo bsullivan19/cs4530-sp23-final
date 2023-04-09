@@ -371,7 +371,10 @@ export default class Town {
         prevInteractable.remove(player);
       }
 
-      const newInteractable = this._interactables.find(eachArea => eachArea.contains(location));
+      // TODO review. previous change to this broke tests. Why was the isActive check removed?
+      const newInteractable = this._interactables.find(
+        eachArea => eachArea.isActive && eachArea.contains(location),
+      );
 
       if (newInteractable) {
         newInteractable.add(player);
@@ -426,6 +429,7 @@ export default class Town {
       return false;
     }
     area.topic = conversationArea.topic;
+    console.log(this._players);
     area.addPlayersWithinBounds(this._players);
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;
