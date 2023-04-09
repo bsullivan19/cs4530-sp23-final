@@ -25,8 +25,8 @@ import {
   PosterSessionArea,
   OfficeHoursArea,
   OfficeHoursQuestion,
+  BreakoutRoomArea,
 } from './types/CoveyTownSocket';
-import BreakoutRoomArea from './town/BreakoutRoomArea';
 
 /**
  * Create a new conversation area using some random defaults

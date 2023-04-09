@@ -86,7 +86,7 @@ export interface BreakoutRoomArea {
   topic?: string;
   teachingAssistantID?: string;
   studentsByID: string[];
-  officeHoursAreaID: string;
+  linkedOfficeHoursID: string;
 };
 
 

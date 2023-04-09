@@ -60,7 +60,7 @@ export default class BreakoutRoomArea extends InteractableArea {
    * @param townEmitter a broadcast emitter that can be used to emit updates to players
    */
   public constructor(
-    { id, officeHoursAreaID, topic }: BreakoutRoomAreaModel,
+    { id, linkedOfficeHoursID: officeHoursAreaID, topic }: BreakoutRoomAreaModel,
     coordinates: BoundingBox,
     townEmitter: TownEmitter,
   ) {
@@ -86,8 +86,6 @@ export default class BreakoutRoomArea extends InteractableArea {
     }
   }
 
-
-
   /**
    * Convert this BreakoutRoomArea instance to a simple BreakoutRoomAreaModel suitable for
    * transporting over a socket to a client.
@@ -98,7 +96,7 @@ export default class BreakoutRoomArea extends InteractableArea {
       topic: this.topic,
       teachingAssistantID: this.teachingAssistant?.id,
       studentsByID: this.studentsByID,
-      officeHoursAreaID: this._linkedOfficeHoursID,
+      linkedOfficeHoursID: this._linkedOfficeHoursID,
     };
   }
 
@@ -128,7 +126,7 @@ export default class BreakoutRoomArea extends InteractableArea {
       throw new Error('no linkedOfficeHoursID value');
     }
     return new BreakoutRoomArea(
-      { id: name, officeHoursAreaID: officeHoursIDVal, studentsByID: [] },
+      { id: name, linkedOfficeHoursID: officeHoursIDVal, studentsByID: [] },
       rect,
       broadcastEmitter,
     );

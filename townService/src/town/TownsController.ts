@@ -527,7 +527,7 @@ export class TownsController extends Controller {
       topic: questionType,
       teachingAssistantID: curPlayer.id,
       studentsByID: studentIDs,
-      officeHoursAreaID: officeHoursAreaId,
+      linkedOfficeHoursID: officeHoursAreaId,
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -596,7 +596,7 @@ export class TownsController extends Controller {
       topic: questionType,
       teachingAssistantID: curPlayer.id,
       studentsByID: studentIDs,
-      officeHoursAreaID: officeHoursAreaId,
+      linkedOfficeHoursID: officeHoursAreaId,
     });
     if (!success) {
       throw new Error('Could not update breakout room');

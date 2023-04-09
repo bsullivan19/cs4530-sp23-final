@@ -98,7 +98,7 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
       topic: this.topic,
       teachingAssistantID: this.teachingAssistant?.id,
       studentsByID: this.students.map(s => s.id),
-      officeHoursAreaID: this.officeHoursAreaID,
+      linkedOfficeHoursID: this.officeHoursAreaID,
     };
   }
 
@@ -121,7 +121,7 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
   ): BreakoutRoomAreaController {
     const ret = new BreakoutRoomAreaController(
       breakoutRoomAreaModel.id,
-      breakoutRoomAreaModel.officeHoursAreaID,
+      breakoutRoomAreaModel.linkedOfficeHoursID,
       breakoutRoomAreaModel.topic,
     );
     ret.teachingAssistant = taController;
