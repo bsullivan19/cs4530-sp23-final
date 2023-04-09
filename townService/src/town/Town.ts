@@ -429,7 +429,6 @@ export default class Town {
       return false;
     }
     area.topic = conversationArea.topic;
-    console.log(this._players);
     area.addPlayersWithinBounds(this._players);
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;
