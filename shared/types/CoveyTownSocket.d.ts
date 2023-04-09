@@ -32,7 +32,7 @@ export interface Player {
 };
 export interface TAModel extends Player {
   breakoutRoomID?: string;
-  question?: OfficeHoursQuestion;
+  questions?: OfficeHoursQuestion[];
 };
 
 export type XY = { x: number, y: number };
