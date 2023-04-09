@@ -1,5 +1,6 @@
 import {
   Button,
+  FormLabel,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -18,6 +19,7 @@ import { useBreakoutRoomAreaController, useInteractable } from '../../../classes
 import BreakoutRoomAreaInteractable from './BreakoutRoomArea';
 import useTownController from '../../../hooks/useTownController';
 import BreakoutRoomAreaController, {
+  useBreakoutRoomAreaTA,
   // useBreakoutRoomAreaStudents,
   // useBreakoutRoomAreaTA,
   useBreakoutRoomAreaTopic,
@@ -34,7 +36,8 @@ export function BreakoutRoomModal({
 }): JSX.Element {
   const townController = useTownController();
   const topic = useBreakoutRoomAreaTopic(controller);
-  // const teachingAssistant = useBreakoutRoomAreaTA(controller);
+  const teachingAssistant = useBreakoutRoomAreaTA(controller);
+  const curPlayerId = townController.ourPlayer.id;
   // const students = useBreakoutRoomAreaStudents(controller);
   const toast = useToast();
 
@@ -79,9 +82,13 @@ export function BreakoutRoomModal({
             finishQuestion();
           }}>
           <ModalFooter>
-            <Button colorScheme='red' mr={'3'} onClick={finishQuestion}>
-              Close Breakout Room
-            </Button>
+            {teachingAssistant?.id === curPlayerId ? (
+              <Button colorScheme='red' mr={'3'} onClick={finishQuestion}>
+                Close Breakout Room
+              </Button>
+            ) : (
+              <FormLabel>Wait For TA to close Session</FormLabel>
+            )}
           </ModalFooter>
         </form>
       </ModalContent>

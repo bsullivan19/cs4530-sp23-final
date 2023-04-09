@@ -437,7 +437,6 @@ export default class Town {
     const area = this._interactables.find(
       eachArea => eachArea.id === breakoutRoomArea.id,
     ) as BreakoutRoomArea;
-    console.log(area);
     if (
       !area ||
       !breakoutRoomArea.topic ||
