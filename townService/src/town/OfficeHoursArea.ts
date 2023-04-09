@@ -290,6 +290,7 @@ export default class OfficeHoursArea extends InteractableArea {
     const question = this.getQuestion(questionID);
     if (question && isTA(teachingAssistant)) {
       this._queue = this._queue.filter(q => q.id !== questionID);
+      this._emitQueueChanged();
     }
   }
 

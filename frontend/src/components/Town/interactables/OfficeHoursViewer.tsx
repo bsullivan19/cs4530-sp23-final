@@ -284,6 +284,21 @@ export function QueueViewer({
     }
   }, [controller, townController, isSorted]);
 
+  const kickQuestion = useCallback(
+    async (question: OfficeHoursQuestion) => {
+      try {
+        await townController.removeOfficeHoursQuestion(controller, question.id);
+      } catch (err) {
+        toast({
+          title: 'Unable to kick question',
+          description: 'error',
+          status: 'error',
+        });
+      }
+    },
+    [controller, townController],
+  );
+
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
@@ -318,6 +333,15 @@ export function QueueViewer({
           <Td>{question.questionType}</Td>
           <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
           <Td>{question.timeAsked}</Td>
+          <Td>
+            <Button
+              colorScheme='red'
+              onClick={() => {
+                kickQuestion(question);
+              }}>
+              Kick
+            </Button>
+          </Td>
           <Td>{question.questionContent}</Td>
         </Tr>
       );
@@ -335,6 +359,7 @@ export function QueueViewer({
               <Th>Question Type</Th>
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Group</Th> : null}
               <Th>Time Asked</Th>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Kick</Th> : null}
               <Th>Question Description</Th>
             </Tr>
           </Thead>

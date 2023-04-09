@@ -621,6 +621,32 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
+  @Patch('{townID}/{officeHoursAreaId}/{questionID}/removeQuestion')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async removeOfficeHoursQuestion(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Path() questionID: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<OfficeHoursArea> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    } else if (!isTA(curPlayer)) {
+      throw new InvalidParametersError('This player is not a TA');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    (<OfficeHoursAreaReal>officeHoursArea).removeQuestion(curPlayer, questionID);
+    return (<OfficeHoursAreaReal>officeHoursArea).toModel();
+  }
+
   /**
    * Connects a client's socket to the requested town, or disconnects the socket if no such town exists
    *
