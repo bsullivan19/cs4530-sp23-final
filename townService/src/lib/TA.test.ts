@@ -36,6 +36,7 @@ describe('TA', () => {
         [newPlayer.id],
         nanoid(),
         false,
+        false,
         nanoid(),
         0,
       );
