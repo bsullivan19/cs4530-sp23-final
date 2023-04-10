@@ -201,65 +201,70 @@ export default function TownSelection(): JSX.Element {
             <Heading p='4' as='h2' size='lg'>
               Create a New Town
             </Heading>
-            <Flex p='2'>
-              <Box flex='1'>
-                <FormControl>
-                  <FormLabel htmlFor='townName'>New Town Name</FormLabel>
-                  <Input
-                    name='townName'
-                    placeholder='New Town Name'
-                    value={newTownName}
-                    onChange={event => setNewTownName(event.target.value)}
-                  />
-                </FormControl>
+            <Flex p='2' mt={-2}>
+              <FormControl>
+                <FormLabel htmlFor='townName'>New Town Name</FormLabel>
+                <Input
+                  name='townName'
+                  placeholder='New Town Name'
+                  value={newTownName}
+                  onChange={event => setNewTownName(event.target.value)}
+                />
+              </FormControl>
+              <Box ml={2}>
+                <FormLabel htmlFor='isPublic'>Publicly Listed</FormLabel>
+                <Checkbox
+                  id='isPublic'
+                  name='isPublic'
+                  isChecked={newTownIsPublic}
+                  onChange={e => {
+                    setNewTownIsPublic(e.target.checked);
+                  }}
+                />
               </Box>
+            </Flex>
+            <Flex p='2' mt={-2}>
+              <FormControl>
+                <FormLabel htmlFor='adminPwd'>Admin Password</FormLabel>
+                <Input
+                  name='adminPwd'
+                  placeholder='Admin Password (*optional)'
+                  value={adminPwd}
+                  onChange={event => {
+                    setAdminPwd(event.target.value);
+                    setTaPassword(event.target.value);
+                  }}
+                />
+              </FormControl>
               <Box>
-                <FormControl>
-                  <FormLabel htmlFor='isPublic'>Publicly Listed</FormLabel>
-                  <Checkbox
-                    id='isPublic'
-                    name='isPublic'
-                    isChecked={newTownIsPublic}
-                    onChange={e => {
-                      setNewTownIsPublic(e.target.checked);
-                    }}
-                  />
-                </FormControl>
-              </Box>
-              {/** TODO:(Enter admin password) Set TA password for town */}
-            </Flex>
-            <Flex p='2'>
-              <Box flex='1'>
-                <FormControl>
-                  <FormLabel htmlFor='adminPwd'>Admin Password</FormLabel>
-                  <Input
-                    name='adminPwd'
-                    placeholder='Admin Password (*optional)'
-                    value={adminPwd}
-                    onChange={event => {
-                      setAdminPwd(event.target.value);
-                      setTaPassword(event.target.value);
-                    }}
-                  />
-                </FormControl>
+                <Button mt={8} ml={2} data-testid='newTownButton' onClick={handleCreate}>
+                  Create
+                </Button>
               </Box>
             </Flex>
-            <Box>
-              <Button data-testid='newTownButton' onClick={handleCreate}>
-                Create
-              </Button>
-            </Box>
           </Box>
           <Heading p='4' as='h2' size='lg'>
             -or-
           </Heading>
-
           <Box borderWidth='1px' borderRadius='lg'>
             <Heading p='4' as='h2' size='lg'>
               Join an Existing Town
             </Heading>
             <Box borderWidth='1px' borderRadius='lg'>
-              <Flex p='4'>
+              <Flex p='2'>
+                <FormControl>
+                  <FormLabel htmlFor='taPassword'> TA Password </FormLabel>
+                  <Input
+                    name='taPassword'
+                    placeholder='TA Password (*optional)'
+                    value={taPassword}
+                    onChange={event => setTaPassword(event.target.value)}
+                  />
+                </FormControl>
+              </Flex>
+            </Box>
+            <Box borderWidth='1px' borderRadius='lg'>
+              <Flex p='2'>
                 <FormControl>
                   <FormLabel htmlFor='townIDToJoin'>Town ID</FormLabel>
                   <Input
@@ -269,26 +274,15 @@ export default function TownSelection(): JSX.Element {
                     onChange={event => setTownIDToJoin(event.target.value)}
                   />
                 </FormControl>
-                {/** TODO: Join as TA, admin password */}
-                <Flex p='2'>
-                  <Box flex='1'>
-                    <FormControl>
-                      <FormLabel htmlFor='taPassword'>TA Password</FormLabel>
-                      <Input
-                        name='taPassword'
-                        placeholder='TA Password (*optional)'
-                        value={taPassword}
-                        onChange={event => setTaPassword(event.target.value)}
-                      />
-                    </FormControl>
-                  </Box>
-                </Flex>
-                <Button data-testid='joinTownByIDButton' onClick={() => handleJoin(townIDToJoin)}>
+                <Button
+                  mt={8}
+                  ml={2}
+                  data-testid='joinTownByIDButton'
+                  onClick={() => handleJoin(townIDToJoin)}>
                   Connect
                 </Button>
               </Flex>
             </Box>
-
             <Heading p='4' as='h4' size='md'>
               Select a public town to join
             </Heading>
