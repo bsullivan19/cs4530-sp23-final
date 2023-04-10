@@ -974,6 +974,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
+  public async removeOfficeHoursQuestionForPlayer(
+    officeHoursArea: OfficeHoursAreaController,
+  ): Promise<OfficeHoursArea> {
+    return this._townsService.removeOfficeHoursQuestionForPlayer(
+      this.townID,
+      officeHoursArea.id,
+      this.sessionToken,
+    );
+  }
+
   public async updateOfficeHoursModel(model: OfficeHoursArea): Promise<OfficeHoursArea> {
     return this._townsService.getUpdatedOfficeHoursModel(
       this.townID,

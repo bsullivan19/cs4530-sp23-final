@@ -123,7 +123,7 @@ export function QueueViewer({
   );
 
   const addQuestion = useCallback(async () => {
-    if (controller.questionsAsked(curPlayerId) != 0) {
+    if (controller.questionsAsked(curPlayerId) !== 0) {
       toast({
         title: 'Cannot add more than 1 question to the queue',
         status: 'error',
@@ -163,10 +163,6 @@ export function QueueViewer({
         title: 'Question Created!',
         status: 'success',
       });
-      setQuestion('');
-      setGroupQuestion(false);
-      setPartOfGroupQuestion(false);
-      close();
     } catch (err) {
       if (err instanceof Error) {
         toast({
@@ -327,6 +323,18 @@ export function QueueViewer({
     [controller, toast, townController],
   );
 
+  const removeQuestionForPlayer = useCallback(async () => {
+    try {
+      await townController.removeOfficeHoursQuestionForPlayer(controller);
+    } catch (err) {
+      toast({
+        title: 'Unable to remove question for student',
+        description: 'error',
+        status: 'error',
+      });
+    }
+  }, [controller, toast, townController]);
+
   const joinQuestion = useCallback(
     async (questionId: string) => {
       try {
@@ -355,7 +363,7 @@ export function QueueViewer({
       return (
         <Tr>
           <Td>
-            {question.groupQuestion ? (
+            {question.groupQuestion && controller.questionsAsked(curPlayerId) === 0 ? (
               <Button
                 colorScheme='green'
                 onClick={() => {
@@ -604,9 +612,15 @@ export function QueueViewer({
           onChange={e => setPartOfGroupQuestion(e.target.checked)}
         />
         <div> </div>
-        <Button colorScheme='blue' mr={3} onClick={addQuestion}>
-          Create
-        </Button>
+        {controller.questionsAsked(curPlayerId) === 0 ? (
+          <Button colorScheme='blue' mr={3} onClick={addQuestion}>
+            Create Question
+          </Button>
+        ) : (
+          <Button colorScheme='red' mr={3} onClick={removeQuestionForPlayer}>
+            Remove Question
+          </Button>
+        )}
       </ModalBody>
       <ModalFooter>
         <Button onClick={close}>Cancel</Button>
