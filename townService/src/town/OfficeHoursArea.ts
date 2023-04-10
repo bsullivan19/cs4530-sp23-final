@@ -311,7 +311,10 @@ export default class OfficeHoursArea extends InteractableArea {
   public removeQuestionForPlayer(player: Player) {
     const question = this.getQuestionForPlayer(player.id);
     if (question) {
-      this._queue = this._queue.filter(q => q.id !== question.id);
+      question.removeStudent(player);
+      if (question.studentsByID.length === 0) {
+        this._queue = this._queue.filter(q => q.id !== question.id);
+      }
       this._emitQueueChanged();
     }
   }

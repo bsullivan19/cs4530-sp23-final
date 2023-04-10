@@ -334,7 +334,7 @@ export class TownsController extends Controller {
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() requestBody: { questionContent: string; groupQuestion: boolean; questionType: string },
+    @Body() requestBody: { questionContent: string; partOfGroupQuestion: boolean; groupQuestion: boolean; questionType: string },
   ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
@@ -360,6 +360,7 @@ export class TownsController extends Controller {
       groupQuestion: requestBody.groupQuestion,
       timeAsked: Date.now(),
       questionType: requestBody.questionType,
+      partOfGroupQuestion: requestBody.partOfGroupQuestion,
     };
     (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(newQuestion);
     return newQuestion;

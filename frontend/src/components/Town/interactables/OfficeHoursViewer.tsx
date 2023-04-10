@@ -44,7 +44,7 @@ function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
   const questionIDs: string[] = [];
   let questionType: string | undefined = undefined;
   queue.forEach((question: OfficeHoursQuestion) => {
-    if (questionIDs.length < LIMIT && question.groupQuestion) {
+    if (questionIDs.length < LIMIT && question.partOfGroupQuestion) {
       if (questionType === undefined) {
         questionType = question.questionType;
       }
@@ -71,6 +71,7 @@ export function QueueViewer({
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
+  const [partOfGroupQuestion, setPartOfGroupQuestion] = useState<boolean>(false);
 
   // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
@@ -143,10 +144,18 @@ export function QueueViewer({
       });
       return;
     }
+    if (groupQuestion && partOfGroupQuestion) {
+      toast({
+        title: 'Cannot create a group question that is potentially individual',
+        status: 'error',
+      });
+      return;
+    }
     try {
       await townController.addOfficeHoursQuestion(
         controller,
         newQuestion,
+        partOfGroupQuestion,
         groupQuestion,
         questionType,
       );
@@ -156,6 +165,7 @@ export function QueueViewer({
       });
       setQuestion('');
       setGroupQuestion(false);
+      setPartOfGroupQuestion(false);
       close();
     } catch (err) {
       if (err instanceof Error) {
@@ -179,6 +189,7 @@ export function QueueViewer({
     newQuestion,
     setQuestion,
     groupQuestion,
+    partOfGroupQuestion,
     setGroupQuestion,
     toast,
     townController,
@@ -344,29 +355,18 @@ export function QueueViewer({
       return (
         <Tr>
           <Td>
-            <Button
-              colorScheme='green'
-              onClick={() => {
-                // toast({
-                //   title: 'join',
-                //   description: 'error',
-                //   status: 'error',
-                // });
-                if (question.groupQuestion) {
+            {question.groupQuestion ? (
+              <Button
+                colorScheme='green'
+                onClick={() => {
                   joinQuestion(question.id);
-                } else {
-                  toast({
-                    title: 'Can only join group questions',
-                    status: 'error',
-                  });
-                }
-              }}>
-              join
-            </Button>
+                }}>
+                join
+              </Button>
+            ) : null}
           </Td>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
-          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
           <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>{question.questionContent}</Td>
         </Tr>
@@ -390,7 +390,7 @@ export function QueueViewer({
           </Td>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
-          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
+          <Td>{question.partOfGroupQuestion ? 'true' : 'false'}</Td>
           <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>
             <Button
@@ -417,7 +417,6 @@ export function QueueViewer({
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
               <Th>Usernames</Th>
               <Th>Question Type</Th>
-              <Th>Group</Th>
               <Th>Time Waiting (min)</Th>
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Kick</Th> : null}
               <Th>Question Description</Th>
@@ -586,13 +585,23 @@ export function QueueViewer({
             })}
           </Select>
         </FormControl>
-        <FormLabel htmlFor='groupQuestion'>Part of Group Question?</FormLabel>
+        <FormLabel htmlFor='groupQuestion'>Create Group Question?</FormLabel>
         <Checkbox
           type='checkbox'
           id='groupQuestion'
           name='groupQuestion'
           checked={groupQuestion}
           onChange={e => setGroupQuestion(e.target.checked)}
+        />
+        <FormLabel htmlFor='partOfGroupQuestion'>
+          Individual with potential of being taken with a group (less waiting time)?
+        </FormLabel>
+        <Checkbox
+          type='checkbox'
+          id='partOfGroupQuestion'
+          name='partOfGroupQuestion'
+          checked={partOfGroupQuestion}
+          onChange={e => setPartOfGroupQuestion(e.target.checked)}
         />
         <div> </div>
         <Button colorScheme='blue' mr={3} onClick={addQuestion}>
