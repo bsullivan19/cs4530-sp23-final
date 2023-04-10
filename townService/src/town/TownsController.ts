@@ -337,7 +337,6 @@ export class TownsController extends Controller {
     @Body()
     requestBody: {
       questionContent: string;
-      partOfGroupQuestion: boolean;
       groupQuestion: boolean;
       questionType: string;
     },
@@ -363,10 +362,9 @@ export class TownsController extends Controller {
       officeHoursID: officeHoursAreaId,
       questionContent: requestBody.questionContent,
       students: [curPlayer.id],
-      groupQuestion: requestBody.groupQuestion,
       timeAsked: Date.now(),
       questionType: requestBody.questionType,
-      partOfGroupQuestion: requestBody.partOfGroupQuestion,
+      groupQuestion: requestBody.groupQuestion,
     };
     (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(newQuestion);
     return newQuestion;

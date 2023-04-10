@@ -861,7 +861,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   public async addOfficeHoursQuestion(
     officeHoursArea: OfficeHoursAreaController,
     questionContent: string,
-    partOfGroupQuestion: boolean,
     groupQuestion: boolean,
     questionType: string,
   ): Promise<OfficeHoursQuestion> {
@@ -869,7 +868,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionContent, partOfGroupQuestion, groupQuestion, questionType },
+      { questionContent, groupQuestion, questionType },
     );
   }
 

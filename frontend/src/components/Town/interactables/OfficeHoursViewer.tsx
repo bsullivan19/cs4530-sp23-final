@@ -39,23 +39,6 @@ import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import _ from 'lodash';
 
 // Finds the next possible group to take grouped by the earliest guys question type
-const LIMIT = 4;
-function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
-  const questionIDs: string[] = [];
-  let questionType: string | undefined = undefined;
-  queue.forEach((question: OfficeHoursQuestion) => {
-    if (questionIDs.length < LIMIT && question.partOfGroupQuestion) {
-      if (questionType === undefined) {
-        questionType = question.questionType;
-      }
-      if (questionType === question.questionType) {
-        questionIDs.push(question.id);
-      }
-    }
-  });
-  return questionIDs.length > 0 ? questionIDs : undefined;
-}
-
 export function QueueViewer({
   controller,
   isOpen,
@@ -71,7 +54,6 @@ export function QueueViewer({
 
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
-  const [partOfGroupQuestion, setPartOfGroupQuestion] = useState<boolean>(false);
 
   // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
@@ -144,18 +126,10 @@ export function QueueViewer({
       });
       return;
     }
-    if (groupQuestion && partOfGroupQuestion) {
-      toast({
-        title: 'Cannot create a group question that is potentially individual',
-        status: 'error',
-      });
-      return;
-    }
     try {
       await townController.addOfficeHoursQuestion(
         controller,
         newQuestion,
-        partOfGroupQuestion,
         groupQuestion,
         questionType,
       );
@@ -178,16 +152,7 @@ export function QueueViewer({
         });
       }
     }
-  }, [
-    questionType,
-    controller,
-    curPlayerId,
-    newQuestion,
-    groupQuestion,
-    partOfGroupQuestion,
-    toast,
-    townController,
-  ]);
+  }, [questionType, controller, curPlayerId, newQuestion, groupQuestion, toast, townController]);
 
   const nextQuestion = useCallback(async () => {
     try {
@@ -253,44 +218,6 @@ export function QueueViewer({
       }
     }
   }, [controller, townController, toast, close, selectedQuestions]);
-
-  const takeQuestionsAsGroup = useCallback(async () => {
-    try {
-      const questionsAsGroup = getGroup(queue);
-      if (questionsAsGroup) {
-        const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
-          controller,
-          questionsAsGroup,
-        );
-        toast({
-          title: `Successfully took questions ${taModel.questions?.map(
-            (q: OfficeHoursQuestion) => q.id,
-          )}, you will be teleported shortly`,
-          status: 'success',
-        });
-        close();
-      } else {
-        toast({
-          title: `No questions to take that are group`,
-          status: 'success',
-        });
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        toast({
-          title: 'Unable to take next questions',
-          description: err.toString(),
-          status: 'error',
-        });
-      } else {
-        console.trace(err);
-        toast({
-          title: 'Unexpected Error',
-          status: 'error',
-        });
-      }
-    }
-  }, [queue, townController, controller, toast, close]);
 
   const updateModel = useCallback(async () => {
     try {
@@ -395,7 +322,7 @@ export function QueueViewer({
           </Td>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
-          <Td>{question.partOfGroupQuestion ? 'true' : 'false'}</Td>
+          <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
           <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>
             <Button
@@ -422,7 +349,7 @@ export function QueueViewer({
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
               <Th>Usernames</Th>
               <Th>Question Type</Th>
-              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Can take with group</Th> : null}
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>group question</Th> : null}
               <Th>Time Waiting (min)</Th>
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Kick</Th> : null}
               <Th>Question Description</Th>
@@ -513,9 +440,6 @@ export function QueueViewer({
       <Button colorScheme='blue' mr={3} onClick={nextQuestion}>
         Take next question
       </Button>
-      <Button colorScheme='purple' mr={3} onClick={takeQuestionsAsGroup}>
-        Take questions as group (max 4)
-      </Button>
       <Button colorScheme='red' mr={3} onClick={nextSelectedQuestions}>
         Take selected question(s)
       </Button>
@@ -598,16 +522,6 @@ export function QueueViewer({
           name='groupQuestion'
           checked={groupQuestion}
           onChange={e => setGroupQuestion(e.target.checked)}
-        />
-        <FormLabel htmlFor='partOfGroupQuestion'>
-          Individual with potential of being taken with a group (less waiting time)?
-        </FormLabel>
-        <Checkbox
-          type='checkbox'
-          id='partOfGroupQuestion'
-          name='partOfGroupQuestion'
-          checked={partOfGroupQuestion}
-          onChange={e => setPartOfGroupQuestion(e.target.checked)}
         />
         <div> </div>
         {controller.questionsAsked(curPlayerId) === 0 ? (

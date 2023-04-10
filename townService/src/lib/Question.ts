@@ -22,8 +22,6 @@ export default class Question {
   /* Is this question a group question */
   private _groupQuestion: boolean;
 
-  private _partOfGroupQuestion: boolean;
-
   /* Is this question a group question */
   private _questionType: string;
 
@@ -55,10 +53,6 @@ export default class Question {
     return this._timeAsked;
   }
 
-  public get partOfGroupQuestion() {
-    return this._partOfGroupQuestion;
-  }
-
   /**
    * Constructs a new Question
    * @param id Unique ID for this question
@@ -70,7 +64,6 @@ export default class Question {
     officeHoursID: string,
     studentsByID: string[],
     questionContent: string,
-    partOfGroupQuestion: boolean,
     groupQuestion: boolean,
     questionType: string,
     timeAsked?: number,
@@ -85,7 +78,6 @@ export default class Question {
     this._groupQuestion = groupQuestion;
     this._timeAsked = timeAsked || Date.now();
     this._questionType = questionType;
-    this._partOfGroupQuestion = partOfGroupQuestion;
   }
 
   /**
@@ -123,7 +115,6 @@ export default class Question {
       groupQuestion: this.isGroup,
       timeAsked: this.timeAsked,
       questionType: this._questionType,
-      partOfGroupQuestion: this._partOfGroupQuestion,
     };
   }
 
@@ -141,7 +132,6 @@ export default class Question {
     this._studentsByID = model.students;
     this._groupQuestion = model.groupQuestion;
     this._questionType = model.questionType;
-    this._partOfGroupQuestion = model.partOfGroupQuestion;
   }
 
   public static fromQuestionModel(model: OfficeHoursQuestion): Question {
@@ -150,7 +140,6 @@ export default class Question {
       model.officeHoursID,
       model.students,
       model.questionContent,
-      model.partOfGroupQuestion,
       model.groupQuestion,
       model.questionType,
       model.timeAsked,
