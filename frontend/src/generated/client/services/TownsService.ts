@@ -331,29 +331,28 @@ questionContent: string;
      * Joins an existing group question
      * @param townId ID of the town in which to join a question
      * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+     * @param questionId 
      * @param xSessionToken 
-     * @param requestBody 
      * @returns OfficeHoursQuestion Ok
      * @throws ApiError
      */
     public joinOfficeHoursQuestion(
 townId: string,
 officeHoursAreaId: string,
+questionId: string,
 xSessionToken: string,
-requestBody: string,
 ): CancelablePromise<OfficeHoursQuestion> {
         return this.httpRequest.request({
             method: 'PATCH',
-            url: '/towns/{townID}/{officeHoursAreaId}/joinQuestion',
+            url: '/towns/{townID}/{officeHoursAreaId}/{questionID}/joinQuestion',
             path: {
                 'townID': townId,
                 'officeHoursAreaId': officeHoursAreaId,
+                'questionID': questionId,
             },
             headers: {
                 'X-Session-Token': xSessionToken,
             },
-            body: requestBody,
-            mediaType: 'application/json',
             errors: {
                 400: `Invalid values specified`,
             },
@@ -411,37 +410,6 @@ xSessionToken: string,
             path: {
                 'townID': townId,
                 'officeHoursAreaId': officeHoursAreaId,
-            },
-            headers: {
-                'X-Session-Token': xSessionToken,
-            },
-            errors: {
-                400: `Invalid values specified`,
-            },
-        });
-    }
-
-    /**
-     * @param townId 
-     * @param officeHoursAreaId 
-     * @param questionId 
-     * @param xSessionToken 
-     * @returns TAModel Ok
-     * @throws ApiError
-     */
-    public takeNextOfficeHoursQuestionWithQuestionId(
-townId: string,
-officeHoursAreaId: string,
-questionId: string,
-xSessionToken: string,
-): CancelablePromise<TAModel> {
-        return this.httpRequest.request({
-            method: 'PATCH',
-            url: '/towns/{townID}/{officeHoursAreaId}/{questionId}/takeQuestion',
-            path: {
-                'townID': townId,
-                'officeHoursAreaId': officeHoursAreaId,
-                'questionId': questionId,
             },
             headers: {
                 'X-Session-Token': xSessionToken,

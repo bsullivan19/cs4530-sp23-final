@@ -72,7 +72,6 @@ export function QueueViewer({
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
 
-  // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
   const priorities = usePriorities(controller, curPlayerId);
   const isSorted = useIsSorted(controller, curPlayerId);
@@ -105,10 +104,7 @@ export function QueueViewer({
       const p1: number | undefined = priorities.get(x.questionType);
       const p2: number | undefined = priorities.get(y.questionType);
       if (p1 === p2 || !isSorted) {
-        // timeAsked should always exist?
-        if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
-          return x.timeAsked - y.timeAsked;
-        }
+        return x.timeAsked - y.timeAsked;
       }
       if (p1 === undefined) {
         return 1;
@@ -347,11 +343,6 @@ export function QueueViewer({
             <Button
               colorScheme='green'
               onClick={() => {
-                // toast({
-                //   title: 'join',
-                //   description: 'error',
-                //   status: 'error',
-                // });
                 if (question.groupQuestion) {
                   joinQuestion(question.id);
                 } else {

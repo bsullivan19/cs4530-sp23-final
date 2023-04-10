@@ -8,6 +8,6 @@ export type OfficeHoursQuestion = {
     questionContent: string;
     students: Array<string>;
     groupQuestion: boolean;
-    timeAsked?: number;
+    timeAsked: number;
     questionType: string;
 };
