@@ -58,6 +58,7 @@ export default class Question {
   public get partOfGroupQuestion() {
     return this._partOfGroupQuestion;
   }
+
   /**
    * Constructs a new Question
    * @param id Unique ID for this question

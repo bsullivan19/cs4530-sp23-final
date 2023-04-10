@@ -334,7 +334,13 @@ export class TownsController extends Controller {
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() requestBody: { questionContent: string; partOfGroupQuestion: boolean; groupQuestion: boolean; questionType: string },
+    @Body()
+    requestBody: {
+      questionContent: string;
+      partOfGroupQuestion: boolean;
+      groupQuestion: boolean;
+      questionType: string;
+    },
   ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
