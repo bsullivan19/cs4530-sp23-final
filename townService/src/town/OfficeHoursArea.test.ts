@@ -123,7 +123,6 @@ describe('OfficeHoursArea', () => {
         officeHoursID: testArea.id,
         questionContent: nanoid(),
         students: [newPlayer.id],
-        partOfGroupQuestion: false,
         groupQuestion: true,
         timeAsked: 42,
         questionType: nanoid(),
