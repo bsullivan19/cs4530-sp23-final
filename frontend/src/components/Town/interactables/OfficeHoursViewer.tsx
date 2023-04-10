@@ -319,12 +319,7 @@ export function QueueViewer({
   const joinQuestion = useCallback(
     async (questionId: string) => {
       try {
-        // toast({
-        //   title: 'qid'.concat(questionId),
-        //   description: 'error',
-        //   status: 'error',
-        // });
-        const question = await townController.joinOfficeHoursQuestion(controller, questionId);
+        await townController.joinOfficeHoursQuestion(controller, questionId);
       } catch (err) {
         toast({
           title: 'Unable to join question',
