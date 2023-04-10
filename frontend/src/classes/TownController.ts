@@ -442,6 +442,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      */
     this._socket.on('playerMoved', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
+      // Depricated?
+      // TODO check to make sure not moving out of breakout room area
+      // const fromArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
+      // if (fromArea) {
+      //   const toArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
+      // }
       if (playerToUpdate) {
         if (playerToUpdate === this._ourPlayer) {
           /*
@@ -467,7 +473,9 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket.on('teleportPlayer', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
       if (playerToUpdate) {
+        // Force update location
         playerToUpdate.teleportSprite(movedPlayer.location);
+        // this.emit('playerMoved', playerToUpdate);
       }
     });
 
@@ -730,6 +738,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     });
   }
 
+  // TODO: Add once OfficeHoursArea frontend Interactable is implemented
+  /*
+  public getOfficeHoursAreaController(officeHoursArea: OfficeHoursArea): OfficeHoursAreaController {
+    const existingController = this._officeHoursAreas.find(
+      area => area.id === officeHoursArea.name,
+    );
+    if (existingController) {
+      return existingController;
+    } else {
+      const newController = new OfficeHoursAreaController({
+        id: officeHoursArea.name,
+        officeHoursActive: false,
+        teachingAssistantsByID: [],
+      });
+      this._officeHoursAreas.push(newController);
+      return newController;
+    }
+  }*/
+
   /**
    * Retrieve the viewing area controller that corresponds to a viewingAreaModel, creating one if necessary
    *
@@ -891,6 +918,28 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.sessionToken,
     );
   }
+
+  // public async takeNextOfficeHoursQuestion(
+  //   officeHoursArea: OfficeHoursAreaController,
+  // ): Promise<TAModel> {
+  //   return this._townsService.takeNextOfficeHoursQuestion(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     this.sessionToken,
+  //   );
+  // }
+
+  // public async takeNextOfficeHoursQuestionWithQuestionId(
+  //   officeHoursArea: OfficeHoursAreaController,
+  //   questionId: string | undefined,
+  // ): Promise<TAModel> {
+  //   return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     questionId || '',
+  //     this.sessionToken,
+  //   );
+  // }
 
   public async takeNextOfficeHoursQuestionWithQuestionIDs(
     officeHoursArea: OfficeHoursAreaController,

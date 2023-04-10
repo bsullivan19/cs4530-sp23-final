@@ -58,6 +58,12 @@ export default class OfficeHoursArea extends InteractableArea {
     return this._roomEmitter;
   }
 
+  // public constructor(
+  //   { id, teachingAssistantsByID }: OfficeHoursModel,
+  //   coordinates: BoundingBox,
+  //   townEmitter: TownEmitter,
+  // ) {
+
   public get questionTypes() {
     return this._questionTypes;
   }
@@ -241,6 +247,28 @@ export default class OfficeHoursArea extends InteractableArea {
     return question;
   }
 
+  // /**
+  //  * TA is assigned a question and breakout room if both are available, otherwise
+  //  * throws and error.
+  //  */
+  // public takeQuestion(teachingAssistant: TA, questionID: string | undefined = undefined): Question {
+  //   const breakoutRoomAreaID = this._getOpenBreakoutRoom();
+  //   if (!breakoutRoomAreaID) {
+  //     throw new Error('No open breakout rooms');
+  //   }
+
+  //   const question = this.nextQuestion(teachingAssistant, questionID);
+
+  //   if (!question) {
+  //     throw new Error('No questions available');
+  //   }
+  //   teachingAssistant.currentQuestions = [question];
+  //   this._assignBreakoutRoom(teachingAssistant.id, breakoutRoomAreaID);
+  //   teachingAssistant.officeHoursID = this.id;
+  //   teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
+  //   return question;
+  // }
+
   /**
    * TA is assigned a question and breakout room if both are available, otherwise
    * throws and error.
@@ -343,6 +371,19 @@ export default class OfficeHoursArea extends InteractableArea {
       townEmitter,
     );
   }
+
+  // /**
+  //  * Assigns the next question in the queue to the ta and removes it
+  //  */
+  // private _nextQuestion(teachingAssistant: TA): Question | undefined {
+  //   // TODO: update to use new question queue structure
+  //   const question = this._queue.shift();
+  //   if (question) {
+  //     teachingAssistant.currentQuestion = question;
+  //   }
+  //   this._emitQueueChanged();
+  //   return question;
+  // }
 
   private _getOpenBreakoutRoom(): string | undefined {
     for (const [areaID, ta] of this._openBreakoutRooms) {
