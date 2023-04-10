@@ -340,20 +340,15 @@ export function QueueViewer({
       return (
         <Tr>
           <Td>
-            <Button
-              colorScheme='green'
-              onClick={() => {
-                if (question.groupQuestion) {
+            {question.groupQuestion && controller.questionsAsked(curPlayerId) === 0 ? (
+              <Button
+                colorScheme='green'
+                onClick={() => {
                   joinQuestion(question.id);
-                } else {
-                  toast({
-                    title: 'Can only join group questions',
-                    status: 'error',
-                  });
-                }
-              }}>
-              join
-            </Button>
+                }}>
+                join
+              </Button>
+            ) : null}
           </Td>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
