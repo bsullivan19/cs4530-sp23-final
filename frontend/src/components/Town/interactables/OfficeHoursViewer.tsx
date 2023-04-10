@@ -320,11 +320,6 @@ export function QueueViewer({
     async (questionId: string) => {
       try {
         await townController.joinOfficeHoursQuestion(controller, questionId);
-        toast({
-          title: 'Question Joined!',
-          status: 'success',
-        });
-        return;
       } catch (err) {
         toast({
           title: 'Unable to join question',
