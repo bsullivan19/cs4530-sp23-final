@@ -13,7 +13,6 @@ import { CancelablePromise, Town, TownsService } from '../../generated/client';
 import * as useLoginController from '../../hooks/useLoginController';
 import { mockTownController } from '../../TestUtils';
 import TownSelection from './TownSelection';
-import { tap } from 'lodash';
 
 const mockConnect = jest.fn(() => Promise.resolve());
 
@@ -292,6 +291,7 @@ describe('Town Selection', () => {
     let renderData: RenderResult<typeof import('@testing-library/dom/types/queries')>;
     let townIDToJoinField: HTMLInputElement;
     let userNameField: HTMLInputElement;
+    let taPasswordField: HTMLInputElement;
     let joinTownByIDButton: HTMLElement;
     let expectedTowns: Town[];
     let newTownNameField: HTMLInputElement;
@@ -313,6 +313,9 @@ describe('Town Selection', () => {
         'ID of town to join, or select from list',
       ) as HTMLInputElement;
       userNameField = renderData.getByPlaceholderText('Your name') as HTMLInputElement;
+      taPasswordField = renderData.getByPlaceholderText(
+        'TA Password (*optional)',
+      ) as HTMLInputElement;
       joinTownByIDButton = renderData.getByTestId('joinTownByIDButton');
       newTownIsPublicCheckbox = renderData.getByLabelText('Publicly Listed') as HTMLInputElement;
       newTownNameField = renderData.getByPlaceholderText('New Town Name') as HTMLInputElement;
@@ -323,11 +326,21 @@ describe('Town Selection', () => {
     });
     describe('Joining existing towns', () => {
       describe('Joining an existing town by ID', () => {
-        const joinTownWithOptions = async (params: { coveyTownID: string; userName: string }) => {
+        const joinTownWithOptions = async (params: {
+          coveyTownID: string;
+          userName: string;
+          taPassword?: string;
+        }) => {
           fireEvent.change(userNameField, { target: { value: params.userName } });
           await waitFor(() => {
             expect(userNameField.value).toBe(params.userName);
           });
+          if (params.taPassword) {
+            fireEvent.change(taPasswordField, { target: { value: params.taPassword } });
+            await waitFor(() => {
+              expect(taPasswordField.value).toBe(params.taPassword);
+            });
+          }
           fireEvent.change(townIDToJoinField, { target: { value: params.coveyTownID } });
           await waitFor(() => expect(townIDToJoinField.value).toBe(params.coveyTownID));
           userEvent.click(joinTownByIDButton);
@@ -349,6 +362,32 @@ describe('Town Selection', () => {
               userName,
               townID: coveyTownID,
               taPassword: noTaPassword,
+              loginController: mockLoginController,
+            }),
+          );
+          await waitFor(() => expect(mockedTownController.connect).toBeCalled());
+          await waitFor(() => expect(mockConnect).toBeCalledWith(expectedProviderVideoToken));
+          await waitFor(() =>
+            expect(mockLoginController.setTownController).toBeCalledWith(mockedTownController),
+          );
+        });
+        it('includes a connect button, which creates a new TownController and connects with the entered password when one is given', async () => {
+          const coveyTownID = nanoid();
+          const userName = nanoid();
+          const taPassword = nanoid();
+
+          await joinTownWithOptions({
+            coveyTownID,
+            userName,
+            taPassword,
+          });
+
+          // Check for call sequence
+          await waitFor(() =>
+            expect(coveyTownControllerConstructorSpy).toBeCalledWith({
+              userName,
+              townID: coveyTownID,
+              taPassword,
               loginController: mockLoginController,
             }),
           );

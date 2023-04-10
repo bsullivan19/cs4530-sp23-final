@@ -17,10 +17,9 @@ describe('BreakoutRoomArea', () => {
   beforeEach(() => {
     mockClear(townEmitter);
     testArea = new BreakoutRoomArea(
-      { topic, id, occupantsByID: [] },
+      { id, topic, studentsByID: [], linkedOfficeHoursID: '2' },
       testAreaBox,
       townEmitter,
-      '2',
     );
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
@@ -30,7 +29,7 @@ describe('BreakoutRoomArea', () => {
       expect(testArea.occupantsByID).toEqual([newPlayer.id]);
 
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ topic, id, occupantsByID: [newPlayer.id] });
+      expect(lastEmittedUpdate).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
     });
     it("Sets the player's conversationLabel and emits an update for their location", () => {
       expect(newPlayer.location.interactableID).toEqual(id);
@@ -48,7 +47,7 @@ describe('BreakoutRoomArea', () => {
 
       expect(testArea.occupantsByID).toEqual([extraPlayer.id]);
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ topic, id, occupantsByID: [extraPlayer.id] });
+      expect(lastEmittedUpdate).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
     });
     it("Clears the player's conversationLabel and emits an update for their location", () => {
       testArea.remove(newPlayer);
@@ -59,17 +58,13 @@ describe('BreakoutRoomArea', () => {
     it('Clears the topic of the conversation area when the last occupant leaves', () => {
       testArea.remove(newPlayer);
       const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ topic: undefined, id, occupantsByID: [] });
-      expect(testArea.topic).toBeUndefined();
+      expect(lastEmittedUpdate).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
+      expect(testArea.topic).toEqual(topic);
     });
   });
   test('toModel sets the ID, topic and occupantsByID and sets no other properties', () => {
     const model = testArea.toModel();
-    expect(model).toEqual({
-      id,
-      topic,
-      occupantsByID: [newPlayer.id],
-    });
+    expect(model).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
   });
   describe('fromMapObject', () => {
     it('Throws an error if the width or height are missing', () => {

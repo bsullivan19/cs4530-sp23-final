@@ -25,6 +25,7 @@ import {
   PosterSessionArea,
   OfficeHoursArea,
   OfficeHoursQuestion,
+  BreakoutRoomArea,
 } from './types/CoveyTownSocket';
 
 /**
@@ -179,7 +180,7 @@ export class MockedPlayer {
 export function mockPlayer(townID: string, taPassword: string = nanoid()): MockedPlayer {
   const socket = mockDeep<CoveyTownSocket>();
   const userName = nanoid();
-  socket.handshake.auth = { userName, townID };
+  socket.handshake.auth = { userName, townID, taPassword };
   const socketToRoomMock = mock<BroadcastOperator<ServerToClientEvents, SocketData>>();
   socket.to.mockImplementation((room: string | string[]) => {
     if (townID === room) {
@@ -210,8 +211,12 @@ export function isPosterSessionArea(interactable: Interactable): interactable is
   return 'stars' in interactable;
 }
 
+export function isBreakoutRoomArea(interactable: Interactable): interactable is BreakoutRoomArea {
+  return 'linkedOfficeHoursID' in interactable;
+}
+
 export function isConversationArea(interactable: Interactable): interactable is ConversationArea {
-  return 'topic' in interactable;
+  return 'topic' in interactable && !isBreakoutRoomArea(interactable);
 }
 
 export function isOfficeHoursArea(interactable: Interactable): interactable is OfficeHoursArea {

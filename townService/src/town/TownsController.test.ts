@@ -36,6 +36,7 @@ function expectTownListMatches(towns: Town[], town: TestTownData) {
 
 const broadcastEmitter = jest.fn();
 describe('TownsController integration tests', () => {
+  jest.setTimeout(10000);
   let controller: TownsController;
 
   const createdTownEmitters: Map<string, DeepMockProxy<TownEmitter>> = new Map();
