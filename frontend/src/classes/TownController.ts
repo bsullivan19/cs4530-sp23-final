@@ -861,6 +861,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   public async addOfficeHoursQuestion(
     officeHoursArea: OfficeHoursAreaController,
     questionContent: string,
+    partOfGroupQuestion: boolean,
     groupQuestion: boolean,
     questionType: string,
   ): Promise<OfficeHoursQuestion> {
@@ -868,7 +869,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionContent, groupQuestion, questionType },
+      { questionContent, partOfGroupQuestion, groupQuestion, questionType },
     );
   }
 
@@ -969,6 +970,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       questionID,
+      this.sessionToken,
+    );
+  }
+
+  public async removeOfficeHoursQuestionForPlayer(
+    officeHoursArea: OfficeHoursAreaController,
+  ): Promise<OfficeHoursArea> {
+    return this._townsService.removeOfficeHoursQuestionForPlayer(
+      this.townID,
+      officeHoursArea.id,
       this.sessionToken,
     );
   }

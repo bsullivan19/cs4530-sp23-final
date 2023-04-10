@@ -334,7 +334,13 @@ export class TownsController extends Controller {
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Header('X-Session-Token') sessionToken: string,
-    @Body() requestBody: { questionContent: string; groupQuestion: boolean; questionType: string },
+    @Body()
+    requestBody: {
+      questionContent: string;
+      partOfGroupQuestion: boolean;
+      groupQuestion: boolean;
+      questionType: string;
+    },
   ): Promise<OfficeHoursQuestion> {
     const curTown = this._townsStore.getTownByID(townID);
     if (!curTown) {
@@ -360,6 +366,7 @@ export class TownsController extends Controller {
       groupQuestion: requestBody.groupQuestion,
       timeAsked: Date.now(),
       questionType: requestBody.questionType,
+      partOfGroupQuestion: requestBody.partOfGroupQuestion,
     };
     (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(newQuestion);
     return newQuestion;
@@ -684,6 +691,29 @@ export class TownsController extends Controller {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
     (<OfficeHoursAreaReal>officeHoursArea).removeQuestion(curPlayer, questionID);
+    return (<OfficeHoursAreaReal>officeHoursArea).toModel();
+  }
+
+  @Patch('{townID}/{officeHoursAreaId}/removeQuestionForPlayer')
+  @Response<InvalidParametersError>(400, 'Invalid values specified')
+  public async removeOfficeHoursQuestionForPlayer(
+    @Path() townID: string,
+    @Path() officeHoursAreaId: string,
+    @Header('X-Session-Token') sessionToken: string,
+  ): Promise<OfficeHoursArea> {
+    const curTown = this._townsStore.getTownByID(townID);
+    if (!curTown) {
+      throw new InvalidParametersError('Invalid town ID');
+    }
+    const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
+    if (!curPlayer) {
+      throw new InvalidParametersError('Invalid session ID');
+    }
+    const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
+    if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
+      throw new InvalidParametersError('Invalid office hours area ID');
+    }
+    (<OfficeHoursAreaReal>officeHoursArea).removeQuestionForPlayer(curPlayer);
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 

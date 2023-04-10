@@ -217,6 +217,7 @@ describe('TownsController integration tests', () => {
           it('Properly adds an office hours question', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -234,6 +235,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid town id', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -249,6 +251,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid office hours id', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -264,6 +267,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid session token', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -281,6 +285,7 @@ describe('TownsController integration tests', () => {
           it('Properly adds an office hours question', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -298,6 +303,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid town id', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -313,6 +319,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid office hours id', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
@@ -328,6 +335,7 @@ describe('TownsController integration tests', () => {
           it('Throws an error if invalid session token', async () => {
             const requestQuestion = {
               questionContent: nanoid(),
+              partOfGroupQuestion: false,
               groupQuestion: false,
               questionType: '1',
             };
