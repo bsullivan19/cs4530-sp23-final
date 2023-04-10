@@ -39,23 +39,6 @@ import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import _ from 'lodash';
 
 // Finds the next possible group to take grouped by the earliest guys question type
-const LIMIT = 4;
-function getGroup(queue: OfficeHoursQuestion[]): string[] | undefined {
-  const questionIDs: string[] = [];
-  let questionType: string | undefined = undefined;
-  queue.forEach((question: OfficeHoursQuestion) => {
-    if (questionIDs.length < LIMIT && question.groupQuestion) {
-      if (questionType === undefined) {
-        questionType = question.questionType;
-      }
-      if (questionType === question.questionType) {
-        questionIDs.push(question.id);
-      }
-    }
-  });
-  return questionIDs.length > 0 ? questionIDs : undefined;
-}
-
 export function QueueViewer({
   controller,
   isOpen,
@@ -122,61 +105,65 @@ export function QueueViewer({
   );
 
   const addQuestion = useCallback(async () => {
-    if (controller.questionsAsked(curPlayerId) != 0) {
+    if (controller.questionsAsked(curPlayerId) !== 0) {
       toast({
         title: 'Cannot add more than 1 question to the queue',
         status: 'error',
       });
-    } else if (newQuestion && questionType) {
-      try {
-        await townController.addOfficeHoursQuestion(
-          controller,
-          newQuestion,
-          groupQuestion,
-          questionType,
-        );
+      return;
+    }
+    if (!newQuestion) {
+      toast({
+        title: 'Question must contain content',
+        status: 'error',
+      });
+      return;
+    }
+    if (!questionType) {
+      toast({
+        title: 'Question must have a type',
+        status: 'error',
+      });
+      return;
+    }
+    try {
+      await townController.addOfficeHoursQuestion(
+        controller,
+        newQuestion,
+        groupQuestion,
+        questionType,
+      );
+      toast({
+        title: 'Question Created!',
+        status: 'success',
+      });
+    } catch (err) {
+      if (err instanceof Error) {
         toast({
-          title: 'Question Created!',
-          status: 'success',
+          title: 'Unable to create question',
+          description: err.toString(),
+          status: 'error',
         });
-        setQuestion('');
-        setGroupQuestion(false);
-        close();
-      } catch (err) {
-        if (err instanceof Error) {
-          toast({
-            title: 'Unable to create question',
-            description: err.toString(),
-            status: 'error',
-          });
-        } else {
-          console.trace(err);
-          toast({
-            title: 'Unexpected Error',
-            status: 'error',
-          });
-        }
+      } else {
+        console.trace(err);
+        toast({
+          title: 'Unexpected Error',
+          status: 'error',
+        });
       }
     }
-  }, [
-    questionType,
-    controller,
-    curPlayerId,
-    newQuestion,
-    setQuestion,
-    groupQuestion,
-    setGroupQuestion,
-    toast,
-    townController,
-    close,
-  ]);
+  }, [questionType, controller, curPlayerId, newQuestion, groupQuestion, toast, townController]);
 
   const nextQuestion = useCallback(async () => {
     try {
       const questionId = controller.questionQueue.shift()?.id;
-      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionId(
+      if (!questionId) {
+        throw new Error('No next question');
+      }
+      const questionList: string[] = [questionId];
+      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
         controller,
-        questionId,
+        questionList,
       );
       toast({
         title: `Successfully took question ${taModel.questions?.map(
@@ -232,44 +219,6 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close, selectedQuestions]);
 
-  const takeQuestionsAsGroup = useCallback(async () => {
-    try {
-      const questionsAsGroup = getGroup(queue);
-      if (questionsAsGroup) {
-        const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
-          controller,
-          questionsAsGroup,
-        );
-        toast({
-          title: `Successfully took questions ${taModel.questions?.map(
-            (q: OfficeHoursQuestion) => q.id,
-          )}, you will be teleported shortly`,
-          status: 'success',
-        });
-        close();
-      } else {
-        toast({
-          title: `No questions to take that are group`,
-          status: 'success',
-        });
-      }
-    } catch (err) {
-      if (err instanceof Error) {
-        toast({
-          title: 'Unable to take next questions',
-          description: err.toString(),
-          status: 'error',
-        });
-      } else {
-        console.trace(err);
-        toast({
-          title: 'Unexpected Error',
-          status: 'error',
-        });
-      }
-    }
-  }, [queue, townController, controller, toast, close]);
-
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
@@ -298,16 +247,59 @@ export function QueueViewer({
     [controller, toast, townController],
   );
 
+  const removeQuestionForPlayer = useCallback(async () => {
+    try {
+      await townController.removeOfficeHoursQuestionForPlayer(controller);
+    } catch (err) {
+      toast({
+        title: 'Unable to remove question for student',
+        description: 'error',
+        status: 'error',
+      });
+    }
+  }, [controller, toast, townController]);
+
+  const joinQuestion = useCallback(
+    async (questionId: string) => {
+      try {
+        await townController.joinOfficeHoursQuestion(controller, questionId);
+        toast({
+          title: 'Question Joined!',
+          status: 'success',
+        });
+        return;
+      } catch (err) {
+        toast({
+          title: 'Unable to join question',
+          description: 'error',
+          status: 'error',
+        });
+      }
+    },
+    [townController, controller, toast],
+  );
+
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
-    const usernames = players.map(p => p.userName);
+    const usernames = players.map(p => p.userName.concat(' '));
     if (!teachingAssistantsByID.includes(curPlayerId)) {
       return (
         <Tr>
+          <Td>
+            {question.groupQuestion && controller.questionsAsked(curPlayerId) === 0 ? (
+              <Button
+                colorScheme='green'
+                onClick={() => {
+                  joinQuestion(question.id);
+                }}>
+                join
+              </Button>
+            ) : null}
+          </Td>
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
-          <Td>{question.timeAsked}</Td>
+          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>{question.questionContent}</Td>
         </Tr>
       );
@@ -331,7 +323,7 @@ export function QueueViewer({
           <Td>{usernames}</Td>
           <Td>{question.questionType}</Td>
           <Td>{question.groupQuestion ? 'true' : 'false'}</Td>
-          <Td>{question.timeAsked}</Td>
+          <Td>{Math.round((Date.now() - question.timeAsked) / 600) / 100}</Td>
           <Td>
             <Button
               colorScheme='red'
@@ -353,11 +345,12 @@ export function QueueViewer({
           <TableCaption>Office Hours Queue</TableCaption>
           <Thead>
             <Tr>
+              {!teachingAssistantsByID.includes(curPlayerId) ? <Th>Join</Th> : null}
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
-              <Th>Username</Th>
+              <Th>Usernames</Th>
               <Th>Question Type</Th>
-              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Group</Th> : null}
-              <Th>Time Asked</Th>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>group question</Th> : null}
+              <Th>Time Waiting (min)</Th>
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Kick</Th> : null}
               <Th>Question Description</Th>
             </Tr>
@@ -447,9 +440,6 @@ export function QueueViewer({
       <Button colorScheme='blue' mr={3} onClick={nextQuestion}>
         Take next question
       </Button>
-      <Button colorScheme='purple' mr={3} onClick={takeQuestionsAsGroup}>
-        Take questions as group (max 4)
-      </Button>
       <Button colorScheme='red' mr={3} onClick={nextSelectedQuestions}>
         Take selected question(s)
       </Button>
@@ -525,7 +515,7 @@ export function QueueViewer({
             })}
           </Select>
         </FormControl>
-        <FormLabel htmlFor='groupQuestion'>Part of Group Question?</FormLabel>
+        <FormLabel htmlFor='groupQuestion'>Create Group Question?</FormLabel>
         <Checkbox
           type='checkbox'
           id='groupQuestion'
@@ -534,9 +524,15 @@ export function QueueViewer({
           onChange={e => setGroupQuestion(e.target.checked)}
         />
         <div> </div>
-        <Button colorScheme='blue' mr={3} onClick={addQuestion}>
-          Create
-        </Button>
+        {controller.questionsAsked(curPlayerId) === 0 ? (
+          <Button colorScheme='blue' mr={3} onClick={addQuestion}>
+            Create Question
+          </Button>
+        ) : (
+          <Button colorScheme='red' mr={3} onClick={removeQuestionForPlayer}>
+            Remove Question
+          </Button>
+        )}
       </ModalBody>
       <ModalFooter>
         <Button onClick={close}>Cancel</Button>

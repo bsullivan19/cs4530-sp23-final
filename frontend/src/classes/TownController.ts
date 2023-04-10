@@ -882,8 +882,8 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     return this._townsService.joinOfficeHoursQuestion(
       this.townID,
       officeHoursArea.id,
-      this.sessionToken,
       questionID,
+      this.sessionToken,
     );
   }
 
@@ -929,17 +929,17 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   //   );
   // }
 
-  public async takeNextOfficeHoursQuestionWithQuestionId(
-    officeHoursArea: OfficeHoursAreaController,
-    questionId: string | undefined,
-  ): Promise<TAModel> {
-    return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
-      this.townID,
-      officeHoursArea.id,
-      questionId || '',
-      this.sessionToken,
-    );
-  }
+  // public async takeNextOfficeHoursQuestionWithQuestionId(
+  //   officeHoursArea: OfficeHoursAreaController,
+  //   questionId: string | undefined,
+  // ): Promise<TAModel> {
+  //   return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     questionId || '',
+  //     this.sessionToken,
+  //   );
+  // }
 
   public async takeNextOfficeHoursQuestionWithQuestionIDs(
     officeHoursArea: OfficeHoursAreaController,
@@ -969,6 +969,16 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       questionID,
+      this.sessionToken,
+    );
+  }
+
+  public async removeOfficeHoursQuestionForPlayer(
+    officeHoursArea: OfficeHoursAreaController,
+  ): Promise<OfficeHoursArea> {
+    return this._townsService.removeOfficeHoursQuestionForPlayer(
+      this.townID,
+      officeHoursArea.id,
       this.sessionToken,
     );
   }
