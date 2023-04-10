@@ -422,6 +422,7 @@ export function QueueViewer({
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Select Question</Th> : null}
               <Th>Usernames</Th>
               <Th>Question Type</Th>
+              {teachingAssistantsByID.includes(curPlayerId) ? <Th>Can take with group</Th> : null}
               <Th>Time Waiting (min)</Th>
               {teachingAssistantsByID.includes(curPlayerId) ? <Th>Kick</Th> : null}
               <Th>Question Description</Th>
