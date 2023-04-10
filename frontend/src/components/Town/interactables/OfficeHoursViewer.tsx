@@ -183,13 +183,10 @@ export function QueueViewer({
     controller,
     curPlayerId,
     newQuestion,
-    setQuestion,
     groupQuestion,
     partOfGroupQuestion,
-    setGroupQuestion,
     toast,
     townController,
-    close,
   ]);
 
   const nextQuestion = useCallback(async () => {
