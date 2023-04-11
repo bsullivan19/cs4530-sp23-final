@@ -373,6 +373,10 @@ describe('OfficeHoursArea', () => {
         testArea2.addBreakoutRoom(br1);
         expect(() => testArea2.takeQuestions(ta1, [q1.id])).toThrowError('Question not available');
       });
+      it('Does not remove any questions if even one question does not exist', () => {
+        expect(() => testArea.takeQuestions(ta1, [q1.id, nanoid()])).toThrowError();
+        expect(testArea.questionQueue).toEqual([q1, q2, q3]);
+      });
       describe('Initialized with breakout rooms and questions', () => {
         it('Properly assigns the TA to a single question and breakout room', () => {
           testArea.takeQuestions(ta1, [q1.id]);
