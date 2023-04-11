@@ -542,7 +542,7 @@ export class TownsController extends Controller {
   public async takeNextOfficeHoursQuestionWithQuestionIDs(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
-    @Body() requestBody: { questionIDs: string[], timeLimit: number | undefined },
+    @Body() requestBody: { questionIDs: string[]; timeLimit: number | undefined },
     @Header('X-Session-Token') sessionToken: string,
   ): Promise<TAModel> {
     const curTown = this._townsStore.getTownByID(townID);
@@ -651,7 +651,7 @@ export class TownsController extends Controller {
     }
     // const breakOutRoomAreaReal = <OfficeHoursAreaReal>breakoutRoomArea;
 
-    const officeHoursID = (<BreakoutRoomAreaReal><unknown>breakoutRoomArea).linkedOfficeHoursID;
+    const officeHoursID = (<BreakoutRoomAreaReal>(<unknown>breakoutRoomArea)).linkedOfficeHoursID;
     const officeHoursArea = curTown.getInteractable(officeHoursID);
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new Error('Could not find associated Office Hours Area');
