@@ -225,11 +225,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   private _breakoutRoomAreas: BreakoutRoomAreaController[] = [];
 
-  static _breakOutRoomTimers: Map<string, Phaser.Time.TimerEvent> = new Map<
-    string,
-    Phaser.Time.TimerEvent
-  >();
-
   public constructor({ userName, taPassword, townID, loginController }: ConnectionProperties) {
     super();
     this._townID = townID;
@@ -249,10 +244,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket = io(url, { auth: { userName, townID, taPassword } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
-  }
-
-  public static get breakOutRoomTimers() {
-    return TownController._breakOutRoomTimers;
   }
 
   public get sessionToken() {

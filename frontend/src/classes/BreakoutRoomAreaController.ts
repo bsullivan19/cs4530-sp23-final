@@ -23,7 +23,7 @@ export type BreakoutRoomAreaEvents = {
 
   breakoutRoomTAChange: (newTeachingAssistantID: PlayerController | undefined) => void;
 
-  timerChange: (x: undefined | number) => void;
+  newTimeLeft: (x: undefined | number) => void;
 };
 
 export default class BreakoutRoomAreaController extends (EventEmitter as new () => TypedEventEmitter<BreakoutRoomAreaEvents>) {
@@ -73,7 +73,7 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
 
   public set timeLeft(x: undefined | number) {
     this._timeLeft = x;
-    this.emit('timerChange', x);
+    this.emit('newTimeLeft', x);
   }
 
   public get teachingAssistant(): PlayerController | undefined {
@@ -186,9 +186,9 @@ export function useBreakOutRoomTimeLeft(
 ): undefined | number {
   const [timeLeft, setTimeLeft] = useState(controller.timeLeft);
   useEffect(() => {
-    controller.addListener('timerChange', setTimeLeft);
+    controller.addListener('newTimeLeft', setTimeLeft);
     return () => {
-      controller.removeListener('timerChange', setTimeLeft);
+      controller.removeListener('newTimeLeft', setTimeLeft);
     };
   }, [controller]);
   return timeLeft;
