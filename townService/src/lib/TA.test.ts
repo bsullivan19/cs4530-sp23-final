@@ -49,7 +49,9 @@ describe('TA', () => {
         id: newTA.id,
         userName: taUsername,
         location: newTA.location,
-      };
+        breakoutRoomID: undefined,
+        questions: [],
+      } as TAModel;
     });
     it('toModel for a ta with no question', () => {
       expect(newTA.toModel()).toEqual(taModelNoQ);
