@@ -38,7 +38,7 @@ export default class Question {
   }
 
   public get questionType() {
-    return this._questionContent;
+    return this._questionType;
   }
 
   public get studentsByID(): string[] {
@@ -114,7 +114,7 @@ export default class Question {
       questionContent: this.questionContent,
       groupQuestion: this.isGroup,
       timeAsked: this.timeAsked,
-      questionType: this._questionType,
+      questionType: this.questionType,
     };
   }
 

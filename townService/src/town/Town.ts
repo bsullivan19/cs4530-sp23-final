@@ -307,30 +307,6 @@ export default class Town {
       }
     });
 
-    /**
-     * Sets up a listener to update the OfficeHoursArea when a question is added, removed, or modified.
-     * Emits an officeHoursQueueUpdate to all players in the OfficeHoursArea with the updated queue.
-     */
-    /*
-    socket.on('officeHoursQuestionUpdate', (question: OfficeHoursQuestion) => {
-      const officeHoursArea = <OfficeHoursArea>(
-        this._interactables.find(
-          area => area.id === question.officeHoursID && area instanceof OfficeHoursArea,
-        )
-      );
-      if (officeHoursArea) {
-        const prevModel = officeHoursArea.toModel();
-        officeHoursArea.addUpdateQuestion(question);
-        if (prevModel !== officeHoursArea.toModel()) {
-          socket.emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
-          socket
-            .to(officeHoursArea.id)
-            .emit('officeHoursQueueUpdate', officeHoursArea.toQueueModel());
-        }
-      }
-    });
-    */
-
     return newPlayer;
   }
 
@@ -343,14 +319,6 @@ export default class Town {
     if (player.location.interactableID) {
       this._removePlayerFromInteractable(player);
     }
-    // const currentArea = this.interactables.find(
-    //   area => player.location.interactableID === area.id,
-    // ) as BreakoutRoomArea;
-    // if (currentArea) {
-    //   const currentArea = this.interactables.find(
-    //     area => player.location.interactableID === area.id,
-    //   ) as BreakoutRoomArea;
-    // }
     this._players = this._players.filter(p => p.id !== player.id);
     this._broadcastEmitter.emit('playerDisconnect', player.toPlayerModel());
   }

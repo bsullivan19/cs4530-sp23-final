@@ -237,7 +237,7 @@ export function QueueViewer({
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
-      await townController.updateOfficeHoursModel(model);
+      await townController.getUpdatedOfficeHoursModel(model);
     } catch (err) {
       toast({
         title: 'Unable to take next question',

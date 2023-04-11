@@ -14,7 +14,7 @@ export function isTA(player: Player): player is TA {
 
 export default class TA extends Player {
   // The current question this TA is answering
-  private _currrentQuestions?: Question[];
+  private _currrentQuestions: Question[];
 
   // Location of this TAs breakout room
   private _breakoutRoomID?: string;
@@ -22,11 +22,11 @@ export default class TA extends Player {
   // ID of the office hours interactable this TA is apart of
   private _officeHoursID?: string;
 
-  set currentQuestions(currentQuestion: Question[] | undefined) {
+  set currentQuestions(currentQuestion: Question[]) {
     this._currrentQuestions = currentQuestion;
   }
 
-  get currentQuestions(): Question[] | undefined {
+  get currentQuestions(): Question[] {
     return this._currrentQuestions;
   }
 
@@ -49,6 +49,7 @@ export default class TA extends Player {
   constructor(userName: string, townEmitter: TownEmitter) {
     super(userName, townEmitter);
     this._breakoutRoomID = undefined;
+    this._currrentQuestions = [];
   }
 
   toModel(): TAModel {
@@ -56,7 +57,7 @@ export default class TA extends Player {
       id: this._id,
       location: this.location,
       userName: this.userName,
-      questions: this._currrentQuestions?.map(q => q.toModel()),
+      questions: this._currrentQuestions.map(q => q.toModel()),
       breakoutRoomID: this._breakoutRoomID,
     };
   }
