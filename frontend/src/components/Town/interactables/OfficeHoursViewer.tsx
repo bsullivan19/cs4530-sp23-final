@@ -528,7 +528,7 @@ export function QueueViewer({
               });
             }
           }}>
-          {'Set New Time Limit or (MIN or "na")'}
+          {'Set New Time Limit (MIN or "na")'}
         </Button>
       </HStack>
       <ModalFooter>
