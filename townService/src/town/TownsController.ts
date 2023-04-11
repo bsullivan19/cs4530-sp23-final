@@ -542,7 +542,7 @@ export class TownsController extends Controller {
   public async takeNextOfficeHoursQuestionWithQuestionIDs(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
-    @Body() requestBody: { questionIDs: string[] },
+    @Body() requestBody: { questionIDs: string[], timeLimit: number | undefined },
     @Header('X-Session-Token') sessionToken: string,
   ): Promise<TAModel> {
     const curTown = this._townsStore.getTownByID(townID);
@@ -589,6 +589,7 @@ export class TownsController extends Controller {
       teachingAssistantID: curPlayer.id,
       studentsByID: studentIDs,
       linkedOfficeHoursID: officeHoursAreaId,
+      timeLeft: requestBody.timeLimit, // actually used
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -648,8 +649,9 @@ export class TownsController extends Controller {
     if (!breakoutRoomArea || !isBreakoutRoomArea(breakoutRoomArea)) {
       throw new InvalidParametersError('Invalid breakout room area ID');
     }
+    // const breakOutRoomAreaReal = <OfficeHoursAreaReal>breakoutRoomArea;
 
-    const officeHoursID = (<BreakoutRoomAreaReal>breakoutRoomArea).linkedOfficeHoursID;
+    const officeHoursID = (<BreakoutRoomAreaReal><unknown>breakoutRoomArea).linkedOfficeHoursID;
     const officeHoursArea = curTown.getInteractable(officeHoursID);
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new Error('Could not find associated Office Hours Area');

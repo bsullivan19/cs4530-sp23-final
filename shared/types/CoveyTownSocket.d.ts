@@ -87,6 +87,7 @@ export interface BreakoutRoomArea {
   teachingAssistantID?: string;
   studentsByID: string[];
   linkedOfficeHoursID: string;
+  timeLeft: number | undefined;
 };
 
 
@@ -111,6 +112,7 @@ export interface OfficeHoursArea {
   teachingAssistantsByID: string[];
   questionTypes: string[];
   taInfos: TAInfo[];
+  timeLimit?: number | undefined;
 }
 
 export interface Priority {
@@ -144,6 +146,8 @@ export interface ServerToClientEvents {
   officeHoursQueueUpdate: (officeHoursQueue: OfficeHoursQueue) => void;
 
   officeHoursQuestionTaken: (ta: TAModel) => void;
+
+  breakOutRoomUpdate: (x: BreakoutRoomAreaModel) => void;
 }
 
 export interface ClientToServerEvents {

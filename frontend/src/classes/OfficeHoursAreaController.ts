@@ -36,6 +36,8 @@ export type OfficeHoursAreaEvents = {
   isSortedChange: (isSorted: boolean) => void;
 
   prioritiesChange: (priorities: Map<string, number>) => void;
+
+  timeLimitChange: (x: number | undefined) => void;
 };
 
 export function convertToMap(p: Priority[]): Map<string, number> {
@@ -86,6 +88,15 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
       this._model.teachingAssistantsByID = newTeachingAssistantsByID;
       this.emit('officeHoursTAChange', this.teachingAssistantsByID);
     }
+  }
+
+  public get timeLimit() {
+    return this._model.timeLimit;
+  }
+
+  public set timeLimit(x: number | undefined) {
+    this._model.timeLimit = x;
+    this.emit('timeLimitChange', x);
   }
 
   public get taInfos() {
@@ -181,7 +192,19 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
     this.teachingAssistantsByID = officeHoursAreaModel.teachingAssistantsByID;
     this.questionTypes = officeHoursAreaModel.questionTypes;
     this.taInfos = officeHoursAreaModel.taInfos;
+    this.timeLimit = officeHoursAreaModel.timeLimit;
   }
+}
+
+export function useTimeLimit(controller: OfficeHoursAreaController): number | undefined {
+  const [timeLimit, setTimeLimit] = useState(controller.timeLimit);
+  useEffect(() => {
+    controller.addListener('timeLimitChange', setTimeLimit);
+    return () => {
+      controller.removeListener('timeLimitChange', setTimeLimit);
+    };
+  }, [controller]);
+  return timeLimit;
 }
 
 export function useActive(controller: OfficeHoursAreaController): boolean {

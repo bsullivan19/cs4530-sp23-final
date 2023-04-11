@@ -454,6 +454,9 @@ export default class Town {
     );
     area._students = this._players.filter(p => breakoutRoomArea.studentsByID.includes(p.id));
     area.addPlayersWithinBounds(this._players);
+    if (breakoutRoomArea.timeLeft) {
+      area.startTimer(breakoutRoomArea.timeLeft);
+    }
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;
   }
@@ -463,6 +466,7 @@ export default class Town {
       eachArea => eachArea.id === breakoutRoomAreaID,
     ) as BreakoutRoomArea;
     area.teachingAssistant = undefined;
+    area.stopTimer();
     return true;
   }
 

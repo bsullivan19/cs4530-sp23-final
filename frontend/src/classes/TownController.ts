@@ -225,6 +225,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
 
   private _breakoutRoomAreas: BreakoutRoomAreaController[] = [];
 
+  static _breakOutRoomTimers: Map<string, Phaser.Time.TimerEvent> = new Map<
+    string,
+    Phaser.Time.TimerEvent
+  >();
+
   public constructor({ userName, taPassword, townID, loginController }: ConnectionProperties) {
     super();
     this._townID = townID;
@@ -244,6 +249,10 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     this._socket = io(url, { auth: { userName, townID, taPassword } });
     this._townsService = new TownsServiceClient({ BASE: url }).towns;
     this.registerSocketListeners();
+  }
+
+  public static get breakOutRoomTimers() {
+    return TownController._breakOutRoomTimers;
   }
 
   public get sessionToken() {
@@ -570,6 +579,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       );
       if (ohAreaController) {
         ohAreaController.questionQueue = queueModel.questionQueue;
+      }
+    });
+
+    this._socket.on('breakOutRoomUpdate', breakOutModel => {
+      const breakOutController = this._breakoutRoomAreas.find(area => area.id === breakOutModel.id);
+      if (breakOutController) {
+        breakOutController.timeLeft = breakOutModel.timeLeft;
+        if (breakOutModel.timeLeft !== undefined && breakOutModel.timeLeft <= 0) {
+          if (breakOutModel.teachingAssistantID === this.ourPlayer.id) {
+            const closeBreakoutRoom = async () => {
+              try {
+                await this.closeBreakoutRoomArea(breakOutController);
+              } catch (e) {
+                console.log(e);
+              }
+            };
+            closeBreakoutRoom();
+          }
+        }
       }
     });
   }
@@ -949,7 +977,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionIDs: questionIDs },
+      { questionIDs: questionIDs, timeLimit: officeHoursArea.timeLimit },
     );
   }
 
