@@ -184,16 +184,16 @@ export default class OfficeHoursAreaController extends (EventEmitter as new () =
   }
 }
 
-export function useActive(controller: OfficeHoursAreaController): boolean {
-  const [isActive, setActive] = useState(controller.isActive);
-  useEffect(() => {
-    controller.addListener('officeHoursActiveChange', setActive);
-    return () => {
-      controller.removeListener('officeHoursActiveChange', setActive);
-    };
-  }, [controller]);
-  return isActive;
-}
+// export function useActive(controller: OfficeHoursAreaController): boolean {
+//   const [isActive, setActive] = useState(controller.isActive);
+//   useEffect(() => {
+//     controller.addListener('officeHoursActiveChange', setActive);
+//     return () => {
+//       controller.removeListener('officeHoursActiveChange', setActive);
+//     };
+//   }, [controller]);
+//   return isActive;
+// }
 
 export function useQueue(controller: OfficeHoursAreaController): OfficeHoursQuestion[] {
   const [queue, setQueue] = useState(controller.questionQueue);
@@ -229,6 +229,8 @@ export function useQuestionTypes(controller: OfficeHoursAreaController): string[
 }
 
 export function useIsSorted(controller: OfficeHoursAreaController, id: string): boolean {
+  // TODO: Code style: All hooks and useEffects must be at the top of a function
+  // Add a useTAInfos hook instead cause this isn't how react hooks work.
   const x: TAInfo | undefined = controller.taInfos.find(info => id === info.taID);
   let s = false;
   if (x) {
@@ -253,6 +255,7 @@ export function usePriorities(
   if (x) {
     p = convertToMap(x.priorities);
   }
+  // TODO: This isn't actually a react hook. p is re-initalized every time usePriorities is called.
   const [priorities, setPriorities] = useState(p);
   useEffect(() => {
     controller.addListener('prioritiesChange', setPriorities);
