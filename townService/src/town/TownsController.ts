@@ -503,6 +503,7 @@ export class TownsController extends Controller {
       }
     }
     if (!curPlayer.breakoutRoomID) {
+      // Never reached
       throw new InvalidParametersError('No available breakout rooms');
     }
 

@@ -371,7 +371,7 @@ describe('OfficeHoursArea', () => {
       it('Throws there are no questions in the queue', () => {
         q1 = new Question(nanoid(), testArea2.id, [newStudent.id], nanoid(), false, nanoid(), 1);
         testArea2.addBreakoutRoom(br1);
-        expect(() => testArea2.takeQuestions(ta1, [q1.id])).toThrowError('Question not available');
+        expect(() => testArea2.takeQuestions(ta1, [q1.id])).toThrowError('Questions not available');
       });
       it('Does not remove any questions if even one question does not exist', () => {
         expect(() => testArea.takeQuestions(ta1, [q1.id, nanoid()])).toThrowError();
