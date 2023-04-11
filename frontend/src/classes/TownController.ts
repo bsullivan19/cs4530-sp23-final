@@ -21,7 +21,6 @@ import {
   PosterSessionArea as PosterSessionAreaModel,
   OfficeHoursArea,
   OfficeHoursQuestion,
-  OfficeHoursQueue,
 } from '../types/CoveyTownSocket';
 import {
   isConversationArea,
