@@ -559,11 +559,9 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs)) {
-      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
-    }
-    if (!curPlayer.currentQuestions || !curPlayer.breakoutRoomID) {
-      throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
+    (<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs);
+    if (!curPlayer.breakoutRoomID) {
+      throw new InvalidParametersError('No available breakout rooms');
     }
 
     /* Set TA's location to center of breakout room, used by players for teleporting */
@@ -577,7 +575,7 @@ export class TownsController extends Controller {
     const questions = curPlayer.currentQuestions;
     let questionType = '';
     let studentIDs: string[] = [];
-    if (questions) {
+    if (questions.length !== 0) {
       questionType = questions[0].questionType;
       questions.forEach(q => {
         studentIDs = studentIDs.concat(q.studentsByID);
