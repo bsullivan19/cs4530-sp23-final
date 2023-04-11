@@ -214,21 +214,28 @@ export default class OfficeHoursArea extends InteractableArea {
     if (!breakoutRoomAreaID) {
       throw new Error('No open breakout rooms');
     }
+
+    const questionQueueByID = this.questionQueue.map(question => question.id); // All the question ID's in the queue
+    if (!questionIDs.length || !questionIDs.every(qid => questionQueueByID.includes(qid))) {
+      throw new Error('Questions not available');
+    }
+
+    // Only set if all questions exist
     this.openBreakoutRooms.set(breakoutRoomAreaID, teachingAssistant.id);
     teachingAssistant.breakoutRoomID = breakoutRoomAreaID;
 
-    const ret: Question[] = [];
+    const questionsTaken: Question[] = [];
     questionIDs.forEach(questionID => {
       const question = this.removeQuestion(teachingAssistant, questionID);
       if (!question) {
         throw new Error('Question not available');
       }
-      ret.push(question);
+      questionsTaken.push(question);
     });
 
-    teachingAssistant.currentQuestions = ret;
+    teachingAssistant.currentQuestions = questionsTaken;
     teachingAssistant.officeHoursID = this.id;
-    return ret;
+    return questionsTaken;
   }
 
   /**

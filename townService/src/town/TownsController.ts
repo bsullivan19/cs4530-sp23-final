@@ -494,33 +494,31 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    (<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs);
+
+    try {
+      (<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs);
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new InvalidParametersError('No breakout room available or not all questions exist');
+      }
+    }
     if (!curPlayer.breakoutRoomID) {
       throw new InvalidParametersError('No available breakout rooms');
     }
 
     /* Set TA's location to center of breakout room, used by players for teleporting */
     const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
-    const location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
-    curPlayer.location.x = location.x;
-    curPlayer.location.y = location.y;
-    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+    curPlayer.location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
 
-    // TODO: does addConvo area work for breakout rooms?
-    const questions = curPlayer.currentQuestions;
-    let questionType = '';
-    let studentIDs: string[] = [];
-    if (questions.length !== 0) {
-      questionType = questions[0].questionType;
-      questions.forEach(q => {
-        studentIDs = studentIDs.concat(q.studentsByID);
-      });
+    if (curPlayer.currentQuestions.length === 0) {
+      throw new Error('Could not find questions taken');
     }
+
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
-      topic: questionType,
+      topic: curPlayer.currentQuestions[0].questionType,
       teachingAssistantID: curPlayer.id,
-      studentsByID: studentIDs,
+      studentsByID: curPlayer.currentQuestions.map(question => question.studentsByID).flat(), // All studentIDs for all questions
       linkedOfficeHoursID: officeHoursAreaId,
     });
     if (!success) {
