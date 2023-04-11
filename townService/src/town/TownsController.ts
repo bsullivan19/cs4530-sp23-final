@@ -353,6 +353,9 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
+    if (curTown.isStudentsInBreakOutRooms([curPlayer.id])) {
+      throw new InvalidParametersError('Student cannot add question when he is in breakout roomt');
+    }
     // if (!officeHoursArea.officeHoursActive) {
     //   throw new InvalidParametersError('Cant add a question when no TAs online');
     // }
@@ -569,8 +572,7 @@ export class TownsController extends Controller {
     /* Set TA's location to center of breakout room, used by players for teleporting */
     const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
     const location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
-    curPlayer.location.x = location.x;
-    curPlayer.location.y = location.y;
+    curTown.teleportPlayer(curPlayer, location);
     curPlayer.location.interactableID = curPlayer.breakoutRoomID;
 
     // TODO: does addConvo area work for breakout rooms?
@@ -583,6 +585,7 @@ export class TownsController extends Controller {
         studentIDs = studentIDs.concat(q.studentsByID);
       });
     }
+    curTown.addStudentsToBreakOutRooms(studentIDs);
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
       topic: questionType,
@@ -656,12 +659,14 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new Error('Could not find associated Office Hours Area');
     }
-
+    curTown.removeStudentsFromBreakOutRooms(breakoutRoomArea.studentsByID);
     /* Moves the TA back to the office hours area, used by students for teleporting */
     const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
 
     officeHoursAreaReal.roomEmitter.emit('officeHoursQuestionTaken', curPlayer.toModel());
 
+    const location = officeHoursAreaReal.areasCenter();
+    curTown.teleportPlayer(curPlayer, location);
     // TODO: move this out of REST api!!!!
     officeHoursAreaReal.stopOfficeHours(curPlayer);
     curTown.closeBreakOutRoom(breakoutRoomAreaId);

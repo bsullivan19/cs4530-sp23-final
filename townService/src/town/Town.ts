@@ -101,6 +101,8 @@ export default class Town {
 
   private _taPassword: string;
 
+  private _studentIDsInBreakOutRooms: Set<string> = new Set();
+
   constructor(
     friendlyName: string,
     isPubliclyListed: boolean,
@@ -543,6 +545,28 @@ export default class Town {
     return true;
   }
 
+  public isStudentsInBreakOutRooms(studentIDs: string[]) {
+    let ret = false;
+    studentIDs.forEach(id => {
+      if (this._studentIDsInBreakOutRooms.has(id)) {
+        ret = true;
+      }
+    });
+    return ret;
+  }
+
+  public addStudentsToBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.add(id);
+    });
+  }
+
+  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.delete(id);
+    });
+  }
+
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
     // TODO fix check
     // if (!officeHoursArea.isActive) {
@@ -663,7 +687,7 @@ export default class Town {
     this._validateInteractables();
   }
 
-  private _teleportPlayer(player: Player, loc: PlayerLocation) {
+  public teleportPlayer(player: Player, loc: PlayerLocation) {
     this._updatePlayerLocation(player, loc);
   }
 
