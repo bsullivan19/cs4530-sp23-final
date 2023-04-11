@@ -475,68 +475,6 @@ export class TownsController extends Controller {
     return officeHoursAreaReal.toQueueModel();
   }
 
-  // @Patch('{townID}/{officeHoursAreaId}/{questionId}/takeQuestion')
-  // @Response<InvalidParametersError>(400, 'Invalid values specified')
-  // public async takeNextOfficeHoursQuestionWithQuestionID(
-  //   @Path() townID: string,
-  //   @Path() officeHoursAreaId: string,
-  //   @Path() questionId: string,
-  //   @Header('X-Session-Token') sessionToken: string,
-  // ): Promise<TAModel> {
-  //   const curTown = this._townsStore.getTownByID(townID);
-  //   if (!curTown) {
-  //     throw new InvalidParametersError('Invalid town ID');
-  //   }
-  //   const curPlayer = curTown.getPlayerBySessionToken(sessionToken);
-  //   if (!curPlayer) {
-  //     throw new InvalidParametersError('Invalid session ID');
-  //   } else if (!isTA(curPlayer)) {
-  //     throw new InvalidParametersError('This player is not a TA');
-  //   }
-  //   const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
-  //   if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
-  //     throw new InvalidParametersError('Invalid office hours area ID');
-  //   }
-  //   if (!(<OfficeHoursAreaReal>officeHoursArea).takeQuestion(curPlayer, questionId)) {
-  //     throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
-  //   }
-  //   if (!curPlayer.currentQuestions || !curPlayer.breakoutRoomID) {
-  //     throw new InvalidParametersError('Queue is empty or there are no available breakout rooms');
-  //   }
-
-  //   /* Set TA's location to center of breakout room, used by players for teleporting */
-  //   const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
-  //   const location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
-  //   curPlayer.location.x = location.x;
-  //   curPlayer.location.y = location.y;
-  //   curPlayer.location.interactableID = curPlayer.breakoutRoomID;
-
-  //   // TODO: does addConvo area work for breakout rooms?
-  //   const questions = curPlayer.currentQuestions;
-  //   let questionType = '';
-  //   let studentIDs: string[] = [];
-  //   if (questions) {
-  //     questionType = questions[0].questionType;
-  //     questions.forEach(q => {
-  //       studentIDs = studentIDs.concat(q.studentsByID);
-  //     });
-  //   }
-  //   const success = curTown.addConversationArea({
-  //     id: curPlayer.breakoutRoomID,
-  //     topic: questionType,
-  //     occupantsByID: studentIDs.concat(curPlayer.id),
-  //   });
-  //   if (!success) {
-  //     throw new Error('Could not update breakout room');
-  //   }
-
-  //   (<OfficeHoursAreaReal>officeHoursArea).roomEmitter.emit(
-  //     'officeHoursQuestionTaken',
-  //     curPlayer.toModel(),
-  //   );
-  //   return curPlayer.toModel();
-  // }
-
   @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async takeNextOfficeHoursQuestionWithQuestionIDs(
@@ -559,33 +497,31 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
-    (<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs);
+
+    try {
+      (<OfficeHoursAreaReal>officeHoursArea).takeQuestions(curPlayer, requestBody.questionIDs);
+    } catch (err) {
+      if (err instanceof Error) {
+        throw new InvalidParametersError('No breakout room available or not all questions exist');
+      }
+    }
     if (!curPlayer.breakoutRoomID) {
       throw new InvalidParametersError('No available breakout rooms');
     }
 
     /* Set TA's location to center of breakout room, used by players for teleporting */
     const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
-    const location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
-    curPlayer.location.x = location.x;
-    curPlayer.location.y = location.y;
-    curPlayer.location.interactableID = curPlayer.breakoutRoomID;
+    curPlayer.location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
 
-    // TODO: does addConvo area work for breakout rooms?
-    const questions = curPlayer.currentQuestions;
-    let questionType = '';
-    let studentIDs: string[] = [];
-    if (questions.length !== 0) {
-      questionType = questions[0].questionType;
-      questions.forEach(q => {
-        studentIDs = studentIDs.concat(q.studentsByID);
-      });
+    if (curPlayer.currentQuestions.length === 0) {
+      throw new Error('Could not find questions taken');
     }
+
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
-      topic: questionType,
+      topic: curPlayer.currentQuestions[0].questionType,
       teachingAssistantID: curPlayer.id,
-      studentsByID: studentIDs,
+      studentsByID: curPlayer.currentQuestions.map(question => question.studentsByID).flat(), // All studentIDs for all questions
       linkedOfficeHoursID: officeHoursAreaId,
     });
     if (!success) {
