@@ -5,6 +5,9 @@ import {
   Interactable,
   TownEmitter,
   OfficeHoursArea as OfficeHoursModel,
+  OfficeHoursQuestion,
+  OfficeHoursQueue,
+  TAInfo,
 } from '../types/CoveyTownSocket';
 import TownsStore from '../lib/TownsStore';
 import { getLastEmittedEvent, mockPlayer, MockedPlayer, isOfficeHoursArea } from '../TestUtils';
@@ -20,7 +23,7 @@ type TestTownData = {
 };
 
 const broadcastEmitter = jest.fn();
-describe('TownsController integration tests', () => {
+describe('TownsController integration tests for offie hours functions', () => {
   let controller: TownsController;
 
   const createdTownEmitters: Map<string, DeepMockProxy<TownEmitter>> = new Map();
@@ -190,7 +193,7 @@ describe('TownsController integration tests', () => {
           ).rejects.toThrow();
         });
       });
-      describe('Interact with existing Poster Session Area', () => {
+      describe('Interact with existing Office Hours area', () => {
         let officeHoursArea: OfficeHoursArea;
         let newOfficeHoursArea: OfficeHoursModel;
 
@@ -230,6 +233,14 @@ describe('TownsController integration tests', () => {
             expect(question.groupQuestion).toEqual(requestQuestion.groupQuestion);
             expect(question.questionContent).toEqual(requestQuestion.questionContent);
             expect(question.questionType).toEqual(requestQuestion.questionType);
+            const lastEmittedUpdate = getLastEmittedEvent(
+              getBroadcastEmitterForTownID(testingTown.townID),
+              'officeHoursQueueUpdate',
+            );
+            expect(lastEmittedUpdate).toEqual({
+              officeHoursID: newOfficeHoursArea.id,
+              questionQueue: [question],
+            } as OfficeHoursQueue);
           });
           it('Throws an error if invalid town id', async () => {
             const requestQuestion = {
@@ -277,94 +288,277 @@ describe('TownsController integration tests', () => {
             ).rejects.toThrow();
           });
         });
-        describe('takeNextOfficeHoursQuestion', () => {
-          it('Properly adds an office hours question', async () => {
-            const requestQuestion = {
+        describe('Contains starting questions', () => {
+          let student1: MockedPlayer;
+          let student1Session: string;
+          let q1Setup;
+          let q1: OfficeHoursQuestion;
+          let q2Setup;
+          let q2: OfficeHoursQuestion;
+          let q3Setup;
+          let q3: OfficeHoursQuestion;
+          beforeEach(async () => {
+            student1 = mockPlayer(testingTown.townID);
+            await controller.joinTown(player.socket);
+            const initialData = getLastEmittedEvent(player.socket, 'initialize');
+            student1Session = initialData.sessionToken;
+            q1Setup = {
               questionContent: nanoid(),
-              groupQuestion: false,
+              groupQuestion: true,
               questionType: '1',
             };
-            const question = await controller.addOfficeHoursQuestion(
+            q2Setup = {
+              questionContent: nanoid(),
+              groupQuestion: true,
+              questionType: '5',
+            };
+            q3Setup = {
+              questionContent: nanoid(),
+              groupQuestion: true,
+              questionType: 'type',
+            };
+            q1 = await controller.addOfficeHoursQuestion(
               testingTown.townID,
               newOfficeHoursArea.id,
               sessionToken,
-              requestQuestion,
+              q1Setup,
             );
-            expect(question.officeHoursID).toEqual(newOfficeHoursArea.id);
-            expect(question.groupQuestion).toEqual(requestQuestion.groupQuestion);
-            expect(question.questionContent).toEqual(requestQuestion.questionContent);
-            expect(question.questionType).toEqual(requestQuestion.questionType);
+            q2 = await controller.addOfficeHoursQuestion(
+              testingTown.townID,
+              newOfficeHoursArea.id,
+              sessionToken,
+              q2Setup,
+            );
           });
-          it('Throws an error if invalid town id', async () => {
-            const requestQuestion = {
-              questionContent: nanoid(),
-              groupQuestion: false,
-              questionType: '1',
-            };
-            await expect(
-              controller.addOfficeHoursQuestion(
-                nanoid(),
+          describe('joinOfficeHoursQuestion', () => {
+            it('Throws an error if invalid town id', async () => {
+              await expect(
+                controller.joinOfficeHoursQuestion(
+                  nanoid(),
+                  newOfficeHoursArea.id,
+                  q1.id,
+                  student1Session,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid office hours id', async () => {
+              await expect(
+                controller.joinOfficeHoursQuestion(
+                  testingTown.townID,
+                  nanoid(),
+                  q1.id,
+                  student1Session,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              const requestQuestion = {
+                questionContent: nanoid(),
+                groupQuestion: false,
+                questionType: '1',
+              };
+              await expect(
+                controller.joinOfficeHoursQuestion(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  q1.id,
+                  nanoid(),
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid office hours id', async () => {
+              const requestQuestion = {
+                questionContent: nanoid(),
+                groupQuestion: false,
+                questionType: '1',
+              };
+              await expect(
+                controller.joinOfficeHoursQuestion(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  nanoid(),
+                  student1Session,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Properly joins question', async () => {
+              const question = await controller.joinOfficeHoursQuestion(
+                testingTown.townID,
+                newOfficeHoursArea.id,
+                q1.id,
+                student1Session,
+              );
+              expect(question.students.length).toEqual(2);
+              expect(question.questionContent).toEqual(q1.questionContent);
+              expect(question.questionType).toEqual(q1.questionType);
+              const lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQueueUpdate',
+              );
+              expect(lastEmittedUpdate).toEqual({
+                officeHoursID: newOfficeHoursArea.id,
+                questionQueue: [q1, q2],
+              } as OfficeHoursQueue);
+            });
+          }); // TODO
+          describe('takeNextOfficeHoursQuestionWithQuestionIDs', () => {}); // TODO
+          describe('getUpdatedOfficeHoursModel', () => {
+            it('Throws an error if invalid town id', async () => {
+              const updatedModel = newOfficeHoursArea;
+              updatedModel.questionTypes = ['type1', 'type2'];
+              updatedModel.teachingAssistantsByID = [nanoid()];
+              updatedModel.taInfos = [
+                {
+                  taID: nanoid(),
+                  isSorted: true,
+                  priorities: [],
+                } as TAInfo,
+              ];
+              updatedModel.officeHoursActive = true;
+              await expect(
+                controller.getUpdatedOfficeHoursModel(
+                  nanoid(),
+                  newOfficeHoursArea.id,
+                  sessionToken,
+                  updatedModel,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid office hours id', async () => {
+              const updatedModel = newOfficeHoursArea;
+              updatedModel.questionTypes = ['type1', 'type2'];
+              updatedModel.teachingAssistantsByID = [nanoid()];
+              updatedModel.taInfos = [
+                {
+                  taID: nanoid(),
+                  isSorted: true,
+                  priorities: [],
+                } as TAInfo,
+              ];
+              updatedModel.officeHoursActive = true;
+              await expect(
+                controller.getUpdatedOfficeHoursModel(
+                  testingTown.townID,
+                  nanoid(),
+                  sessionToken,
+                  updatedModel,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              const updatedModel = newOfficeHoursArea;
+              updatedModel.questionTypes = ['type1', 'type2'];
+              updatedModel.teachingAssistantsByID = [nanoid()];
+              updatedModel.taInfos = [
+                {
+                  taID: nanoid(),
+                  isSorted: true,
+                  priorities: [],
+                } as TAInfo,
+              ];
+              updatedModel.officeHoursActive = true;
+              await expect(
+                controller.getUpdatedOfficeHoursModel(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  nanoid(),
+                  updatedModel,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Properly updates and gets office hours model', async () => {
+              const updatedModel = newOfficeHoursArea;
+              updatedModel.questionTypes = ['type1', 'type2'];
+              updatedModel.teachingAssistantsByID = [nanoid()];
+              updatedModel.taInfos = [
+                {
+                  taID: nanoid(),
+                  isSorted: true,
+                  priorities: [],
+                } as TAInfo,
+              ];
+              updatedModel.officeHoursActive = true;
+              const question = await controller.getUpdatedOfficeHoursModel(
+                testingTown.townID,
                 newOfficeHoursArea.id,
                 sessionToken,
-                requestQuestion,
-              ),
-            ).rejects.toThrow();
+                updatedModel,
+              );
+              expect(question).toEqual(updatedModel);
+              const lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'interactableUpdate',
+              );
+              expect(lastEmittedUpdate).toEqual(updatedModel);
+            });
           });
-          it('Throws an error if invalid office hours id', async () => {
-            const requestQuestion = {
-              questionContent: nanoid(),
-              groupQuestion: false,
-              questionType: '1',
-            };
-            await expect(
-              controller.addOfficeHoursQuestion(
-                testingTown.townID,
-                nanoid(),
-                sessionToken,
-                requestQuestion,
-              ),
-            ).rejects.toThrow();
-          });
-          it('Throws an error if invalid session token', async () => {
-            const requestQuestion = {
-              questionContent: nanoid(),
-              groupQuestion: false,
-              questionType: '1',
-            };
-            await expect(
-              controller.addOfficeHoursQuestion(
-                testingTown.townID,
-                newOfficeHoursArea.id,
-                nanoid(),
-                requestQuestion,
-              ),
-            ).rejects.toThrow();
-          });
+          describe('closeBreakoutRoomArea', () => {}); // TODO
+          describe('removeOfficeHoursQuestion', () => {}); // TODO
+          describe('removeOfficeHoursQuestionForPlayer', () => {}); // TODO
+
+          //   it('Properly adds an office hours question', async () => {
+          //     const requestQuestion = {
+          //       questionContent: nanoid(),
+          //       groupQuestion: false,
+          //       questionType: '1',
+          //     };
+          //     const question = await controller.addOfficeHoursQuestion(
+          //       testingTown.townID,
+          //       newOfficeHoursArea.id,
+          //       sessionToken,
+          //       requestQuestion,
+          //     );
+          //     expect(question.officeHoursID).toEqual(newOfficeHoursArea.id);
+          //     expect(question.groupQuestion).toEqual(requestQuestion.groupQuestion);
+          //     expect(question.questionContent).toEqual(requestQuestion.questionContent);
+          //     expect(question.questionType).toEqual(requestQuestion.questionType);
+          //   });
+          //   it('Throws an error if invalid town id', async () => {
+          //     const requestQuestion = {
+          //       questionContent: nanoid(),
+          //       groupQuestion: false,
+          //       questionType: '1',
+          //     };
+          //     await expect(
+          //       controller.addOfficeHoursQuestion(
+          //         nanoid(),
+          //         newOfficeHoursArea.id,
+          //         sessionToken,
+          //         requestQuestion,
+          //       ),
+          //     ).rejects.toThrow();
+          //   });
+          //   it('Throws an error if invalid office hours id', async () => {
+          //     const requestQuestion = {
+          //       questionContent: nanoid(),
+          //       groupQuestion: false,
+          //       questionType: '1',
+          //     };
+          //     await expect(
+          //       controller.addOfficeHoursQuestion(
+          //         testingTown.townID,
+          //         nanoid(),
+          //         sessionToken,
+          //         requestQuestion,
+          //       ),
+          //     ).rejects.toThrow();
+          //   });
+          //   it('Throws an error if invalid session token', async () => {
+          //     const requestQuestion = {
+          //       questionContent: nanoid(),
+          //       groupQuestion: false,
+          //       questionType: '1',
+          //     };
+          //     await expect(
+          //       controller.addOfficeHoursQuestion(
+          //         testingTown.townID,
+          //         newOfficeHoursArea.id,
+          //         nanoid(),
+          //         requestQuestion,
+          //       ),
+          //     ).rejects.toThrow();
+          //   });
         });
-        //   it('[OMG3 imageContents] Gets the image contents of a office hours area', async () => {
-        //     const officeHoursArea = interactables.find(isOfficeHoursArea) as OfficeHoursArea;
-        //     if (!officeHoursArea) {
-        //       fail('Expected at least one office hours area to be returned in the initial join data');
-        //     } else {
-        //       const newOfficeHoursArea = {
-        //         id: officeHoursArea.id,
-        //         stars: 0,
-        //         title: 'Test title',
-        //         imageContents: readFileSync('testData/poster.jpg', 'utf-8'),
-        //       };
-        //       await controller.createOfficeHoursArea(
-        //         testingTown.townID,
-        //         sessionToken,
-        //         newOfficeHoursArea,
-        //       );
-        //       const imageContents = await controller.getPosterAreaImageContents(
-        //         testingTown.townID,
-        //         officeHoursArea.id,
-        //         sessionToken,
-        //       );
-        //       expect(imageContents).toEqual(newOfficeHoursArea.imageContents);
-        //     }
-        //   });
       });
     });
   });
