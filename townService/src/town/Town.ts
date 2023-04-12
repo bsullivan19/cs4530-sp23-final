@@ -101,6 +101,8 @@ export default class Town {
 
   private _taPassword: string;
 
+  private _studentIDsInBreakOutRooms: Set<string> = new Set();
+
   constructor(
     friendlyName: string,
     isPubliclyListed: boolean,
@@ -422,6 +424,9 @@ export default class Town {
     );
     area._students = this._players.filter(p => breakoutRoomArea.studentsByID.includes(p.id));
     area.addPlayersWithinBounds(this._players);
+    if (breakoutRoomArea.timeLeft) {
+      area.startTimer(breakoutRoomArea.timeLeft);
+    }
     this._broadcastEmitter.emit('interactableUpdate', area.toModel());
     return true;
   }
@@ -431,6 +436,7 @@ export default class Town {
       eachArea => eachArea.id === breakoutRoomAreaID,
     ) as BreakoutRoomArea;
     area.teachingAssistant = undefined;
+    area.stopTimer();
     return true;
   }
 
@@ -505,6 +511,28 @@ export default class Town {
     existingPosterSessionArea.addPlayersWithinBounds(this._players);
     this._broadcastEmitter.emit('interactableUpdate', existingPosterSessionArea.toModel());
     return true;
+  }
+
+  public isStudentsInBreakOutRooms(studentIDs: string[]) {
+    let ret = false;
+    studentIDs.forEach(id => {
+      if (this._studentIDsInBreakOutRooms.has(id)) {
+        ret = true;
+      }
+    });
+    return ret;
+  }
+
+  public addStudentsToBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.add(id);
+    });
+  }
+
+  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.delete(id);
+    });
   }
 
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
@@ -627,7 +655,7 @@ export default class Town {
     this._validateInteractables();
   }
 
-  private _teleportPlayer(player: Player, loc: PlayerLocation) {
+  public teleportPlayer(player: Player, loc: PlayerLocation) {
     this._updatePlayerLocation(player, loc);
   }
 

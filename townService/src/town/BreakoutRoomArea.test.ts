@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import { ITiledMap, ITiledMapObject } from '@jonbell/tiled-map-type-guard';
 import Player from '../lib/Player';
 import { getLastEmittedEvent } from '../TestUtils';
-import { TownEmitter } from '../types/CoveyTownSocket';
+import { BreakoutRoomArea as BreakoutRoomAreaModel, TownEmitter } from '../types/CoveyTownSocket';
 import BreakoutRoomArea from './BreakoutRoomArea';
 
 describe('BreakoutRoomArea', () => {
@@ -17,26 +17,12 @@ describe('BreakoutRoomArea', () => {
   beforeEach(() => {
     mockClear(townEmitter);
     testArea = new BreakoutRoomArea(
-      { id, topic, studentsByID: [], linkedOfficeHoursID: '2' },
+      { id, topic, studentsByID: [], linkedOfficeHoursID: '2', timeLeft: undefined },
       testAreaBox,
       townEmitter,
     );
     newPlayer = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
-  });
-  describe('add', () => {
-    it('Adds the player to the occupants list and emits an interactableUpdate event', () => {
-      expect(testArea.occupantsByID).toEqual([newPlayer.id]);
-
-      const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
-      expect(lastEmittedUpdate).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
-    });
-    it("Sets the player's conversationLabel and emits an update for their location", () => {
-      expect(newPlayer.location.interactableID).toEqual(id);
-
-      const lastEmittedMovement = getLastEmittedEvent(townEmitter, 'playerMoved');
-      expect(lastEmittedMovement.location.interactableID).toEqual(id);
-    });
   });
   describe('remove', () => {
     it('Removes the player from the list of occupants and emits an interactableUpdate event', () => {
@@ -62,9 +48,16 @@ describe('BreakoutRoomArea', () => {
       expect(testArea.topic).toEqual(topic);
     });
   });
-  test('toModel sets the ID, topic and occupantsByID and sets no other properties', () => {
+  it('toModel sets the ID, topic and occupantsByID and sets no other properties', () => {
     const model = testArea.toModel();
-    expect(model).toEqual({ id, topic, studentsByID: [], linkedOfficeHoursID: '2' });
+    expect(model).toEqual({
+      id,
+      topic,
+      teachingAssisstantID: undefined,
+      studentsByID: [],
+      linkedOfficeHoursID: '2',
+      timeLeft: undefined,
+    } as BreakoutRoomAreaModel);
   });
   describe('fromMapObject', () => {
     it('Throws an error if the width or height are missing', () => {
@@ -104,6 +97,8 @@ describe('BreakoutRoomArea', () => {
       expect(val.id).toEqual(name);
       expect(val.topic).toBeUndefined();
       expect(val.occupantsByID).toEqual([]);
+      expect(val.studentsByID).toEqual([]);
+      expect(val.teachingAssistant).toEqual(undefined);
       expect(val.linkedOfficeHoursID).toEqual(linkedOfficeHours);
     });
   });

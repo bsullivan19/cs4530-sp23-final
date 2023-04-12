@@ -4,7 +4,6 @@
 import type { ConversationArea } from '../models/ConversationArea';
 import type { OfficeHoursArea } from '../models/OfficeHoursArea';
 import type { OfficeHoursQuestion } from '../models/OfficeHoursQuestion';
-import type { OfficeHoursQueue } from '../models/OfficeHoursQueue';
 import type { PosterSessionArea } from '../models/PosterSessionArea';
 import type { TAModel } from '../models/TAModel';
 import type { Town } from '../models/Town';
@@ -360,67 +359,6 @@ xSessionToken: string,
     }
 
     /**
-     * Joins an existing group question
-     * @param townId ID of the town in which to join a question
-     * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-     * @param xSessionToken 
-     * @param requestBody 
-     * @returns OfficeHoursQuestion Ok
-     * @throws ApiError
-     */
-    public leaveOfficeHoursQuestion(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-requestBody: string,
-): CancelablePromise<OfficeHoursQuestion> {
-        return this.httpRequest.request({
-            method: 'PATCH',
-            url: '/towns/{townID}/{officeHoursAreaId}/leaveQuestion',
-            path: {
-                'townID': townId,
-                'officeHoursAreaId': officeHoursAreaId,
-            },
-            headers: {
-                'X-Session-Token': xSessionToken,
-            },
-            body: requestBody,
-            mediaType: 'application/json',
-            errors: {
-                400: `Invalid values specified`,
-            },
-        });
-    }
-
-    /**
-     * @param townId 
-     * @param officeHoursAreaId 
-     * @param xSessionToken 
-     * @returns OfficeHoursQueue Ok
-     * @throws ApiError
-     */
-    public getOfficeHoursQueue(
-townId: string,
-officeHoursAreaId: string,
-xSessionToken: string,
-): CancelablePromise<OfficeHoursQueue> {
-        return this.httpRequest.request({
-            method: 'PATCH',
-            url: '/towns/{townID}/{officeHoursAreaId}/queue',
-            path: {
-                'townID': townId,
-                'officeHoursAreaId': officeHoursAreaId,
-            },
-            headers: {
-                'X-Session-Token': xSessionToken,
-            },
-            errors: {
-                400: `Invalid values specified`,
-            },
-        });
-    }
-
-    /**
      * @param townId 
      * @param officeHoursAreaId 
      * @param xSessionToken 
@@ -428,11 +366,12 @@ xSessionToken: string,
      * @returns TAModel Ok
      * @throws ApiError
      */
-    public takeNextOfficeHoursQuestionWithQuestionIDs(
+    public takeOfficeHoursQuestions(
 townId: string,
 officeHoursAreaId: string,
 xSessionToken: string,
 requestBody: {
+timeLimit?: number;
 questionIDs: Array<string>;
 },
 ): CancelablePromise<TAModel> {
@@ -546,6 +485,8 @@ xSessionToken: string,
     }
 
     /**
+     * Removes a player from the first question in the queue they are joined to as a student.
+ * Does nothing if they are not apart of any question.
      * @param townId 
      * @param officeHoursAreaId 
      * @param xSessionToken 

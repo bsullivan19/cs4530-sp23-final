@@ -21,7 +21,6 @@ import {
   PosterSessionArea as PosterSessionAreaModel,
   OfficeHoursArea,
   OfficeHoursQuestion,
-  OfficeHoursQueue,
 } from '../types/CoveyTownSocket';
 import {
   isConversationArea,
@@ -572,6 +571,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });
+
+    this._socket.on('breakOutRoomUpdate', breakOutModel => {
+      const breakOutController = this._breakoutRoomAreas.find(area => area.id === breakOutModel.id);
+      if (breakOutController) {
+        breakOutController.timeLeft = breakOutModel.timeLeft;
+        if (breakOutModel.timeLeft !== undefined && breakOutModel.timeLeft <= 0) {
+          if (breakOutModel.teachingAssistantID === this.ourPlayer.id) {
+            const closeBreakoutRoom = async () => {
+              try {
+                await this.closeBreakoutRoomArea(breakOutController);
+              } catch (e) {
+                console.log(e);
+              }
+            };
+            closeBreakoutRoom();
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -887,69 +905,47 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
-  /**
-   * Take the top question off the queue, if this user is a TA.
-   */
+  // /**
+  //  * Take the top question off the queue, if this user is a TA.
+  //  */
 
-  /**
-   * Leave a question in a specified office hours area.
-   */
-  public async leaveOfficeHoursQuestion(
-    officeHoursArea: OfficeHoursAreaController,
-    questionID: string,
-  ): Promise<OfficeHoursQuestion> {
-    return this._townsService.leaveOfficeHoursQuestion(
-      this.townID,
-      officeHoursArea.id,
-      this.sessionToken,
-      questionID,
-    );
-  }
-
-  /**
-   * Get the office hours queue for the specified office hours area.
-   */
-  public async getOfficeHoursQueue(
-    officeHoursArea: OfficeHoursAreaController,
-  ): Promise<OfficeHoursQueue> {
-    return this._townsService.getOfficeHoursQueue(
-      this.townID,
-      officeHoursArea.id,
-      this.sessionToken,
-    );
-  }
-
-  // public async takeNextOfficeHoursQuestion(
+  // /**
+  //  * Leave a question in a specified office hours area.
+  //  */
+  // public async leaveOfficeHoursQuestion(
   //   officeHoursArea: OfficeHoursAreaController,
-  // ): Promise<TAModel> {
-  //   return this._townsService.takeNextOfficeHoursQuestion(
+  //   questionID: string,
+  // ): Promise<OfficeHoursQuestion> {
+  //   return this._townsService.leaveOfficeHoursQuestion(
+  //     this.townID,
+  //     officeHoursArea.id,
+  //     this.sessionToken,
+  //     questionID,
+  //   );
+  // }
+
+  // /**
+  //  * Get the office hours queue for the specified office hours area.
+  //  */
+  // public async getOfficeHoursQueue(
+  //   officeHoursArea: OfficeHoursAreaController,
+  // ): Promise<OfficeHoursQueue> {
+  //   return this._townsService.getOfficeHoursQueue(
   //     this.townID,
   //     officeHoursArea.id,
   //     this.sessionToken,
   //   );
   // }
 
-  // public async takeNextOfficeHoursQuestionWithQuestionId(
-  //   officeHoursArea: OfficeHoursAreaController,
-  //   questionId: string | undefined,
-  // ): Promise<TAModel> {
-  //   return this._townsService.takeNextOfficeHoursQuestionWithQuestionId(
-  //     this.townID,
-  //     officeHoursArea.id,
-  //     questionId || '',
-  //     this.sessionToken,
-  //   );
-  // }
-
-  public async takeNextOfficeHoursQuestionWithQuestionIDs(
+  public async takeOfficeHoursQuestions(
     officeHoursArea: OfficeHoursAreaController,
     questionIDs: string[],
   ): Promise<TAModel> {
-    return this._townsService.takeNextOfficeHoursQuestionWithQuestionIDs(
+    return this._townsService.takeOfficeHoursQuestions(
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionIDs: questionIDs },
+      { questionIDs: questionIDs, timeLimit: officeHoursArea.timeLimit },
     );
   }
 
@@ -983,7 +979,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     );
   }
 
-  public async updateOfficeHoursModel(model: OfficeHoursArea): Promise<OfficeHoursArea> {
+  public async getUpdatedOfficeHoursModel(model: OfficeHoursArea): Promise<OfficeHoursArea> {
     return this._townsService.getUpdatedOfficeHoursModel(
       this.townID,
       model.id,

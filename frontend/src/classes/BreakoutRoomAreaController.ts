@@ -22,6 +22,8 @@ export type BreakoutRoomAreaEvents = {
   breakoutRoomStudentsChange: (newStudentsByID: PlayerController[]) => void;
 
   breakoutRoomTAChange: (newTeachingAssistantID: PlayerController | undefined) => void;
+
+  newTimeLeft: (x: undefined | number) => void;
 };
 
 export default class BreakoutRoomAreaController extends (EventEmitter as new () => TypedEventEmitter<BreakoutRoomAreaEvents>) {
@@ -34,6 +36,8 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
   private _teachingAssistant: PlayerController | undefined;
 
   private _students: PlayerController[] = [];
+
+  private _timeLeft: undefined | number = undefined;
 
   /**
    * Constructs a new OfficeHoursAreaController, initialized with the state of the
@@ -61,6 +65,15 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
       this.emit('breakoutRoomTopicChange', newTopic);
     }
     this._topic = newTopic;
+  }
+
+  public get timeLeft() {
+    return this._timeLeft;
+  }
+
+  public set timeLeft(x: undefined | number) {
+    this._timeLeft = x;
+    this.emit('newTimeLeft', x);
   }
 
   public get teachingAssistant(): PlayerController | undefined {
@@ -99,6 +112,7 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
       teachingAssistantID: this.teachingAssistant?.id,
       studentsByID: this.students.map(s => s.id),
       linkedOfficeHoursID: this.officeHoursAreaID,
+      timeLeft: this.timeLeft,
     };
   }
 
@@ -108,8 +122,6 @@ export default class BreakoutRoomAreaController extends (EventEmitter as new () 
     taController: PlayerController | undefined,
   ) {
     this.topic = breakoutRoomAreaModel.topic;
-    console.log('in updateFrom');
-    console.log(breakoutRoomAreaModel);
     this.teachingAssistant = taController;
     this.students = studentControllers;
   }
@@ -167,4 +179,17 @@ export function useBreakoutRoomAreaTopic(
     };
   }, [controller]);
   return topic;
+}
+
+export function useBreakOutRoomTimeLeft(
+  controller: BreakoutRoomAreaController,
+): undefined | number {
+  const [timeLeft, setTimeLeft] = useState(controller.timeLeft);
+  useEffect(() => {
+    controller.addListener('newTimeLeft', setTimeLeft);
+    return () => {
+      controller.removeListener('newTimeLeft', setTimeLeft);
+    };
+  }, [controller]);
+  return timeLeft;
 }

@@ -2,6 +2,7 @@ import {
   Button,
   FormLabel,
   Modal,
+  ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalFooter,
@@ -9,21 +10,18 @@ import {
   ModalOverlay,
   useToast,
 } from '@chakra-ui/react';
-import React, {
-  useCallback,
-  // useEffect,
-  // useState,
-} from 'react';
-import { useBreakoutRoomAreaController, useInteractable } from '../../../classes/TownController';
+import React, { useCallback } from 'react';
 import BreakoutRoomAreaInteractable from './BreakoutRoomArea';
 import useTownController from '../../../hooks/useTownController';
 import BreakoutRoomAreaController, {
   useBreakoutRoomAreaTA,
-  // useBreakoutRoomAreaStudents,
-  // useBreakoutRoomAreaTA,
   useBreakoutRoomAreaTopic,
+  useBreakOutRoomTimeLeft,
 } from '../../../classes/BreakoutRoomAreaController';
-
+import { useBreakoutRoomAreaController, useInteractable } from '../../../classes/TownController';
+export function padSeconds(s: number): string {
+  return s < 10 ? '0' + s : '' + s;
+}
 export function BreakoutRoomModal({
   controller,
   isOpen,
@@ -37,8 +35,8 @@ export function BreakoutRoomModal({
   const topic = useBreakoutRoomAreaTopic(controller);
   const teachingAssistant = useBreakoutRoomAreaTA(controller);
   const curPlayerId = townController.ourPlayer.id;
-  // const students = useBreakoutRoomAreaStudents(controller);
   const toast = useToast();
+  const timeLeft = useBreakOutRoomTimeLeft(controller);
 
   const finishQuestion = useCallback(async () => {
     try {
@@ -73,7 +71,13 @@ export function BreakoutRoomModal({
       }}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Breakout Room for Question: {topic}</ModalHeader>
+        <ModalHeader>Breakout Room for Question:</ModalHeader>
+        <ModalBody>{topic}</ModalBody>
+        <FormLabel>{`Time Left: ${
+          timeLeft === undefined
+            ? 'No Time Limit'
+            : `${new Date(timeLeft).getMinutes()}:${padSeconds(new Date(timeLeft).getSeconds())}`
+        }`}</FormLabel>
         <ModalCloseButton />
         <form
           onSubmit={ev => {

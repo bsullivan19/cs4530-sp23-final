@@ -14,7 +14,6 @@ export { Direction } from './models/Direction';
 export type { InvalidParametersError } from './models/InvalidParametersError';
 export type { OfficeHoursArea } from './models/OfficeHoursArea';
 export type { OfficeHoursQuestion } from './models/OfficeHoursQuestion';
-export type { OfficeHoursQueue } from './models/OfficeHoursQueue';
 export type { PlayerLocation } from './models/PlayerLocation';
 export type { PosterSessionArea } from './models/PosterSessionArea';
 export type { Priority } from './models/Priority';

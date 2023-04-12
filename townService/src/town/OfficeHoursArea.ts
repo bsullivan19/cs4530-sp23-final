@@ -30,6 +30,12 @@ export default class OfficeHoursArea extends InteractableArea {
 
   private _taInfos: TAInfo[];
 
+  private _timeLimit: number | undefined = undefined;
+
+  public get timeLimit() {
+    return this._timeLimit;
+  }
+
   public get taInfos() {
     return this._taInfos;
   }
@@ -68,7 +74,7 @@ export default class OfficeHoursArea extends InteractableArea {
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
-    this._roomEmitter = townEmitter.to(this.id);
+    this._roomEmitter = townEmitter; // townEmitter.to(this.id);
     this._teachingAssistantsByID = teachingAssistantsByID;
 
     // initialize breakout rooms map
@@ -95,6 +101,7 @@ export default class OfficeHoursArea extends InteractableArea {
       officeHoursActive: this.officeHoursActive,
       teachingAssistantsByID: this.teachingAssistantsByID,
       questionTypes: this.questionTypes,
+      timeLimit: this.timeLimit,
       taInfos: this.taInfos,
     };
   }
@@ -104,6 +111,7 @@ export default class OfficeHoursArea extends InteractableArea {
     this._teachingAssistantsByID = model.teachingAssistantsByID;
     this._questionTypes = model.questionTypes;
     this._taInfos = model.taInfos;
+    this._timeLimit = model.timeLimit;
     this._emitAreaChanged();
   }
 
@@ -300,6 +308,7 @@ export default class OfficeHoursArea extends InteractableArea {
         teachingAssistantsByID: [],
         questionTypes: ['Other'],
         taInfos: [],
+        timeLimit: undefined,
       },
       box,
       townEmitter,
