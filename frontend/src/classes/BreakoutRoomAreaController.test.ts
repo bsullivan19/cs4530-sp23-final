@@ -22,6 +22,7 @@ describe('[T2] BreakoutRoomAreaController', () => {
       new PlayerController(nanoid(), nanoid(), playerLocation),
     ];
     testArea.teachingAssistant = new PlayerController(nanoid(), nanoid(), playerLocation);
+    testArea.timeLeft = 0;
     mockClear(mockListeners.breakoutRoomTopicChange);
     mockClear(mockListeners.breakoutRoomStudentsChange);
     mockClear(mockListeners.breakoutRoomTAChange);
@@ -47,6 +48,50 @@ describe('[T2] BreakoutRoomAreaController', () => {
         id: testArea.id,
         topic: newTopic,
         teachingAssistantID: testArea.teachingAssistant?.id,
+        studentsByID: testArea.students.map(eachStudant => eachStudant.id),
+        linkedOfficeHoursID: testArea.officeHoursAreaID,
+        timeLeft: testArea.timeLeft,
+      });
+    });
+  });
+
+  describe('setting the timeLeft property', () => {
+    it('emits the newTimeLeft event when setting the property and updates the model', () => {
+      const newTimeLeft = 5;
+      testArea.timeLeft = newTimeLeft;
+      expect(mockListeners.newTimeLeft).toBeCalledWith(newTimeLeft);
+      expect(testArea.timeLeft).toEqual(newTimeLeft);
+      expect(testArea.toModel()).toEqual({
+        id: testArea.id,
+        topic: testArea.topic,
+        teachingAssistantID: testArea.teachingAssistant?.id,
+        studentsByID: testArea.students.map(eachStudant => eachStudant.id),
+        linkedOfficeHoursID: testArea.officeHoursAreaID,
+        timeLeft: newTimeLeft,
+      });
+    });
+  });
+
+  describe('setting the teachingAssistant property', () => {
+    it('does not update the property if the teachingAssistant is the same string', () => {
+      const taCopy = `${testArea.teachingAssistant}`;
+      testArea.topic = taCopy;
+      expect(mockListeners.breakoutRoomTAChange).not.toBeCalled();
+    });
+    it('emits the breakoutRoomTAChange event when setting the property and updates the model', () => {
+      const newTA = new PlayerController(nanoid(), nanoid(), {
+        moving: false,
+        x: 0,
+        y: 0,
+        rotation: 'front',
+      });
+      testArea.teachingAssistant = newTA;
+      expect(mockListeners.breakoutRoomTAChange).toBeCalledWith(newTA);
+      expect(testArea.teachingAssistant).toEqual(newTA);
+      expect(testArea.toModel()).toEqual({
+        id: testArea.id,
+        topic: testArea.topic,
+        teachingAssistantID: newTA.id,
         studentsByID: testArea.students.map(eachStudant => eachStudant.id),
         linkedOfficeHoursID: testArea.officeHoursAreaID,
         timeLeft: testArea.timeLeft,
