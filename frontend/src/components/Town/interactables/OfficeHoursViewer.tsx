@@ -176,10 +176,7 @@ export function QueueViewer({
         throw new Error('No next question');
       }
       const questionList: string[] = [questionId];
-      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
-        controller,
-        questionList,
-      );
+      const taModel = await townController.takeOfficeHoursQuestions(controller, questionList);
       toast({
         title: `Successfully took question ${taModel.questions?.map(
           (q: OfficeHoursQuestion) => q.id,
@@ -206,10 +203,7 @@ export function QueueViewer({
 
   const nextSelectedQuestions = useCallback(async () => {
     try {
-      const taModel = await townController.takeNextOfficeHoursQuestionWithQuestionIDs(
-        controller,
-        selectedQuestions,
-      );
+      const taModel = await townController.takeOfficeHoursQuestions(controller, selectedQuestions);
       toast({
         title: `Successfully took questions ${taModel.questions?.map(
           (q: OfficeHoursQuestion) => q.id,

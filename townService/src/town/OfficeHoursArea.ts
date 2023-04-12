@@ -74,7 +74,7 @@ export default class OfficeHoursArea extends InteractableArea {
     townEmitter: TownEmitter,
   ) {
     super(id, coordinates, townEmitter);
-    this._roomEmitter = townEmitter.to(this.id);
+    this._roomEmitter = townEmitter; // townEmitter.to(this.id);
     this._teachingAssistantsByID = teachingAssistantsByID;
 
     // initialize breakout rooms map

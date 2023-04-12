@@ -22,7 +22,6 @@ export default class BreakoutRoomArea extends InteractableArea {
 
   public _interval: undefined | NodeJS.Timer = undefined;
 
-  // TODO add office hours area id link
   private readonly _linkedOfficeHoursID: string;
 
   public override get isActive(): boolean {
