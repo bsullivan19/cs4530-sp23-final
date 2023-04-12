@@ -476,18 +476,19 @@ export function QueueViewer({
       </Button>
       <VStack spacing={5} align='left'>
         <List></List>
-        <FormLabel>Sort By Question Type?</FormLabel>
+        <Checkbox
+          type='checkbox'
+          name='Should Sort'
+          isChecked={isSorted}
+          onChange={() => {
+            controller.setIsSorted(curPlayerId, !isSorted);
+            updateModel();
+          }}>
+          <FormLabel>Sort By Question Type?</FormLabel>
+        </Checkbox>
+        <List></List>
       </VStack>
-      <Checkbox
-        type='checkbox'
-        name='Should Sort'
-        isChecked={isSorted}
-        onChange={() => {
-          controller.setIsSorted(curPlayerId, !isSorted);
-          updateModel();
-        }}
-      />
-      <QuestionTypesViewer></QuestionTypesViewer>
+      {isSorted ? <QuestionTypesViewer /> : <></>}
       <FormLabel>{`Current Time Limit (MIN): ${
         timeLimit === undefined ? 'No Time Limit' : convertMilliToMin(timeLimit)
       }`}</FormLabel>
