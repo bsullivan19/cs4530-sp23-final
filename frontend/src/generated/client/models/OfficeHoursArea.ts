@@ -10,4 +10,5 @@ export type OfficeHoursArea = {
     teachingAssistantsByID: Array<string>;
     questionTypes: Array<string>;
     taInfos: Array<TAInfo>;
+    timeLimit?: number;
 };

@@ -371,6 +371,7 @@ townId: string,
 officeHoursAreaId: string,
 xSessionToken: string,
 requestBody: {
+timeLimit?: number;
 questionIDs: Array<string>;
 },
 ): CancelablePromise<TAModel> {
@@ -484,6 +485,8 @@ xSessionToken: string,
     }
 
     /**
+     * Removes a player from the first question in the queue they are joined to as a student.
+ * Does nothing if they are not apart of any question.
      * @param townId 
      * @param officeHoursAreaId 
      * @param xSessionToken 

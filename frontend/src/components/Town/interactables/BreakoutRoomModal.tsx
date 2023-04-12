@@ -2,6 +2,7 @@ import {
   Button,
   FormLabel,
   Modal,
+  ModalBody,
   ModalCloseButton,
   ModalContent,
   ModalFooter,
@@ -70,7 +71,8 @@ export function BreakoutRoomModal({
       }}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Breakout Room for Question: {topic}</ModalHeader>
+        <ModalHeader>Breakout Room for Question:</ModalHeader>
+        <ModalBody>{topic}</ModalBody>
         <FormLabel>{`Time Left: ${
           timeLeft === undefined
             ? 'No Time Limit'
