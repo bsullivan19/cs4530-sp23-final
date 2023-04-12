@@ -18,7 +18,6 @@ export default class BreakoutRoomArea extends InteractableArea {
 
   public _students: Player[] = [];
 
-  // TODO add office hours area id link
   private readonly _linkedOfficeHoursID: string;
 
   public override get isActive(): boolean {

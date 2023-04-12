@@ -474,7 +474,7 @@ export class TownsController extends Controller {
 
   @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
-  public async takeNextOfficeHoursQuestionWithQuestionIDs(
+  public async takeOfficeHoursQuestions(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
     @Body() requestBody: { questionIDs: string[] },
@@ -510,10 +510,6 @@ export class TownsController extends Controller {
     /* Set TA's location to center of breakout room, used by players for teleporting */
     const breakoutRoom = curTown.getInteractable(curPlayer.breakoutRoomID);
     curPlayer.location = (<BreakoutRoomAreaReal>breakoutRoom).areasCenter();
-
-    if (curPlayer.currentQuestions.length === 0) {
-      throw new Error('Could not find questions taken');
-    }
 
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
@@ -557,6 +553,8 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
+  // Closes the breakout room area and updates the connected office hour
+  // area's open breakout rooms map
   @Patch('{townID}/{breakoutRoomAreaId}/finishQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async closeBreakoutRoomArea(
@@ -593,9 +591,9 @@ export class TownsController extends Controller {
     // TODO: move this out of REST api!!!!
     officeHoursAreaReal.stopOfficeHours(curPlayer);
     curTown.closeBreakOutRoom(breakoutRoomAreaId);
-    // curTown.removeBreakOutRoomArea(breakoutRoomAreaId);
   }
 
+  // Removes the question from the office hours area if the player is a TA
   @Patch('{townID}/{officeHoursAreaId}/{questionID}/removeQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async removeOfficeHoursQuestion(
@@ -622,6 +620,10 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
+  /**
+   * Removes a player from the first question in the queue they are joined to as a student.
+   * Does nothing if they are not apart of any question.
+   */
   @Patch('{townID}/{officeHoursAreaId}/removeQuestionForPlayer')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async removeOfficeHoursQuestionForPlayer(

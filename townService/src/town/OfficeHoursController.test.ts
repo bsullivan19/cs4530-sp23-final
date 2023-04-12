@@ -8,12 +8,20 @@ import {
   OfficeHoursQuestion,
   OfficeHoursQueue,
   TAInfo,
+  TAModel,
 } from '../types/CoveyTownSocket';
 import TownsStore from '../lib/TownsStore';
-import { getLastEmittedEvent, mockPlayer, MockedPlayer, isOfficeHoursArea } from '../TestUtils';
+import {
+  getLastEmittedEvent,
+  mockPlayer,
+  MockedPlayer,
+  isOfficeHoursArea,
+  isBreakoutRoomArea,
+} from '../TestUtils';
 import { TownsController } from './TownsController';
 import OfficeHoursArea from './OfficeHoursArea';
 import Question from '../lib/Question';
+import BreakoutRoomArea from './BreakoutRoomArea';
 
 type TestTownData = {
   friendlyName: string;
@@ -289,6 +297,8 @@ describe('TownsController integration tests for offie hours functions', () => {
           });
         });
         describe('Contains starting questions', () => {
+          let ta1: MockedPlayer;
+          let ta1Session: string;
           let student1: MockedPlayer;
           let student1Session: string;
           let q1Setup;
@@ -298,10 +308,10 @@ describe('TownsController integration tests for offie hours functions', () => {
           let q3Setup;
           let q3: OfficeHoursQuestion;
           beforeEach(async () => {
-            student1 = mockPlayer(testingTown.townID);
+            ta1 = mockPlayer(testingTown.townID, townTaPassword);
             await controller.joinTown(player.socket);
             const initialData = getLastEmittedEvent(player.socket, 'initialize');
-            student1Session = initialData.sessionToken;
+            ta1Session = initialData.sessionToken;
             q1Setup = {
               questionContent: nanoid(),
               groupQuestion: true,
@@ -337,18 +347,13 @@ describe('TownsController integration tests for offie hours functions', () => {
                   nanoid(),
                   newOfficeHoursArea.id,
                   q1.id,
-                  student1Session,
+                  ta1Session,
                 ),
               ).rejects.toThrow();
             });
             it('Throws an error if invalid office hours id', async () => {
               await expect(
-                controller.joinOfficeHoursQuestion(
-                  testingTown.townID,
-                  nanoid(),
-                  q1.id,
-                  student1Session,
-                ),
+                controller.joinOfficeHoursQuestion(testingTown.townID, nanoid(), q1.id, ta1Session),
               ).rejects.toThrow();
             });
             it('Throws an error if invalid session token', async () => {
@@ -377,7 +382,7 @@ describe('TownsController integration tests for offie hours functions', () => {
                   testingTown.townID,
                   newOfficeHoursArea.id,
                   nanoid(),
-                  student1Session,
+                  ta1Session,
                 ),
               ).rejects.toThrow();
             });
@@ -386,7 +391,7 @@ describe('TownsController integration tests for offie hours functions', () => {
                 testingTown.townID,
                 newOfficeHoursArea.id,
                 q1.id,
-                student1Session,
+                ta1Session,
               );
               expect(question.students.length).toEqual(2);
               expect(question.questionContent).toEqual(q1.questionContent);
@@ -401,7 +406,84 @@ describe('TownsController integration tests for offie hours functions', () => {
               } as OfficeHoursQueue);
             });
           }); // TODO
-          describe('takeNextOfficeHoursQuestionWithQuestionIDs', () => {}); // TODO
+          describe('takeOfficeHoursQuestions', () => {
+            it('Throws an error if invalid town id', async () => {
+              await expect(
+                controller.takeOfficeHoursQuestions(
+                  nanoid(),
+                  newOfficeHoursArea.id,
+                  { questionIDs: [q1.id, q2.id] },
+                  ta1Session,
+                ),
+              ).rejects.toThrow('Invalid town ID');
+            });
+            it('Throws an error if invalid office hours id', async () => {
+              await expect(
+                controller.takeOfficeHoursQuestions(
+                  testingTown.townID,
+                  nanoid(),
+                  { questionIDs: [q1.id, q2.id] },
+                  ta1Session,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              await expect(
+                controller.takeOfficeHoursQuestions(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  { questionIDs: [q1.id, q2.id] },
+                  nanoid(),
+                ),
+              ).rejects.toThrow('Invalid session ID');
+            });
+            it('Throws an error if not a TA', async () => {
+              const student = mockPlayer(testingTown.townID, nanoid());
+              await controller.joinTown(student.socket);
+              const intiData = getLastEmittedEvent(student.socket, 'initialize');
+              await expect(
+                controller.takeOfficeHoursQuestions(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  { questionIDs: [q1.id, q2.id] },
+                  intiData.sessionToken,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if any questions do not exist', async () => {
+              const requestQuestion = {
+                questionContent: nanoid(),
+                groupQuestion: false,
+                questionType: '1',
+              };
+              await expect(
+                controller.takeOfficeHoursQuestions(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  { questionIDs: [nanoid()] },
+                  nanoid(),
+                ),
+              ).rejects.toThrow();
+            });
+            it('Properly takes questions', async () => {
+              const taReturn = await controller.takeOfficeHoursQuestions(
+                testingTown.townID,
+                newOfficeHoursArea.id,
+                { questionIDs: [q1.id, q2.id] },
+                sessionToken,
+              );
+              expect(taReturn.breakoutRoomID).toEqual('Breakout1');
+              expect(taReturn.questions).toEqual([q1, q2]);
+              expect(taReturn.userName).toEqual('TA: '.concat(player.userName));
+              const lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQuestionTaken',
+              );
+              expect(lastEmittedUpdate.userName).toEqual('TA: '.concat(player.userName));
+              expect(lastEmittedUpdate.questions).toEqual([q1, q2]);
+              expect(lastEmittedUpdate.breakoutRoomID).toEqual('Breakout1');
+            });
+          });
           describe('getUpdatedOfficeHoursModel', () => {
             it('Throws an error if invalid town id', async () => {
               const updatedModel = newOfficeHoursArea;
@@ -492,72 +574,171 @@ describe('TownsController integration tests for offie hours functions', () => {
               expect(lastEmittedUpdate).toEqual(updatedModel);
             });
           });
-          describe('closeBreakoutRoomArea', () => {}); // TODO
-          describe('removeOfficeHoursQuestion', () => {}); // TODO
-          describe('removeOfficeHoursQuestionForPlayer', () => {}); // TODO
-
-          //   it('Properly adds an office hours question', async () => {
-          //     const requestQuestion = {
-          //       questionContent: nanoid(),
-          //       groupQuestion: false,
-          //       questionType: '1',
-          //     };
-          //     const question = await controller.addOfficeHoursQuestion(
-          //       testingTown.townID,
-          //       newOfficeHoursArea.id,
-          //       sessionToken,
-          //       requestQuestion,
-          //     );
-          //     expect(question.officeHoursID).toEqual(newOfficeHoursArea.id);
-          //     expect(question.groupQuestion).toEqual(requestQuestion.groupQuestion);
-          //     expect(question.questionContent).toEqual(requestQuestion.questionContent);
-          //     expect(question.questionType).toEqual(requestQuestion.questionType);
-          //   });
-          //   it('Throws an error if invalid town id', async () => {
-          //     const requestQuestion = {
-          //       questionContent: nanoid(),
-          //       groupQuestion: false,
-          //       questionType: '1',
-          //     };
-          //     await expect(
-          //       controller.addOfficeHoursQuestion(
-          //         nanoid(),
-          //         newOfficeHoursArea.id,
-          //         sessionToken,
-          //         requestQuestion,
-          //       ),
-          //     ).rejects.toThrow();
-          //   });
-          //   it('Throws an error if invalid office hours id', async () => {
-          //     const requestQuestion = {
-          //       questionContent: nanoid(),
-          //       groupQuestion: false,
-          //       questionType: '1',
-          //     };
-          //     await expect(
-          //       controller.addOfficeHoursQuestion(
-          //         testingTown.townID,
-          //         nanoid(),
-          //         sessionToken,
-          //         requestQuestion,
-          //       ),
-          //     ).rejects.toThrow();
-          //   });
-          //   it('Throws an error if invalid session token', async () => {
-          //     const requestQuestion = {
-          //       questionContent: nanoid(),
-          //       groupQuestion: false,
-          //       questionType: '1',
-          //     };
-          //     await expect(
-          //       controller.addOfficeHoursQuestion(
-          //         testingTown.townID,
-          //         newOfficeHoursArea.id,
-          //         nanoid(),
-          //         requestQuestion,
-          //       ),
-          //     ).rejects.toThrow();
-          //   });
+          describe('closeBreakoutRoomArea', () => {
+            let bRoomArea: BreakoutRoomArea;
+            beforeEach(() => {
+              bRoomArea = interactables.find(isBreakoutRoomArea) as BreakoutRoomArea;
+              if (
+                bRoomArea.id !== 'Breakout1' ||
+                bRoomArea.linkedOfficeHoursID !== officeHoursArea.id
+              ) {
+                fail('invalid breakout room');
+              }
+            });
+            it('Throws an error if invalid town id', async () => {
+              await expect(
+                controller.closeBreakoutRoomArea(nanoid(), bRoomArea.id, sessionToken),
+              ).rejects.toThrow('Invalid town ID');
+            });
+            it('Throws an error if invalid breakout room id', async () => {
+              await expect(
+                controller.closeBreakoutRoomArea(testingTown.townID, nanoid(), sessionToken),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              await expect(
+                controller.closeBreakoutRoomArea(testingTown.townID, bRoomArea.id, nanoid()),
+              ).rejects.toThrow('Invalid session ID');
+            });
+            it('Throws an error if not a TA', async () => {
+              const student = mockPlayer(testingTown.townID, nanoid());
+              await controller.joinTown(student.socket);
+              const intiData = getLastEmittedEvent(student.socket, 'initialize');
+              await expect(
+                controller.closeBreakoutRoomArea(
+                  testingTown.townID,
+                  bRoomArea.id,
+                  intiData.sessionToken,
+                ),
+              ).rejects.toThrow('This player is not a TA');
+            });
+            it('Properly closes breakout room area', async () => {
+              await controller.takeOfficeHoursQuestions(
+                testingTown.townID,
+                newOfficeHoursArea.id,
+                { questionIDs: [q1.id, q2.id] },
+                ta1Session,
+              );
+              let lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQuestionTaken',
+              );
+              expect(lastEmittedUpdate.breakoutRoomID).toEqual('Breakout1');
+              expect(lastEmittedUpdate.questions).toEqual([q1, q2]);
+              controller.closeBreakoutRoomArea(testingTown.townID, bRoomArea.id, ta1Session);
+              lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQuestionTaken',
+              );
+              expect(lastEmittedUpdate.breakoutRoomID).toEqual(undefined);
+              expect(lastEmittedUpdate.questions).toEqual([q1, q2]);
+            });
+          });
+          describe('removeOfficeHoursQuestion', () => {
+            it('Throws an error if invalid town id', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestion(
+                  nanoid(),
+                  newOfficeHoursArea.id,
+                  q1.id,
+                  sessionToken,
+                ),
+              ).rejects.toThrow('Invalid town ID');
+            });
+            it('Throws an error if invalid office hours area id', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestion(
+                  testingTown.townID,
+                  nanoid(),
+                  q1.id,
+                  sessionToken,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestion(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  q1.id,
+                  nanoid(),
+                ),
+              ).rejects.toThrow('Invalid session ID');
+            });
+            it('Throws an error if not a TA', async () => {
+              const student = mockPlayer(testingTown.townID, nanoid());
+              await controller.joinTown(student.socket);
+              const intiData = getLastEmittedEvent(student.socket, 'initialize');
+              await expect(
+                controller.removeOfficeHoursQuestion(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  q1.id,
+                  intiData.sessionToken,
+                ),
+              ).rejects.toThrow('This player is not a TA');
+            });
+            it('Properly removes the office hours question', async () => {
+              await controller.removeOfficeHoursQuestion(
+                testingTown.townID,
+                newOfficeHoursArea.id,
+                q2.id,
+                sessionToken,
+              );
+              const lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQueueUpdate',
+              );
+              expect(lastEmittedUpdate).toEqual({
+                officeHoursID: newOfficeHoursArea.id,
+                questionQueue: [q1],
+              } as OfficeHoursQueue);
+            });
+          });
+          describe('removeOfficeHoursQuestionForPlayer', () => {
+            it('Throws an error if invalid town id', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestionForPlayer(
+                  nanoid(),
+                  newOfficeHoursArea.id,
+                  sessionToken,
+                ),
+              ).rejects.toThrow('Invalid town ID');
+            });
+            it('Throws an error if invalid office hours area id', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestionForPlayer(
+                  testingTown.townID,
+                  nanoid(),
+                  sessionToken,
+                ),
+              ).rejects.toThrow();
+            });
+            it('Throws an error if invalid session token', async () => {
+              await expect(
+                controller.removeOfficeHoursQuestionForPlayer(
+                  testingTown.townID,
+                  newOfficeHoursArea.id,
+                  nanoid(),
+                ),
+              ).rejects.toThrow('Invalid session ID');
+            });
+            it('Properly removes player from the office hours question', async () => {
+              await controller.removeOfficeHoursQuestionForPlayer(
+                testingTown.townID,
+                newOfficeHoursArea.id,
+                sessionToken,
+              );
+              const lastEmittedUpdate = getLastEmittedEvent(
+                getBroadcastEmitterForTownID(testingTown.townID),
+                'officeHoursQueueUpdate',
+              );
+              expect(lastEmittedUpdate).toEqual({
+                officeHoursID: newOfficeHoursArea.id,
+                questionQueue: [q1],
+              } as OfficeHoursQueue);
+            });
+          });
         });
       });
     });

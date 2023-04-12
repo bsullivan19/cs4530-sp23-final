@@ -918,11 +918,11 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
   //   );
   // }
 
-  public async takeNextOfficeHoursQuestionWithQuestionIDs(
+  public async takeOfficeHoursQuestions(
     officeHoursArea: OfficeHoursAreaController,
     questionIDs: string[],
   ): Promise<TAModel> {
-    return this._townsService.takeNextOfficeHoursQuestionWithQuestionIDs(
+    return this._townsService.takeOfficeHoursQuestions(
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
