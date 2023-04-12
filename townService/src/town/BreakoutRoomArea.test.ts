@@ -17,7 +17,7 @@ describe('BreakoutRoomArea', () => {
   beforeEach(() => {
     mockClear(townEmitter);
     testArea = new BreakoutRoomArea(
-      { id, topic, studentsByID: [], linkedOfficeHoursID: '2' },
+      { id, topic, studentsByID: [], linkedOfficeHoursID: '2', timeLeft: undefined },
       testAreaBox,
       townEmitter,
     );
@@ -56,6 +56,7 @@ describe('BreakoutRoomArea', () => {
       teachingAssisstantID: undefined,
       studentsByID: [],
       linkedOfficeHoursID: '2',
+      timeLeft: undefined,
     } as BreakoutRoomAreaModel);
   });
   describe('fromMapObject', () => {

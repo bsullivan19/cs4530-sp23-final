@@ -23,6 +23,7 @@ import {
   Td,
   Table,
   VStack,
+  HStack,
 } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useInteractable, useOfficeHoursAreaController } from '../../../classes/TownController';
@@ -32,13 +33,25 @@ import OfficeHoursAreaController, {
   useQuestionTypes,
   usePriorities,
   useIsSorted,
+  useTimeLimit,
 } from '../../../classes/OfficeHoursAreaController';
 import useTownController from '../../../hooks/useTownController';
 import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import _ from 'lodash';
 
-// Finds the next possible group to take grouped by the earliest guys question type
+export function isInteger(s: string): boolean {
+  for (let i = 0; i < s.length; i++) {
+    if (s[i] < '0' || s[i] > '9') return false;
+  }
+  return true;
+}
+export function convertMilliToMin(x: number): number {
+  return x / 1000 / 60;
+}
+export function convertMinToMilli(x: number): number {
+  return x * 1000 * 60;
+}
 export function QueueViewer({
   controller,
   isOpen,
@@ -63,6 +76,8 @@ export function QueueViewer({
   const toast = useToast();
   const queue = useQueue(controller);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const timeLimit = useTimeLimit(controller);
+  const [inputTimeLimit, setInputTimeLimit] = useState<string>('');
   townController.pause();
   useEffect(() => {
     const filteredQuestions = selectedQuestions.filter(qid =>
@@ -473,6 +488,43 @@ export function QueueViewer({
         }}
       />
       <QuestionTypesViewer></QuestionTypesViewer>
+      <FormLabel>{`Current Time Limit (MIN): ${
+        timeLimit === undefined ? 'No Time Limit' : convertMilliToMin(timeLimit)
+      }`}</FormLabel>
+      <HStack spacing={10}>
+        <Input
+          id='Time Limit'
+          placeholder='Time Limit'
+          name='questionContent'
+          type='string'
+          width='10%'
+          onChange={e => setInputTimeLimit(e.target.value)}
+        />
+        <Button
+          colorScheme='yellow'
+          onClick={() => {
+            try {
+              if (inputTimeLimit === 'na') {
+                controller.timeLimit = undefined;
+                updateModel();
+              } else {
+                const x = Number(inputTimeLimit);
+                if (x <= 0 || !isInteger(inputTimeLimit)) {
+                  throw Error();
+                }
+                controller.timeLimit = convertMinToMilli(x);
+                updateModel();
+              }
+            } catch (e) {
+              toast({
+                title: 'Please enter a valid time limit',
+                status: 'error',
+              });
+            }
+          }}>
+          {'Set New Time Limit (MIN or "na")'}
+        </Button>
+      </HStack>
       <ModalFooter>
         <Button onClick={close}>Cancel</Button>
       </ModalFooter>

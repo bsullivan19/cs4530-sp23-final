@@ -571,6 +571,25 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
         ohAreaController.questionQueue = queueModel.questionQueue;
       }
     });
+
+    this._socket.on('breakOutRoomUpdate', breakOutModel => {
+      const breakOutController = this._breakoutRoomAreas.find(area => area.id === breakOutModel.id);
+      if (breakOutController) {
+        breakOutController.timeLeft = breakOutModel.timeLeft;
+        if (breakOutModel.timeLeft !== undefined && breakOutModel.timeLeft <= 0) {
+          if (breakOutModel.teachingAssistantID === this.ourPlayer.id) {
+            const closeBreakoutRoom = async () => {
+              try {
+                await this.closeBreakoutRoomArea(breakOutController);
+              } catch (e) {
+                console.log(e);
+              }
+            };
+            closeBreakoutRoom();
+          }
+        }
+      }
+    });
   }
 
   /**
@@ -926,7 +945,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionIDs: questionIDs },
+      { questionIDs: questionIDs, timeLimit: officeHoursArea.timeLimit },
     );
   }
 

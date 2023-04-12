@@ -353,6 +353,9 @@ export class TownsController extends Controller {
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new InvalidParametersError('Invalid office hours area ID');
     }
+    if (curTown.isStudentsInBreakOutRooms([curPlayer.id])) {
+      throw new InvalidParametersError('Student cannot add question when he is in breakout roomt');
+    }
     // if (!officeHoursArea.officeHoursActive) {
     //   throw new InvalidParametersError('Cant add a question when no TAs online');
     // }
@@ -477,7 +480,7 @@ export class TownsController extends Controller {
   public async takeOfficeHoursQuestions(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
-    @Body() requestBody: { questionIDs: string[] },
+    @Body() requestBody: { questionIDs: string[]; timeLimit?: number },
     @Header('X-Session-Token') sessionToken: string,
   ): Promise<TAModel> {
     const curTown = this._townsStore.getTownByID(townID);
@@ -517,6 +520,7 @@ export class TownsController extends Controller {
       teachingAssistantID: curPlayer.id,
       studentsByID: curPlayer.currentQuestions.map(question => question.studentsByID).flat(), // All studentIDs for all questions
       linkedOfficeHoursID: officeHoursAreaId,
+      timeLeft: requestBody.timeLimit, // actually used
     });
     if (!success) {
       throw new Error('Could not update breakout room');
@@ -576,18 +580,21 @@ export class TownsController extends Controller {
     if (!breakoutRoomArea || !isBreakoutRoomArea(breakoutRoomArea)) {
       throw new InvalidParametersError('Invalid breakout room area ID');
     }
+    // const breakOutRoomAreaReal = <OfficeHoursAreaReal>breakoutRoomArea;
 
-    const officeHoursID = (<BreakoutRoomAreaReal>breakoutRoomArea).linkedOfficeHoursID;
+    const officeHoursID = (<BreakoutRoomAreaReal>(<unknown>breakoutRoomArea)).linkedOfficeHoursID;
     const officeHoursArea = curTown.getInteractable(officeHoursID);
     if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
       throw new Error('Could not find associated Office Hours Area');
     }
-
+    curTown.removeStudentsFromBreakOutRooms(breakoutRoomArea.studentsByID);
     /* Moves the TA back to the office hours area, used by students for teleporting */
     const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
 
     officeHoursAreaReal.roomEmitter.emit('officeHoursQuestionTaken', curPlayer.toModel());
 
+    const location = officeHoursAreaReal.areasCenter();
+    curTown.teleportPlayer(curPlayer, location);
     // TODO: move this out of REST api!!!!
     officeHoursAreaReal.stopOfficeHours(curPlayer);
     curTown.closeBreakOutRoom(breakoutRoomAreaId);

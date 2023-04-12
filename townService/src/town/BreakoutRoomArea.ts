@@ -18,6 +18,10 @@ export default class BreakoutRoomArea extends InteractableArea {
 
   public _students: Player[] = [];
 
+  public _timeLeft: undefined | number = undefined;
+
+  public _interval: undefined | NodeJS.Timer = undefined;
+
   private readonly _linkedOfficeHoursID: string;
 
   public override get isActive(): boolean {
@@ -85,6 +89,25 @@ export default class BreakoutRoomArea extends InteractableArea {
     }
   }
 
+  public startTimer(startTime: number) {
+    this.stopTimer();
+    this._timeLeft = startTime;
+    this._interval = setInterval(() => {
+      if (this._timeLeft !== undefined) {
+        this._timeLeft -= 1000;
+        this._townEmitter.emit('breakOutRoomUpdate', this.toModel());
+        if (this._timeLeft <= 0) {
+          this.stopTimer();
+        }
+      }
+    }, 1000);
+  }
+
+  public stopTimer() {
+    clearInterval(this._interval);
+    this._interval = undefined;
+  }
+
   /**
    * Convert this BreakoutRoomArea instance to a simple BreakoutRoomAreaModel suitable for
    * transporting over a socket to a client.
@@ -96,6 +119,7 @@ export default class BreakoutRoomArea extends InteractableArea {
       teachingAssistantID: this.teachingAssistant?.id,
       studentsByID: this.studentsByID,
       linkedOfficeHoursID: this._linkedOfficeHoursID,
+      timeLeft: this._timeLeft,
     };
   }
 
@@ -125,7 +149,7 @@ export default class BreakoutRoomArea extends InteractableArea {
       throw new Error('no linkedOfficeHoursID value');
     }
     return new BreakoutRoomArea(
-      { id: name, linkedOfficeHoursID: officeHoursIDVal, studentsByID: [] },
+      { id: name, linkedOfficeHoursID: officeHoursIDVal, studentsByID: [], timeLeft: undefined },
       rect,
       broadcastEmitter,
     );

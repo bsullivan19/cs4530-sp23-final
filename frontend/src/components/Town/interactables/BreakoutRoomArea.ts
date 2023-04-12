@@ -102,11 +102,7 @@ export default class BreakoutRoomArea extends Interactable {
   //   this._infoTextBox.x = this.scene.scale.width / 2 - this._infoTextBox.width / 2;
   // }
 
-  overlap(): void {
-    if (this._breakoutRoomArea === undefined) {
-      // this._showInfoBox();
-    }
-  }
+  overlap(): void {}
 
   overlapExit(): void {
     this._infoTextBox?.setVisible(false);
