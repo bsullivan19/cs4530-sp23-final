@@ -480,7 +480,7 @@ export class TownsController extends Controller {
   public async takeOfficeHoursQuestions(
     @Path() townID: string,
     @Path() officeHoursAreaId: string,
-    @Body() requestBody: { questionIDs: string[]; timeLimit: number | undefined },
+    @Body() requestBody: { questionIDs: string[]; timeLimit?: number },
     @Header('X-Session-Token') sessionToken: string,
   ): Promise<TAModel> {
     const curTown = this._townsStore.getTownByID(townID);

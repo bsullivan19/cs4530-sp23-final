@@ -56,6 +56,7 @@ describe('BreakoutRoomArea', () => {
       teachingAssisstantID: undefined,
       studentsByID: [],
       linkedOfficeHoursID: '2',
+      timeLeft: undefined,
     } as BreakoutRoomAreaModel);
   });
   describe('fromMapObject', () => {

@@ -8,7 +8,7 @@ import {
   OfficeHoursQuestion,
   OfficeHoursQueue,
   TAInfo,
-  TAModel,
+  BreakoutRoomArea as BreakoutRoomAreaModel,
 } from '../types/CoveyTownSocket';
 import TownsStore from '../lib/TownsStore';
 import {
@@ -575,9 +575,12 @@ describe('TownsController integration tests for offie hours functions', () => {
             });
           });
           describe('closeBreakoutRoomArea', () => {
-            let bRoomArea: BreakoutRoomArea;
+            let bRoomArea: BreakoutRoomAreaModel;
             beforeEach(() => {
-              bRoomArea = interactables.find(isBreakoutRoomArea) as BreakoutRoomArea;
+              const found = interactables.find(isBreakoutRoomArea);
+              if (found) {
+                bRoomArea = found;
+              }
               if (
                 bRoomArea.id !== 'Breakout1' ||
                 bRoomArea.linkedOfficeHoursID !== officeHoursArea.id
