@@ -103,7 +103,6 @@ export function mockTownController({
   viewingAreas,
   posterSessionAreas,
   officeHoursAreas,
-  breakoutRoomAreas,
 }: MockedTownControllerProperties) {
   const mockedController = mockDeep<TownController>();
   if (friendlyName) {
