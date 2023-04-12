@@ -8,6 +8,7 @@ import ViewingAreaController from './classes/ViewingAreaController';
 import PosterSessionAreaController from './classes/PosterSessionAreaController';
 import { TownsService } from './generated/client';
 import { CoveyTownSocket, ServerToClientEvents, TownJoinResponse } from './types/CoveyTownSocket';
+import BreakoutRoomAreaController from './classes/BreakoutRoomAreaController';
 
 //These types copied from socket.io server library so that we don't have to depend on the whole thing to have type-safe tests.
 type SocketReservedEventsMap = {
@@ -87,6 +88,7 @@ type MockedTownControllerProperties = {
   conversationAreas?: ConversationAreaController[];
   viewingAreas?: ViewingAreaController[];
   posterSessionAreas?: PosterSessionAreaController[];
+  breakoutRoomAreas?: BreakoutRoomAreaController[];
 };
 export function mockTownController({
   friendlyName,
@@ -98,6 +100,7 @@ export function mockTownController({
   conversationAreas,
   viewingAreas,
   posterSessionAreas,
+  breakoutRoomAreas,
 }: MockedTownControllerProperties) {
   const mockedController = mockDeep<TownController>();
   if (friendlyName) {
@@ -136,6 +139,14 @@ export function mockTownController({
     mockedController.incrementPosterSessionAreaStars.mockImplementation(
       async (posterSessionArea: PosterSessionAreaController) => {
         return ++posterSessionArea.stars;
+      },
+    );
+  }
+  if (breakoutRoomAreas) {
+    Object.defineProperty(mockedController, 'breakoutRoomArea', { value: breakoutRoomAreas });
+    mockedController.closeBreakoutRoomArea.mockImplementation(
+      async (breakoutRoomArea: BreakoutRoomAreaController) => {
+        breakoutRoomArea.topic = undefined;
       },
     );
   }
