@@ -883,7 +883,7 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.townID,
       officeHoursArea.id,
       this.sessionToken,
-      { questionIDs: questionIDs, timeLimit: officeHoursArea.timeLimit },
+      { questionIDs: questionIDs }, //, timeLimit: officeHoursArea.timeLimit },
     );
   }
 
