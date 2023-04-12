@@ -516,7 +516,7 @@ export class TownsController extends Controller {
 
     const success = curTown.addBreakoutRoomArea({
       id: curPlayer.breakoutRoomID,
-      topic: curPlayer.currentQuestions[0].questionType,
+      topic: curPlayer.currentQuestions[0].questionContent,
       teachingAssistantID: curPlayer.id,
       studentsByID: curPlayer.currentQuestions.map(question => question.studentsByID).flat(), // All studentIDs for all questions
       linkedOfficeHoursID: officeHoursAreaId,

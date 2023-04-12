@@ -114,6 +114,7 @@ const models: TsoaRoute.Models = {
             "teachingAssistantsByID": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "questionTypes": {"dataType":"array","array":{"dataType":"string"},"required":true},
             "taInfos": {"dataType":"array","array":{"dataType":"refObject","ref":"TAInfo"},"required":true},
+            "timeLimit": {"dataType":"union","subSchemas":[{"dataType":"double"},{"dataType":"undefined"}]},
         },
         "additionalProperties": false,
     },
@@ -499,7 +500,7 @@ export function RegisterRoutes(app: express.Router) {
             const args = {
                     townID: {"in":"path","name":"townID","required":true,"dataType":"string"},
                     officeHoursAreaId: {"in":"path","name":"officeHoursAreaId","required":true,"dataType":"string"},
-                    requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"questionIDs":{"dataType":"array","array":{"dataType":"string"},"required":true}}},
+                    requestBody: {"in":"body","name":"requestBody","required":true,"dataType":"nestedObjectLiteral","nestedProperties":{"timeLimit":{"dataType":"double"},"questionIDs":{"dataType":"array","array":{"dataType":"string"},"required":true}}},
                     sessionToken: {"in":"header","name":"X-Session-Token","required":true,"dataType":"string"},
             };
 
