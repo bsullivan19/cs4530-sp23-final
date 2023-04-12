@@ -11,7 +11,13 @@ import {
   TAModel,
 } from '../types/CoveyTownSocket';
 import TownsStore from '../lib/TownsStore';
-import { getLastEmittedEvent, mockPlayer, MockedPlayer, isOfficeHoursArea, isBreakoutRoomArea } from '../TestUtils';
+import {
+  getLastEmittedEvent,
+  mockPlayer,
+  MockedPlayer,
+  isOfficeHoursArea,
+  isBreakoutRoomArea,
+} from '../TestUtils';
 import { TownsController } from './TownsController';
 import OfficeHoursArea from './OfficeHoursArea';
 import Question from '../lib/Question';

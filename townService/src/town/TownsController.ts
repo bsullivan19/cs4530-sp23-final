@@ -553,7 +553,7 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
-  // Closes the breakout room area and updates the connected office hour 
+  // Closes the breakout room area and updates the connected office hour
   // area's open breakout rooms map
   @Patch('{townID}/{breakoutRoomAreaId}/finishQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -621,7 +621,7 @@ export class TownsController extends Controller {
   }
 
   /**
-   * Removes a player from the first question in the queue they are joined to as a student. 
+   * Removes a player from the first question in the queue they are joined to as a student.
    * Does nothing if they are not apart of any question.
    */
   @Patch('{townID}/{officeHoursAreaId}/removeQuestionForPlayer')
