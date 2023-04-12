@@ -68,7 +68,6 @@ export function QueueViewer({
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
 
-  // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
   const priorities = usePriorities(controller, curPlayerId);
   const isSorted = useIsSorted(controller, curPlayerId);
@@ -103,7 +102,6 @@ export function QueueViewer({
       const p1: number | undefined = priorities.get(x.questionType);
       const p2: number | undefined = priorities.get(y.questionType);
       if (p1 === p2 || !isSorted) {
-        // timeAsked should always exist?
         if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
           return x.timeAsked - y.timeAsked;
         }
@@ -389,7 +387,7 @@ export function QueueViewer({
                 controller.setPriorities(curPlayerId, copy);
                 updateModel();
               } else {
-                priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
+                priorities.set(eachQuestionType, 1);
                 const copy = new Map(priorities);
                 controller.setPriorities(curPlayerId, copy);
                 updateModel();
@@ -544,7 +542,6 @@ export function QueueViewer({
             id='questionContent'
             placeholder='Enter your question here'
             name='questionContent'
-            // value={newQuestion}
             onChange={e => setQuestion(e.target.value)}
           />
           <Select
@@ -623,7 +620,6 @@ export function OfficeHoursViewer({
         controller={officeHoursAreaController}
         isOpen={true}
         close={() => {
-          // setSelectIsOpen(false);
           // forces game to emit "posterSessionArea" event again so that
           // repoening the modal works as expected
           townController.interactEnd(officeHoursArea);
@@ -645,16 +641,3 @@ export default function OfficeHoursViewerWrapper(): JSX.Element {
   }
   return <></>;
 }
-// 1
-// each question that students ask has a property of group question
-// ta: poll manually x number of students with the same question
-// student can be part of a group to make his wait time less, but he might have to be part of a group
-// qustionType
-
-// 2
-// each student is able to create a group question
-// each student is able to join a group question
-// group questions will be in the same queue as indivdiual questions
-// priority of group quesitons is more than individual questions
-//    group size
-//    groupSize * time

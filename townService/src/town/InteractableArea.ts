@@ -146,7 +146,8 @@ export default abstract class InteractableArea {
     return !noOverlap;
   }
 
-  // TODO: don't put any object with hitboxes in the center of the room
+  // TODO: don't put any object with hitboxes in the center of the room or 
+  // ensure this function is overridden
   /**
    * Calculates the center location of the area based on the bounding box
    *

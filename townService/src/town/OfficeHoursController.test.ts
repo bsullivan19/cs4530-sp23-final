@@ -405,7 +405,7 @@ describe('TownsController integration tests for offie hours functions', () => {
                 questionQueue: [q1, q2],
               } as OfficeHoursQueue);
             });
-          }); // TODO
+          });
           describe('takeOfficeHoursQuestions', () => {
             it('Throws an error if invalid town id', async () => {
               await expect(

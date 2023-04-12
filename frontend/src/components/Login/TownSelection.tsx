@@ -118,9 +118,6 @@ export default function TownSelection(): JSX.Element {
       });
       return;
     }
-    // TODO: Fix so that prof joins town as TA with no specified password. Just using
-    // setTaPassword does not work I think because the text box resets it back to blank
-    // before joining.
     let newPassword: string;
     if (taPassword === '') {
       newPassword = nanoid();

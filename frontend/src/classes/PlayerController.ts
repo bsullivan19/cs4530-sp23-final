@@ -50,7 +50,6 @@ export default class PlayerController extends (EventEmitter as new () => TypedEm
   }
 
   teleportSprite(newLocation: PlayerLocation) {
-    // TODO Test to see if this works.
     if (this.gameObjects) {
       const { sprite, label } = this.gameObjects;
       if (!sprite.anims) return;

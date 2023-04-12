@@ -97,17 +97,6 @@ describe('TownsController integration tests', () => {
     it('Prohibits a blank friendlyName', async () => {
       await expect(createTownForTesting('')).rejects.toThrowError();
     });
-    // TODO get spy working. may not be worth it.
-    // it('creates town with correct TA password', async () => {
-    //   const taPW = nanoid();
-    //   const town = await createTownForTesting(undefined, undefined, taPW);
-    //   const player = mockPlayer(town.townID, taPW);
-    //   controller.joinTown(player.socket);
-    //   const towns = await controller.listTowns();
-    //   jest.spyOn(Town, 'addPlayer');
-    //   const createdTown: Town | undefined = towns.find(currTown => town.townID === currTown.townID);
-    //   isTA(player);
-    // });
   });
 
   describe('listTowns', () => {

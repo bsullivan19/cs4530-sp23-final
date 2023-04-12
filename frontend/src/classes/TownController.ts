@@ -10,8 +10,6 @@ import PosterSesssionArea from '../components/Town/interactables/PosterSessionAr
 import { LoginController } from '../contexts/LoginControllerContext';
 import { TAModel, TownsService, TownsServiceClient } from '../generated/client';
 import useTownController from '../hooks/useTownController';
-// import OfficeHoursAreaReal from '../../../src/town/OfficeHoursArea.ts'
-// import OfficeHoursAreaReal from './town/OfficeArea'
 import {
   ChatMessage,
   CoveyTownSocket,
@@ -441,20 +439,12 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
      */
     this._socket.on('playerMoved', movedPlayer => {
       const playerToUpdate = this.players.find(eachPlayer => eachPlayer.id === movedPlayer.id);
-      // Depricated?
-      // TODO check to make sure not moving out of breakout room area
-      // const fromArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
-      // if (fromArea) {
-      //   const toArea = this.breakoutRoomAreas.find(area => area.id === playerToUpdate?.location.interactableID)
-      // }
       if (playerToUpdate) {
         if (playerToUpdate === this._ourPlayer) {
           /*
            * If we are told that WE moved, we shouldn't update our x,y because it's probably lagging behind
            * real time. However: we SHOULD update our interactable ID, because its value is managed by the server
            *
-           * TODO add edge case of teleporting a player to and from a breakout room as this is an intended move
-           * initiated by the server
            */
           playerToUpdate.location.interactableID = movedPlayer.location.interactableID;
         } else {
@@ -474,7 +464,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       if (playerToUpdate) {
         // Force update location
         playerToUpdate.teleportSprite(movedPlayer.location);
-        // this.emit('playerMoved', playerToUpdate);
       }
     });
 
@@ -756,25 +745,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
     });
   }
 
-  // TODO: Add once OfficeHoursArea frontend Interactable is implemented
-  /*
-  public getOfficeHoursAreaController(officeHoursArea: OfficeHoursArea): OfficeHoursAreaController {
-    const existingController = this._officeHoursAreas.find(
-      area => area.id === officeHoursArea.name,
-    );
-    if (existingController) {
-      return existingController;
-    } else {
-      const newController = new OfficeHoursAreaController({
-        id: officeHoursArea.name,
-        officeHoursActive: false,
-        teachingAssistantsByID: [],
-      });
-      this._officeHoursAreas.push(newController);
-      return newController;
-    }
-  }*/
-
   /**
    * Retrieve the viewing area controller that corresponds to a viewingAreaModel, creating one if necessary
    *
@@ -904,38 +874,6 @@ export default class TownController extends (EventEmitter as new () => TypedEmit
       this.sessionToken,
     );
   }
-
-  // /**
-  //  * Take the top question off the queue, if this user is a TA.
-  //  */
-
-  // /**
-  //  * Leave a question in a specified office hours area.
-  //  */
-  // public async leaveOfficeHoursQuestion(
-  //   officeHoursArea: OfficeHoursAreaController,
-  //   questionID: string,
-  // ): Promise<OfficeHoursQuestion> {
-  //   return this._townsService.leaveOfficeHoursQuestion(
-  //     this.townID,
-  //     officeHoursArea.id,
-  //     this.sessionToken,
-  //     questionID,
-  //   );
-  // }
-
-  // /**
-  //  * Get the office hours queue for the specified office hours area.
-  //  */
-  // public async getOfficeHoursQueue(
-  //   officeHoursArea: OfficeHoursAreaController,
-  // ): Promise<OfficeHoursQueue> {
-  //   return this._townsService.getOfficeHoursQueue(
-  //     this.townID,
-  //     officeHoursArea.id,
-  //     this.sessionToken,
-  //   );
-  // }
 
   public async takeOfficeHoursQuestions(
     officeHoursArea: OfficeHoursAreaController,
