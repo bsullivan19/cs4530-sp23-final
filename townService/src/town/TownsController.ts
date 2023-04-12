@@ -373,8 +373,8 @@ export class TownsController extends Controller {
    * Joins an existing group question
    * @param townID ID of the town in which to join a question
    * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-   * @param sessionToken
-   * @param requestBody
+   * @param questionID ID of the question being joined
+   * @param sessionToken session token of the player making the request,
    */
   @Patch('{townID}/{officeHoursAreaId}/{questionID}/joinQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -407,6 +407,15 @@ export class TownsController extends Controller {
     return question.toModel();
   }
 
+  /**
+   * Takes the asked for office hours questions, and teleports the corresponding players
+   * into a breakout room if the session token corresponds to a free TA.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param requestBody the list of questions to take and the time limit of the answer
+   * @param sessionToken session token of the player making the request,
+   * @returns model of the TA taking the question
+   */
   @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async takeOfficeHoursQuestions(
@@ -465,6 +474,15 @@ export class TownsController extends Controller {
     return curPlayer.toModel();
   }
 
+  /**
+   * Updates the office hours area and returns the updated model
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken session token of the player making the request
+   * @returns model of the TA taking the question
+   * @param requestBody the Office Hours area update
+   * @returns the model of the updated office hours area
+   */
   @Patch('{townID}/{officeHoursAreaId}/updateModel')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async getUpdatedOfficeHoursModel(
@@ -489,8 +507,13 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
-  // Closes the breakout room area and updates the connected office hour
-  // area's open breakout rooms map
+  /**
+   * Closes the breakout room area and updates the connected office hour
+   * area's open breakout rooms map
+   * @param townID ID of the town in which to join a question
+   * @param breakoutRoomAreaId the id of the breakout room being closed.
+   * @param sessionToken session token of the player making the request
+   */
   @Patch('{townID}/{breakoutRoomAreaId}/finishQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async closeBreakoutRoomArea(
@@ -530,6 +553,15 @@ export class TownsController extends Controller {
     curTown.closeBreakOutRoom(breakoutRoomAreaId);
   }
 
+  /**
+   * Removes the given office hours question if the session token corresponds to a TA.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param questionID ID of the question being removed
+   * @param sessionToken session token of the player making the request
+   * @returns model of the TA taking the question
+   * @returns the updated model of the office hours area
+   */
   // Removes the question from the office hours area if the player is a TA
   @Patch('{townID}/{officeHoursAreaId}/{questionID}/removeQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -560,6 +592,10 @@ export class TownsController extends Controller {
   /**
    * Removes a player from the first question in the queue they are joined to as a student.
    * Does nothing if they are not apart of any question.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken session token of the player making the request
+   * @returns the updated model of the office hours area
    */
   @Patch('{townID}/{officeHoursAreaId}/removeQuestionForPlayer')
   @Response<InvalidParametersError>(400, 'Invalid values specified')

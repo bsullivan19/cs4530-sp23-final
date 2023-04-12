@@ -132,6 +132,11 @@ export default class Question {
     this._questionType = model.questionType;
   }
 
+  /**
+   * Converts an OfficeHoursQuestion model into a question.
+   * @param model OfficeHoursQuestion model to build the question from.
+   * @returns The new question.
+   */
   public static fromQuestionModel(model: OfficeHoursQuestion): Question {
     const question = new Question(
       model.id,

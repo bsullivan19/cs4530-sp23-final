@@ -12,12 +12,16 @@ import InteractableArea from './InteractableArea';
 import Question from '../lib/Question';
 
 export default class BreakoutRoomArea extends InteractableArea {
+  /* The topic of discussion for this breakout room */
   public _topic: string | undefined;
 
+  /* The TA in this breakout room breakout room */
   public _teachingAssistant: Player | undefined;
 
+  /* The students in this breakout room breakout room */
   public _students: Player[] = [];
 
+  /* The time left to answer the question */
   public _timeLeft: undefined | number = undefined;
 
   public _interval: undefined | NodeJS.Timer = undefined;
@@ -89,6 +93,10 @@ export default class BreakoutRoomArea extends InteractableArea {
     }
   }
 
+  /**
+   * Starts the breakout room timer.
+   * @param startTime the value to start the countdown timer with.
+   */
   public startTimer(startTime: number) {
     this.stopTimer();
     this._timeLeft = startTime;
@@ -103,6 +111,9 @@ export default class BreakoutRoomArea extends InteractableArea {
     }, 1000);
   }
 
+  /**
+   * stops the breakout room timer.
+   */
   public stopTimer() {
     clearInterval(this._interval);
     this._interval = undefined;

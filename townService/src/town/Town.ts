@@ -99,8 +99,10 @@ export default class Town {
 
   private _connectedSockets: Set<CoveyTownSocket> = new Set();
 
+  /** The password to become a TA during login */
   private _taPassword: string;
 
+  /** Set of students currently in breakout rooms */
   private _studentIDsInBreakOutRooms: Set<string> = new Set();
 
   constructor(
@@ -117,6 +119,28 @@ export default class Town {
     this._friendlyName = friendlyName;
     this._broadcastEmitter = broadcastEmitter;
     this._taPassword = taPassword;
+  }
+
+  public isStudentsInBreakOutRooms(studentIDs: string[]) {
+    let ret = false;
+    studentIDs.forEach(id => {
+      if (this._studentIDsInBreakOutRooms.has(id)) {
+        ret = true;
+      }
+    });
+    return ret;
+  }
+
+  public addStudentsToBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.add(id);
+    });
+  }
+
+  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.delete(id);
+    });
   }
 
   /**
@@ -422,28 +446,23 @@ export default class Town {
     return true;
   }
 
-  public isStudentsInBreakOutRooms(studentIDs: string[]) {
-    let ret = false;
-    studentIDs.forEach(id => {
-      if (this._studentIDsInBreakOutRooms.has(id)) {
-        ret = true;
-      }
-    });
-    return ret;
-  }
-
-  public addStudentsToBreakOutRooms(studentIDs: string[]) {
-    studentIDs.forEach(id => {
-      this._studentIDsInBreakOutRooms.add(id);
-    });
-  }
-
-  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
-    studentIDs.forEach(id => {
-      this._studentIDsInBreakOutRooms.delete(id);
-    });
-  }
-
+  /**
+   * Creates a new office hours area in this town if there is not currently an active
+   * office hours area with the same ID. The office hours area ID must match the name of a
+   * office hours area that exists in this town's map, and the office hours area must not
+   * already have an existing tas.
+   *
+   * If successful creating the office hours area, this method:
+   *    Adds any players who are in the region defined by the office hours area to it
+   *    Notifies all players in the town that the office hours area has been updated by
+   *      emitting an interactableUpdate event
+   *
+   * @param officeHoursArea Information describing the OfficeHoursAreaModel to create.
+   *
+   * @returns True if the office hours area was created or false if there is no known
+   * office hours area with the specified ID or if there is already an active office hours area
+   * with the specified ID or if there is no poster image and title specified
+   */
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
     const existingOfficeHoursArea = <OfficeHoursArea>(
       this._interactables.find(
@@ -506,6 +525,8 @@ export default class Town {
    * In the map file, each object is identified with a name. Names must be unique. Each object also has
    * some kind of geometry that establishes where the object is on the map. Objects must not overlap.
    *
+   * Automatically links the connected breakout rooms and office hours areas together.
+   *
    * @param mapFile the map file to read in, defaults to the "indoors" map in the frontend
    * @throws Error if there is no layer named "Objects" in the map, if the objects overlap or if object
    *  names are not unique
@@ -560,6 +581,11 @@ export default class Town {
     this._validateInteractables();
   }
 
+  /**
+   * Teleport a player to a new location
+   * @param player Player to teleport
+   * @param loc Location to teleport the player to
+   */
   public teleportPlayer(player: Player, loc: PlayerLocation) {
     this._updatePlayerLocation(player, loc);
   }

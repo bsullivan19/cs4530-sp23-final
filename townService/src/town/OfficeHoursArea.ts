@@ -114,7 +114,11 @@ export default class OfficeHoursArea extends InteractableArea {
     this._emitAreaChanged();
   }
 
-
+  /**
+   * Adds a player to this area. Extends the original functionality to update corresponding
+   * TA values if a TA is added.
+   * @param player The player being added.
+   */
   public add(player: Player) {
     super.add(player);
     if (isTA(player)) {
@@ -133,7 +137,11 @@ export default class OfficeHoursArea extends InteractableArea {
     this._emitQueueChanged();
   }
 
-  // doesn't remove player from queue if he walks out of area
+  /**
+   * removes a player to this area. Extends the original functionality to update corresponding
+   * TA values if a TA is removed.
+   * @param player The player being removed.
+   */
   public remove(player: Player) {
     this._teachingAssistantsByID = this._teachingAssistantsByID.filter(ta => ta !== player.id);
     super.remove(player);
@@ -160,6 +168,7 @@ export default class OfficeHoursArea extends InteractableArea {
   /**
    * Adds a question queue if it does not exist in the queue,
    * or updates the question if it does exist in the queue.
+   * @param questionModel the OfficeHoursQuestion being added/updated in the queue
    */
   public addUpdateQuestion(questionModel: OfficeHoursQuestion) {
     if (questionModel.officeHoursID !== this.id) {
@@ -180,8 +189,9 @@ export default class OfficeHoursArea extends InteractableArea {
 
   /**
    * Stops an office hours breakout room for the TA. Resets all pertaining fields
-   * in office hours area and breakout room. Throws an error if there are no
-   * more breakout rooms.
+   * in office hours area and breakout room and teleports the players back to the
+   * office hours area. Throws an error if there are no more breakout rooms.
+   * @param ta TA that is ending their office hours.
    */
   public stopOfficeHours(ta: TA) {
     // Add breakout room back as being open
@@ -206,8 +216,11 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
-   * TA is assigned a question and breakout room if both are available, otherwise
+   * TA is takes the questions identified and breakout room if both are available, otherwise
    * throws and error.
+   * @param teachingAssistant TA taking the questions.
+   * @param questionIDs IDs of the questions being taken.
+   * @returns the list of questions that are being taken.
    */
   public takeQuestions(teachingAssistant: TA, questionIDs: string[]): Question[] {
     const breakoutRoomAreaID = this._getOpenBreakoutRoom();
@@ -228,6 +241,7 @@ export default class OfficeHoursArea extends InteractableArea {
     questionIDs.forEach(questionID => {
       const question = this.removeQuestion(teachingAssistant, questionID);
       if (!question) {
+        // not reachable
         throw new Error('Question not available');
       }
       questionsTaken.push(question);
@@ -240,6 +254,8 @@ export default class OfficeHoursArea extends InteractableArea {
 
   /**
    * Removes an existing question from the queue if the player is a TA.
+   * @param teachingAssistant TA removing the question.
+   * @param questionIDs ID of the question being removed.
    */
   public removeQuestion(teachingAssistant: Player, questionID: string): Question | undefined {
     const question = this.getQuestion(questionID);
@@ -251,7 +267,8 @@ export default class OfficeHoursArea extends InteractableArea {
   }
 
   /**
-   * Removes player from an existing question
+   * Removes player from an existing question and removes question if it has no more students.
+   * @param player Player to remove.
    */
   public removeQuestionForPlayer(player: Player) {
     const question = this.getQuestionForPlayer(player.id);
@@ -264,6 +281,10 @@ export default class OfficeHoursArea extends InteractableArea {
     }
   }
 
+  /**
+   * Remove all the player data in this area. Handles both TA and student data.
+   * @param player Player being removed.
+   */
   public removePlayerData(player: Player) {
     this.removeQuestionForPlayer(player);
     this._taInfos = this._taInfos.filter(taInfo => taInfo.taID !== player.id);
@@ -278,7 +299,7 @@ export default class OfficeHoursArea extends InteractableArea {
    * Creates a new OfficeHoursArea object that will represent a OfficeHoursArea object in the town map.
    * @param mapObject An ITiledMapObject that represents a rectangle in which this viewing area exists
    * @param townEmitter An emitter that can be used by this viewing area to broadcast updates to players in the town
-   * @returns
+   * @returns the new OfficeHoursArea
    */
   public static fromMapObject(
     mapObject: ITiledMapObject,
@@ -316,7 +337,7 @@ export default class OfficeHoursArea extends InteractableArea {
     return undefined;
   }
 
-  protected _emitQueueChanged() {
+  private _emitQueueChanged() {
     this._townEmitter.emit('officeHoursQueueUpdate', this.toQueueModel());
   }
 }

@@ -40,18 +40,25 @@ import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import _ from 'lodash';
 
+// Function to check if a value is an integer
 export function isInteger(s: string): boolean {
   for (let i = 0; i < s.length; i++) {
     if (s[i] < '0' || s[i] > '9') return false;
   }
   return true;
 }
+// Conversion for milliseconds to minutes
 export function convertMilliToMin(x: number): number {
   return x / 1000 / 60;
 }
+// Conversion for milliseconds to minutes
 export function convertMinToMilli(x: number): number {
   return x * 1000 * 60;
 }
+
+/**
+ * Function to display the office hours queue for both a student and TA
+ */
 export function QueueViewer({
   controller,
   isOpen,
@@ -117,6 +124,7 @@ export function QueueViewer({
     [priorities, isSorted],
   );
 
+  // callback function to add a question to the queue
   const addQuestion = useCallback(async () => {
     if (controller.questionsAsked(curPlayerId) !== 0) {
       toast({
@@ -167,6 +175,7 @@ export function QueueViewer({
     }
   }, [questionType, controller, curPlayerId, newQuestion, groupQuestion, toast, townController]);
 
+  // callback function to take the next question
   const nextQuestion = useCallback(async () => {
     try {
       const questionId = controller.questionQueue.shift()?.id;
@@ -199,6 +208,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close]);
 
+  // callback function to take the next selected questions.
   const nextSelectedQuestions = useCallback(async () => {
     try {
       const taModel = await townController.takeOfficeHoursQuestions(controller, selectedQuestions);
@@ -226,6 +236,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close, selectedQuestions]);
 
+  // callback function to update the office hours area in the backend
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
@@ -239,6 +250,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast]);
 
+  // callback function to kick a question from the queue
   const kickQuestion = useCallback(
     async (question: OfficeHoursQuestion) => {
       try {
@@ -254,6 +266,7 @@ export function QueueViewer({
     [controller, toast, townController],
   );
 
+  // callback function to remove a player from a question
   const removeQuestionForPlayer = useCallback(async () => {
     try {
       await townController.removeOfficeHoursQuestionForPlayer(controller);
@@ -266,6 +279,7 @@ export function QueueViewer({
     }
   }, [controller, toast, townController]);
 
+  // callback function to join a question
   const joinQuestion = useCallback(
     async (questionId: string) => {
       try {
@@ -286,6 +300,7 @@ export function QueueViewer({
     [townController, controller, toast],
   );
 
+  // function to display the row view for a question in the table for both TAs and students.
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
@@ -345,6 +360,8 @@ export function QueueViewer({
       );
     }
   }
+
+  // Function display the questions in the queue for both students and TAs, in a table.
   function QuestionsViewer() {
     return (
       <TableContainer>
@@ -371,6 +388,7 @@ export function QueueViewer({
       </TableContainer>
     );
   }
+  // Function to display the available question types to TAs
   function QuestionTypeViewer({ eachQuestionType }: { eachQuestionType: string }) {
     return (
       <Tr>
@@ -420,6 +438,7 @@ export function QueueViewer({
       </Tr>
     );
   }
+  // Function to display the available question types to students
   function QuestionTypesViewer() {
     return (
       <TableContainer>
@@ -441,6 +460,7 @@ export function QueueViewer({
       </TableContainer>
     );
   }
+  // The overall modal view that the TA sees
   const taView = (
     <ModalBody pb={6}>
       <>{QuestionsViewer()}</>
@@ -528,6 +548,7 @@ export function QueueViewer({
       </ModalFooter>
     </ModalBody>
   );
+  // The overall modal view that the student sees
   const studentView = (
     <form
       onSubmit={ev => {

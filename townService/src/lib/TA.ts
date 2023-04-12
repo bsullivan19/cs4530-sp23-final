@@ -16,7 +16,7 @@ export default class TA extends Player {
   // The current question this TA is answering
   private _currrentQuestions: Question[];
 
-  // Location of this TAs breakout room
+  // ID of this TAs current breakout room
   private _breakoutRoomID?: string;
 
   // ID of the office hours interactable this TA is apart of
@@ -52,6 +52,10 @@ export default class TA extends Player {
     this._currrentQuestions = [];
   }
 
+  /**
+   * Converts this TA to a TAModel.
+   * @returns the new TAModel.
+   */
   toModel(): TAModel {
     return {
       id: this._id,
