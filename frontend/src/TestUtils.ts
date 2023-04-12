@@ -147,11 +147,6 @@ export function mockTownController({
   }
   if (officeHoursAreas) {
     Object.defineProperty(mockedController, 'officeHoursAreas', { value: officeHoursAreas });
-    mockedController.getOfficeHoursQueue.mockImplementation(
-      async (officeHoursArea: OfficeHoursAreaController) => {
-        return { officeHoursID: officeHoursArea.id, questionQueue: officeHoursArea.questionQueue };
-      },
-    );
   }
   return mockedController;
 }
