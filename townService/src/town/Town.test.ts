@@ -18,7 +18,9 @@ import {
   Interactable,
   PlayerLocation,
   TownEmitter,
+  OfficeHoursArea as OfficeHoursModel,
   ViewingArea as ViewingAreaModel,
+  BreakoutRoomArea as BreakoutRoomAreaModel,
 } from '../types/CoveyTownSocket';
 import ConversationArea from './ConversationArea';
 import Town from './Town';
@@ -971,7 +973,79 @@ describe('Town', () => {
       });
     });
   });
-  // TODO addOfficeHoursArea testing
+  describe('[T1] addOfficeHoursArea', () => {
+    let ta1: MockedPlayer;
+    let ta1Obj: Player;
+    beforeEach(async () => {
+      town.initializeFromMap(testingMaps.twoOhThreeBr);
+      ta1 = mockPlayer(town.townID);
+      ta1Obj = await town.addPlayer(ta1.userName, ta1.socket, townTaPassword);
+    });
+    it('Should return false if no area exists with that ID', () => {
+      expect(
+        town.addOfficeHoursArea({
+          id: nanoid(),
+          officeHoursActive: false,
+          teachingAssistantsByID: [player.id],
+          questionTypes: ['Other'],
+          taInfos: [{ isSorted: false, priorities: [], taID: ta1Obj.id }],
+        } as OfficeHoursModel),
+      ).toBe(false);
+    });
+    it('Should return false if the area is already active', () => {
+      expect(
+        town.addOfficeHoursArea({
+          id: 'oh1',
+          officeHoursActive: false,
+          teachingAssistantsByID: [player.id],
+          questionTypes: ['Other'],
+          taInfos: [{ isSorted: false, priorities: [], taID: ta1Obj.id }],
+        } as OfficeHoursModel),
+      ).toBe(true);
+      expect(
+        town.addOfficeHoursArea({
+          id: 'oh1',
+          officeHoursActive: false,
+          teachingAssistantsByID: [player.id],
+          questionTypes: ['Other'],
+          taInfos: [{ isSorted: false, priorities: [], taID: ta1Obj.id }],
+        } as OfficeHoursModel),
+      ).toBe(false);
+    });
+
+    it('When successful should update the model for that area', () => {
+      const newModel: OfficeHoursModel = {
+        id: 'oh1',
+        officeHoursActive: true,
+        teachingAssistantsByID: [player.id],
+        questionTypes: ['Other'],
+        taInfos: [{ isSorted: false, priorities: [], taID: ta1Obj.id }],
+        timeLimit: undefined,
+      };
+      expect(town.addOfficeHoursArea(newModel)).toBe(true);
+      const viewingArea = town.getInteractable('oh1');
+      expect(viewingArea.toModel()).toEqual(newModel);
+      const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
+      expect(lastEmittedUpdate).toEqual(newModel);
+    });
+  });
+
+    it('When successful should update the model for that area', () => {
+      const newModel: OfficeHoursModel = {
+        id: 'oh1',
+        officeHoursActive: true,
+        teachingAssistantsByID: [player.id],
+        questionTypes: ['Other'],
+        taInfos: [{ isSorted: false, priorities: [], taID: ta1Obj.id }],
+        timeLimit: undefined,
+      };
+      expect(town.addOfficeHoursArea(newModel)).toBe(true);
+      const viewingArea = town.getInteractable('oh1');
+      expect(viewingArea.toModel()).toEqual(newModel);
+      const lastEmittedUpdate = getLastEmittedEvent(townEmitter, 'interactableUpdate');
+      expect(lastEmittedUpdate).toEqual(newModel);
+    });
+  });
 
   describe('disconnectAllPlayers', () => {
     beforeEach(() => {
