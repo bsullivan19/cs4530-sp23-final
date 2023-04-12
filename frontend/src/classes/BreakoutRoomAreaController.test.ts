@@ -98,4 +98,28 @@ describe('[T2] BreakoutRoomAreaController', () => {
       });
     });
   });
+
+  describe('setting the students property', () => {
+    it('updates the property but does not emit the breakoutRoomStudentsChange event when the new students are the same set as the old', () => {
+      const studentsCopy = testArea.students.concat([]);
+      const shuffledStudents = studentsCopy.reverse();
+      testArea.students = shuffledStudents;
+      expect(testArea.students).toEqual(shuffledStudents);
+      expect(mockListeners.breakoutRoomStudentsChange).not.toBeCalled();
+    });
+    it('emits the breakoutRoomStudentsChange event when setting the property and updates the model', () => {
+      const newStudents = testArea.students.slice(1);
+      testArea.students = newStudents;
+      expect(testArea.students).toEqual(newStudents);
+      expect(mockListeners.breakoutRoomStudentsChange).toBeCalledWith(newStudents);
+      expect(testArea.toModel()).toEqual({
+        id: testArea.id,
+        topic: testArea.topic,
+        teachingAssistantID: testArea.teachingAssistant?.id,
+        studentsByID: testArea.students.map(eachStudent => eachStudent.id),
+        linkedOfficeHoursID: testArea.officeHoursAreaID,
+        timeLeft: testArea.timeLeft,
+      });
+    });
+  });
 });
