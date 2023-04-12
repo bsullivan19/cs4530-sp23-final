@@ -304,7 +304,10 @@ export function QueueViewer({
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
-    const usernames = players.map(p => p.userName.concat(' '));
+    let usernames: string[] = [];
+    if (players && players.length) {
+      usernames = players.map(p => p.userName.concat(' '));
+    }
     if (!teachingAssistantsByID.includes(curPlayerId)) {
       return (
         <Tr>
