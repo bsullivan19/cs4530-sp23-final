@@ -40,18 +40,25 @@ import OfficeHoursAreaInteractable from './OfficeHoursArea';
 import { OfficeHoursQuestion } from '../../../types/CoveyTownSocket';
 import _ from 'lodash';
 
+// Function to check if a value is an integer
 export function isInteger(s: string): boolean {
   for (let i = 0; i < s.length; i++) {
     if (s[i] < '0' || s[i] > '9') return false;
   }
   return true;
 }
+// Conversion for milliseconds to minutes
 export function convertMilliToMin(x: number): number {
   return x / 1000 / 60;
 }
+// Conversion for milliseconds to minutes
 export function convertMinToMilli(x: number): number {
   return x * 1000 * 60;
 }
+
+/**
+ * Function to display the office hours queue for both a student and TA
+ */
 export function QueueViewer({
   controller,
   isOpen,
@@ -68,7 +75,6 @@ export function QueueViewer({
   const [newQuestion, setQuestion] = useState<string>('');
   const [groupQuestion, setGroupQuestion] = useState<boolean>(false);
 
-  // const [flag, setFlag] = useState(false);
   const questionTypes = useQuestionTypes(controller);
   const priorities = usePriorities(controller, curPlayerId);
   const isSorted = useIsSorted(controller, curPlayerId);
@@ -103,7 +109,6 @@ export function QueueViewer({
       const p1: number | undefined = priorities.get(x.questionType);
       const p2: number | undefined = priorities.get(y.questionType);
       if (p1 === p2 || !isSorted) {
-        // timeAsked should always exist?
         if (x.timeAsked !== undefined && y.timeAsked !== undefined) {
           return x.timeAsked - y.timeAsked;
         }
@@ -119,6 +124,7 @@ export function QueueViewer({
     [priorities, isSorted],
   );
 
+  // callback function to add a question to the queue
   const addQuestion = useCallback(async () => {
     if (controller.questionsAsked(curPlayerId) !== 0) {
       toast({
@@ -169,6 +175,7 @@ export function QueueViewer({
     }
   }, [questionType, controller, curPlayerId, newQuestion, groupQuestion, toast, townController]);
 
+  // callback function to take the next question
   const nextQuestion = useCallback(async () => {
     try {
       const questionId = controller.questionQueue.shift()?.id;
@@ -201,6 +208,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close]);
 
+  // callback function to take the next selected questions.
   const nextSelectedQuestions = useCallback(async () => {
     try {
       const taModel = await townController.takeOfficeHoursQuestions(controller, selectedQuestions);
@@ -228,6 +236,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast, close, selectedQuestions]);
 
+  // callback function to update the office hours area in the backend
   const updateModel = useCallback(async () => {
     try {
       const model = controller.officeHoursAreaModel();
@@ -241,6 +250,7 @@ export function QueueViewer({
     }
   }, [controller, townController, toast]);
 
+  // callback function to kick a question from the queue
   const kickQuestion = useCallback(
     async (question: OfficeHoursQuestion) => {
       try {
@@ -256,6 +266,7 @@ export function QueueViewer({
     [controller, toast, townController],
   );
 
+  // callback function to remove a player from a question
   const removeQuestionForPlayer = useCallback(async () => {
     try {
       await townController.removeOfficeHoursQuestionForPlayer(controller);
@@ -268,6 +279,7 @@ export function QueueViewer({
     }
   }, [controller, toast, townController]);
 
+  // callback function to join a question
   const joinQuestion = useCallback(
     async (questionId: string) => {
       try {
@@ -288,6 +300,7 @@ export function QueueViewer({
     [townController, controller, toast],
   );
 
+  // function to display the row view for a question in the table for both TAs and students.
   function RowView({ question }: { question: OfficeHoursQuestion }) {
     const allPlayers = townController.players;
     const players = allPlayers.filter(p => question.students.includes(p.id));
@@ -347,6 +360,8 @@ export function QueueViewer({
       );
     }
   }
+
+  // Function display the questions in the queue for both students and TAs, in a table.
   function QuestionsViewer() {
     return (
       <TableContainer>
@@ -373,6 +388,7 @@ export function QueueViewer({
       </TableContainer>
     );
   }
+  // Function to display the available question types to TAs
   function QuestionTypeViewer({ eachQuestionType }: { eachQuestionType: string }) {
     return (
       <Tr>
@@ -389,7 +405,7 @@ export function QueueViewer({
                 controller.setPriorities(curPlayerId, copy);
                 updateModel();
               } else {
-                priorities.set(eachQuestionType, 1); // Maybe assign different priorities later
+                priorities.set(eachQuestionType, 1);
                 const copy = new Map(priorities);
                 controller.setPriorities(curPlayerId, copy);
                 updateModel();
@@ -422,6 +438,7 @@ export function QueueViewer({
       </Tr>
     );
   }
+  // Function to display the available question types to students
   function QuestionTypesViewer() {
     return (
       <TableContainer>
@@ -443,6 +460,7 @@ export function QueueViewer({
       </TableContainer>
     );
   }
+  // The overall modal view that the TA sees
   const taView = (
     <ModalBody pb={6}>
       <>{QuestionsViewer()}</>
@@ -530,6 +548,7 @@ export function QueueViewer({
       </ModalFooter>
     </ModalBody>
   );
+  // The overall modal view that the student sees
   const studentView = (
     <form
       onSubmit={ev => {
@@ -544,7 +563,6 @@ export function QueueViewer({
             id='questionContent'
             placeholder='Enter your question here'
             name='questionContent'
-            // value={newQuestion}
             onChange={e => setQuestion(e.target.value)}
           />
           <Select
@@ -623,7 +641,6 @@ export function OfficeHoursViewer({
         controller={officeHoursAreaController}
         isOpen={true}
         close={() => {
-          // setSelectIsOpen(false);
           // forces game to emit "posterSessionArea" event again so that
           // repoening the modal works as expected
           townController.interactEnd(officeHoursArea);
@@ -645,16 +662,3 @@ export default function OfficeHoursViewerWrapper(): JSX.Element {
   }
   return <></>;
 }
-// 1
-// each question that students ask has a property of group question
-// ta: poll manually x number of students with the same question
-// student can be part of a group to make his wait time less, but he might have to be part of a group
-// qustionType
-
-// 2
-// each student is able to create a group question
-// each student is able to join a group question
-// group questions will be in the same queue as indivdiual questions
-// priority of group quesitons is more than individual questions
-//    group size
-//    groupSize * time

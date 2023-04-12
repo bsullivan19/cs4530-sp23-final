@@ -356,10 +356,6 @@ export class TownsController extends Controller {
     if (curTown.isStudentsInBreakOutRooms([curPlayer.id])) {
       throw new InvalidParametersError('Student cannot add question when he is in breakout roomt');
     }
-    // if (!officeHoursArea.officeHoursActive) {
-    //   throw new InvalidParametersError('Cant add a question when no TAs online');
-    // }
-    // TODO: Check how many questions this student has asked. Limit to 1 for now.
     const newQuestion: OfficeHoursQuestion = {
       id: nanoid(),
       officeHoursID: officeHoursAreaId,
@@ -377,8 +373,8 @@ export class TownsController extends Controller {
    * Joins an existing group question
    * @param townID ID of the town in which to join a question
    * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-   * @param sessionToken
-   * @param requestBody
+   * @param questionID ID of the question being joined
+   * @param sessionToken session token of the player making the request,
    */
   @Patch('{townID}/{officeHoursAreaId}/{questionID}/joinQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -411,70 +407,15 @@ export class TownsController extends Controller {
     return question.toModel();
   }
 
-  // /**
-  //  * Joins an existing group question
-  //  * @param townID ID of the town in which to join a question
-  //  * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
-  //  * @param sessionToken
-  //  * @param requestBody
-  //  */
-  // @Patch('{townID}/{officeHoursAreaId}/leaveQuestion')
-  // @Response<InvalidParametersError>(400, 'Invalid values specified')
-  // public async leaveOfficeHoursQuestion(
-  //   @Path() townID: string,
-  //   @Path() officeHoursAreaId: string,
-  //   @Header('X-Session-Token') sessionToken: string,
-  //   @Body() officeHoursQuestionId: string,
-  // ): Promise<OfficeHoursQuestion> {
-  //   const curTown = this._townsStore.getTownByID(townID);
-  //   if (!curTown) {
-  //     throw new InvalidParametersError('Invalid town ID');
-  //   }
-  //   const player = curTown.getPlayerBySessionToken(sessionToken);
-  //   if (!player) {
-  //     throw new InvalidParametersError('Invalid session ID');
-  //   }
-  //   const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
-  //   if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
-  //     throw new InvalidParametersError('Invalid office hours area ID');
-  //   }
-  //   if (!officeHoursArea.isActive) {
-  //     throw new InvalidParametersError('Cant join a question when no TAs online');
-  //   }
-  //   const question = (<OfficeHoursAreaReal>officeHoursArea).questionQueue.find(
-  //     q => q.id === officeHoursQuestionId,
-  //   );
-  //   if (!question) {
-  //     throw new InvalidParametersError('Invalid office hours question ID');
-  //   }
-  //   question.removeStudent(player);
-  //   (<OfficeHoursAreaReal>officeHoursArea).addUpdateQuestion(question.toModel());
-  //   return question.toModel();
-  // }
-
-  // @Patch('{townID}/{officeHoursAreaId}/queue')
-  // @Response<InvalidParametersError>(400, 'Invalid values specified')
-  // public async getOfficeHoursQueue(
-  //   @Path() townID: string,
-  //   @Path() officeHoursAreaId: string,
-  //   @Header('X-Session-Token') sessionToken: string,
-  // ): Promise<OfficeHoursQueue> {
-  //   const curTown = this._townsStore.getTownByID(townID);
-  //   if (!curTown) {
-  //     throw new InvalidParametersError('Invalid town ID');
-  //   }
-  //   const player = curTown.getPlayerBySessionToken(sessionToken);
-  //   if (!player) {
-  //     throw new InvalidParametersError('Invalid session ID');
-  //   }
-  //   const officeHoursArea = curTown.getInteractable(officeHoursAreaId);
-  //   if (!officeHoursArea || !isOfficeHoursArea(officeHoursArea)) {
-  //     throw new InvalidParametersError('Invalid office hours area ID');
-  //   }
-  //   const officeHoursAreaReal = <OfficeHoursAreaReal>officeHoursArea;
-  //   return officeHoursAreaReal.toQueueModel();
-  // }
-
+  /**
+   * Takes the asked for office hours questions, and teleports the corresponding players
+   * into a breakout room if the session token corresponds to a free TA.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param requestBody the list of questions to take and the time limit of the answer
+   * @param sessionToken session token of the player making the request,
+   * @returns model of the TA taking the question
+   */
   @Patch('{townID}/{officeHoursAreaId}/takeQuestions')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async takeOfficeHoursQuestions(
@@ -533,6 +474,15 @@ export class TownsController extends Controller {
     return curPlayer.toModel();
   }
 
+  /**
+   * Updates the office hours area and returns the updated model
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken session token of the player making the request
+   * @returns model of the TA taking the question
+   * @param requestBody the Office Hours area update
+   * @returns the model of the updated office hours area
+   */
   @Patch('{townID}/{officeHoursAreaId}/updateModel')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async getUpdatedOfficeHoursModel(
@@ -557,8 +507,13 @@ export class TownsController extends Controller {
     return (<OfficeHoursAreaReal>officeHoursArea).toModel();
   }
 
-  // Closes the breakout room area and updates the connected office hour
-  // area's open breakout rooms map
+  /**
+   * Closes the breakout room area and updates the connected office hour
+   * area's open breakout rooms map
+   * @param townID ID of the town in which to join a question
+   * @param breakoutRoomAreaId the id of the breakout room being closed.
+   * @param sessionToken session token of the player making the request
+   */
   @Patch('{townID}/{breakoutRoomAreaId}/finishQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
   public async closeBreakoutRoomArea(
@@ -580,7 +535,6 @@ export class TownsController extends Controller {
     if (!breakoutRoomArea || !isBreakoutRoomArea(breakoutRoomArea)) {
       throw new InvalidParametersError('Invalid breakout room area ID');
     }
-    // const breakOutRoomAreaReal = <OfficeHoursAreaReal>breakoutRoomArea;
 
     const officeHoursID = (<BreakoutRoomAreaReal>(<unknown>breakoutRoomArea)).linkedOfficeHoursID;
     const officeHoursArea = curTown.getInteractable(officeHoursID);
@@ -595,11 +549,19 @@ export class TownsController extends Controller {
 
     const location = officeHoursAreaReal.areasCenter();
     curTown.teleportPlayer(curPlayer, location);
-    // TODO: move this out of REST api!!!!
     officeHoursAreaReal.stopOfficeHours(curPlayer);
     curTown.closeBreakOutRoom(breakoutRoomAreaId);
   }
 
+  /**
+   * Removes the given office hours question if the session token corresponds to a TA.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param questionID ID of the question being removed
+   * @param sessionToken session token of the player making the request
+   * @returns model of the TA taking the question
+   * @returns the updated model of the office hours area
+   */
   // Removes the question from the office hours area if the player is a TA
   @Patch('{townID}/{officeHoursAreaId}/{questionID}/removeQuestion')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -630,6 +592,10 @@ export class TownsController extends Controller {
   /**
    * Removes a player from the first question in the queue they are joined to as a student.
    * Does nothing if they are not apart of any question.
+   * @param townID ID of the town in which to join a question
+   * @param officeHoursAreaId ID of the OfficeHoursArea the question belongs to
+   * @param sessionToken session token of the player making the request
+   * @returns the updated model of the office hours area
    */
   @Patch('{townID}/{officeHoursAreaId}/removeQuestionForPlayer')
   @Response<InvalidParametersError>(400, 'Invalid values specified')
@@ -666,7 +632,6 @@ export class TownsController extends Controller {
     const { userName, townID, taPassword } = socket.handshake.auth as {
       userName: string;
       townID: string;
-      // TODO implement password enter on the frontend
       taPassword: string;
     };
 
@@ -684,11 +649,6 @@ export class TownsController extends Controller {
     try {
       newPlayer = await town.addPlayer(userName, socket, taPassword);
     } catch (e) {
-      if (e instanceof InvalidTAPasswordError) {
-        // TODO Toast that ta password is invalid
-      } else {
-        // TODO Toast that a BAD error occurrd
-      }
       // return if error
       return;
     }

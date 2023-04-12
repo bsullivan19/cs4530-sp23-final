@@ -51,7 +51,6 @@ describe('OfficeHoursArea', () => {
     newPlayer = new TA(nanoid(), mock<TownEmitter>());
     newStudent = new Player(nanoid(), mock<TownEmitter>());
     testArea.add(newPlayer);
-    // testArea2.add(newPlayer);
   });
 
   it('addBreakoutRoom adds rooms to the map correctly', () => {
@@ -157,7 +156,6 @@ describe('OfficeHoursArea', () => {
       const lastEmittedMovement = getLastEmittedEvent(townEmitter, 'playerMoved');
       expect(lastEmittedMovement.location.interactableID).toBeUndefined();
     });
-    // Room emitter issue?
     it('Does not clear the question queue if all players leave', () => {
       const q1: OfficeHoursQuestion = {
         id: nanoid(),
@@ -483,7 +481,6 @@ describe('OfficeHoursArea', () => {
           q2.questionType,
           q2.timeAsked,
         );
-        // console.log(q2Updated.questionType);
         expect(testArea.getQuestion(q2.id)).toEqual(q2Updated);
         expect(testArea.getQuestion(q2.id)?.studentsByID).toEqual([newStudent.id]);
         expect(testArea.questionQueue.length).toEqual(3);
@@ -528,7 +525,6 @@ describe('OfficeHoursArea', () => {
           q2.questionType,
           q2.timeAsked,
         );
-        // console.log(q2Updated.questionType);
         expect(testArea.getQuestion(q2.id)).toEqual(q2Updated);
         expect(testArea.getQuestion(q2.id)?.studentsByID).toEqual([newStudent.id]);
         expect(testArea.questionQueue.length).toEqual(3);

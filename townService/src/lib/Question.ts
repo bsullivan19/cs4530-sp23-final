@@ -1,4 +1,3 @@
-// import { nanoid } from 'nanoid';
 import Player from './Player';
 import { OfficeHoursQuestion } from '../types/CoveyTownSocket';
 
@@ -16,7 +15,6 @@ export default class Question {
   private readonly _questionContent: string;
 
   /* The current set of players in this question. */
-  // this is actually always 1. TODO change this to non array
   private _studentsByID: string[] = [];
 
   /* Is this question a group question */
@@ -134,6 +132,11 @@ export default class Question {
     this._questionType = model.questionType;
   }
 
+  /**
+   * Converts an OfficeHoursQuestion model into a question.
+   * @param model OfficeHoursQuestion model to build the question from.
+   * @returns The new question.
+   */
   public static fromQuestionModel(model: OfficeHoursQuestion): Question {
     const question = new Question(
       model.id,

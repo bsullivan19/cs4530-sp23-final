@@ -99,8 +99,10 @@ export default class Town {
 
   private _connectedSockets: Set<CoveyTownSocket> = new Set();
 
+  /** The password to become a TA during login */
   private _taPassword: string;
 
+  /** Set of students currently in breakout rooms */
   private _studentIDsInBreakOutRooms: Set<string> = new Set();
 
   constructor(
@@ -119,6 +121,28 @@ export default class Town {
     this._taPassword = taPassword;
   }
 
+  public isStudentsInBreakOutRooms(studentIDs: string[]) {
+    let ret = false;
+    studentIDs.forEach(id => {
+      if (this._studentIDsInBreakOutRooms.has(id)) {
+        ret = true;
+      }
+    });
+    return ret;
+  }
+
+  public addStudentsToBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.add(id);
+    });
+  }
+
+  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
+    studentIDs.forEach(id => {
+      this._studentIDsInBreakOutRooms.delete(id);
+    });
+  }
+
   /**
    * Adds a player to this Covey Town, provisioning the necessary credentials for the
    * player, and returning them. If a ta password is given it will be verified and an error
@@ -132,98 +156,8 @@ export default class Town {
     enteredTAPassword: string,
   ): Promise<Player> {
     let newPlayer: Player;
-    // Check if password entered and verify if it is correct
     if (enteredTAPassword && enteredTAPassword === this._taPassword) {
-      // if (enteredTAPassword !== this._taPassword) {
-      //   throw new InvalidTAPasswordError('Incorrect ta password entered');
-      // }
-      // create user as TA instead of Player
       newPlayer = new TA('TA: '.concat(userName), socket.to(this._townID));
-
-      /**
-       * Sets up a listener for when a TA accepts question to teleport players into
-       * the breakout room.
-       */
-      /*
-      socket.on('taTakeQuestion', (ta: TAModel) => {
-        // TODO: we might change this to REST call after this merge
-        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
-        if (!taPlayer) {
-          throw new Error('Not a TA');
-        }
-        const officeHoursArea = this._interactables.find(
-          area => area.id === taPlayer.location.interactableID,
-        ) as OfficeHoursArea;
-        if (!officeHoursArea) {
-          throw new Error('TA not in an office hours area');
-        }
-        // Ends early if no available office hours area or question
-        let questionObj;
-        try {
-          questionObj = officeHoursArea.takeQuestion(taPlayer);
-        } catch (err) {
-          return;
-        }
-
-        // Teleport TA and players to breakout room
-        const breakoutRoomArea = this._interactables.find(
-          area => area.id === taPlayer.breakoutRoomID,
-        ) as BreakoutRoomArea;
-        if (!breakoutRoomArea) {
-          throw new Error('No breakout room set to TA');
-        }
-        const teleportLocation: PlayerLocation = breakoutRoomArea.areasCenter();
-        // TODO change teleport player to announcing players question taken and allow them
-        // to teleport themselves.
-        this._teleportPlayer(taPlayer, teleportLocation);
-
-        // teleport each student in question to breakout room
-        questionObj.studentsByID.forEach(studentID => {
-          const playerInQuestion = this.players.find(player => player.id === studentID);
-          if (playerInQuestion) {
-            this._teleportPlayer(playerInQuestion, teleportLocation);
-          }
-        });
-        breakoutRoomArea.topic = questionObj.questionContent;
-      });
-      */
-
-      /**
-       * Sets up a listener for when a TA completes a question to teleport all players
-       * in the breakout room back to the linked office hours area
-       */
-      /*
-      socket.on('taQuestionCompleted', (ta: TAModel) => {
-        const taPlayer = this.players.find(player => player.id === ta.id) as TA;
-        if (!taPlayer) {
-          throw new Error('Not a TA');
-        }
-        const breakoutRoomArea = this._interactables.find(
-          area => area.id === taPlayer.location.interactableID,
-        ) as BreakoutRoomArea;
-        if (!breakoutRoomArea) {
-          throw new Error('TA not in an breakout area');
-        }
-        const officeHoursArea = this._interactables.find(
-          area => area.id === breakoutRoomArea.linkedOfficeHoursID,
-        ) as OfficeHoursArea;
-        if (!officeHoursArea) {
-          throw new Error('Not linked to an office hours area');
-        }
-
-        // updates office hours area and TA info that question is answered
-        const officeHoursLoc: PlayerLocation = officeHoursArea.stopOfficeHours(taPlayer);
-
-        // TODO low priority make more efficient
-        // teleport everyone in breakout room back to office hours area's
-        breakoutRoomArea.occupantsByID.forEach(playerID => {
-          const playerInBreakoutRoom = this.players.find(player => player.id === playerID);
-          if (playerInBreakoutRoom) {
-            this._teleportPlayer(playerInBreakoutRoom, officeHoursLoc);
-          }
-        });
-      });
-      */
     } else {
       newPlayer = new Player(userName, socket.to(this._townID));
     }
@@ -343,7 +277,6 @@ export default class Town {
         prevInteractable.remove(player);
       }
 
-      // TODO review. previous change to this broke tests. Why was the isActive check removed?
       const newInteractable = this._interactables.find(
         eachArea => eachArea.isActive && eachArea.contains(location),
       );
@@ -513,33 +446,24 @@ export default class Town {
     return true;
   }
 
-  public isStudentsInBreakOutRooms(studentIDs: string[]) {
-    let ret = false;
-    studentIDs.forEach(id => {
-      if (this._studentIDsInBreakOutRooms.has(id)) {
-        ret = true;
-      }
-    });
-    return ret;
-  }
-
-  public addStudentsToBreakOutRooms(studentIDs: string[]) {
-    studentIDs.forEach(id => {
-      this._studentIDsInBreakOutRooms.add(id);
-    });
-  }
-
-  public removeStudentsFromBreakOutRooms(studentIDs: string[]) {
-    studentIDs.forEach(id => {
-      this._studentIDsInBreakOutRooms.delete(id);
-    });
-  }
-
+  /**
+   * Creates a new office hours area in this town if there is not currently an active
+   * office hours area with the same ID. The office hours area ID must match the name of a
+   * office hours area that exists in this town's map, and the office hours area must not
+   * already have an existing tas.
+   *
+   * If successful creating the office hours area, this method:
+   *    Adds any players who are in the region defined by the office hours area to it
+   *    Notifies all players in the town that the office hours area has been updated by
+   *      emitting an interactableUpdate event
+   *
+   * @param officeHoursArea Information describing the OfficeHoursAreaModel to create.
+   *
+   * @returns True if the office hours area was created or false if there is no known
+   * office hours area with the specified ID or if there is already an active office hours area
+   * with the specified ID or if there is no poster image and title specified
+   */
   public addOfficeHoursArea(officeHoursArea: OfficeHoursAreaModel): boolean {
-    // TODO fix check
-    // if (!officeHoursArea.isActive) {
-    //   return false;
-    // }
     const existingOfficeHoursArea = <OfficeHoursArea>(
       this._interactables.find(
         area => area.id === officeHoursArea.id && area instanceof OfficeHoursArea,
@@ -601,6 +525,8 @@ export default class Town {
    * In the map file, each object is identified with a name. Names must be unique. Each object also has
    * some kind of geometry that establishes where the object is on the map. Objects must not overlap.
    *
+   * Automatically links the connected breakout rooms and office hours areas together.
+   *
    * @param mapFile the map file to read in, defaults to the "indoors" map in the frontend
    * @throws Error if there is no layer named "Objects" in the map, if the objects overlap or if object
    *  names are not unique
@@ -655,6 +581,11 @@ export default class Town {
     this._validateInteractables();
   }
 
+  /**
+   * Teleport a player to a new location
+   * @param player Player to teleport
+   * @param loc Location to teleport the player to
+   */
   public teleportPlayer(player: Player, loc: PlayerLocation) {
     this._updatePlayerLocation(player, loc);
   }
